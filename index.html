@@ -361,7 +361,8 @@
 
     document.body.classList.add("loading");
 
-    const url = `/portal?path=portal&t=${encodeURIComponent(token)}`;
+   const url = `/api/portal?path=portal&t=${encodeURIComponent(token)}`;
+
 
     try{
       const res = await fetch(url, { method:"GET", cache:"no-store" });
