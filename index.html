@@ -1,0 +1,406 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Spruce Owner Portal</title>
+  <meta name="robots" content="noindex,nofollow" />
+  <style>
+    :root{
+      --bg:#f7edea;
+      --bg2:#f7edea;
+      --card:#ffffff;
+      --border:rgba(15,65,61,.15);
+      --text:#1f2933;
+      --muted:#6b7280;
+      --accent:#0f413d;
+      --accent2:#145a54;
+      --warn:#b45309;
+      --danger:#b91c1c;
+      --shadow: 0 18px 45px rgba(0,0,0,.08);
+      --radius:18px;
+    }
+
+    *{box-sizing:border-box}
+
+    body{
+      margin:0;
+      min-height:100vh;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+      color:var(--text);
+      background:
+        radial-gradient(900px 500px at 15% 10%, rgba(15,65,61,.10), transparent 60%),
+        radial-gradient(700px 400px at 85% 0%, rgba(20,90,84,.12), transparent 55%),
+        linear-gradient(180deg, #f6efe6, #f2e7dc);
+    }
+
+    .wrap{max-width:1100px;margin:0 auto;padding:26px 16px 60px;}
+    .top{
+      display:flex; gap:14px; align-items:center; justify-content:space-between;
+      margin-bottom:14px;
+    }
+    .brand{display:flex;gap:12px;align-items:center;}
+    .logoImg{height:168px;width:auto;}
+
+    .title{line-height:1.15}
+    .title b{display:block;font-size:18px;letter-spacing:.2px}
+    .title span{display:block;font-size:12px;color:var(--muted);margin-top:3px}
+
+    .chip{
+      border:1px solid var(--border);
+      background:rgba(255,255,255,.35);
+      padding:10px 12px;border-radius:999px;
+      font-size:12px;color:var(--muted);
+      display:flex;gap:8px;align-items:center;
+      backdrop-filter: blur(6px);
+    }
+    .dot{
+      width:8px;height:8px;border-radius:50%;
+      background:var(--accent2);
+      box-shadow:0 0 0 4px rgba(20,90,84,.12);
+    }
+
+    .grid{display:grid;grid-template-columns:1.35fr .65fr;gap:14px;}
+
+    .card{
+      background: linear-gradient(180deg, #ffffff, #faf8f5);
+      border: 1px solid rgba(15,65,61,.18);
+      border-radius: var(--radius);
+      box-shadow: 0 18px 45px rgba(0,0,0,.08), inset 0 1px 0 rgba(255,255,255,.6);
+      padding:16px;
+    }
+
+    h2{
+      margin:0 0 10px;
+      font-size:12px;color:var(--muted);
+      letter-spacing:.12em;text-transform:uppercase;
+    }
+    .sub{color:var(--muted);font-size:12px;margin:0 0 10px;line-height:1.4}
+
+    table{width:100%;border-collapse:separate;border-spacing:0}
+    th,td{
+      padding:10px 10px;
+      border-bottom:1px solid rgba(15,65,61,.10);
+      font-size:13px;vertical-align:middle;
+    }
+    th{color:var(--muted);font-weight:600;text-align:left;font-size:12px}
+    tr:hover td{background:rgba(15,65,61,.03)}
+
+    .actions{display:flex;gap:8px;flex-wrap:wrap}
+    .btn{
+      display:inline-flex;gap:8px;align-items:center;
+      border:1px solid rgba(15,65,61,.20);
+      background:rgba(255,255,255,.55);
+      color:var(--text);
+      text-decoration:none;
+      padding:8px 10px;border-radius:12px;
+      font-size:12px;
+      transition:.15s ease;
+      white-space:nowrap;
+      backdrop-filter: blur(6px);
+    }
+    .btn:hover{border-color:rgba(15,65,61,.55);transform:translateY(-1px)}
+    .btn.primary{border-color:rgba(15,65,61,.55);background:rgba(15,65,61,.08)}
+    .btn.good{border-color:rgba(20,90,84,.55);background:rgba(20,90,84,.10)}
+    .btn.warn{border-color:rgba(180,83,9,.55);background:rgba(180,83,9,.10)}
+
+    .badge{
+      display:inline-flex;align-items:center;gap:8px;
+      padding:6px 10px;border-radius:999px;
+      border:1px solid rgba(15,65,61,.20);
+      background:rgba(255,255,255,.55);
+      font-size:12px;color:var(--muted);
+      backdrop-filter: blur(6px);
+    }
+    .badge .bDot{width:7px;height:7px;border-radius:50%}
+    .b-good{background:var(--accent2)}
+    .b-warn{background:var(--warn)}
+    .b-bad{background:var(--danger)}
+    .b-muted{background:rgba(15,65,61,.35)}
+
+    .rightStack{display:flex;flex-direction:column;gap:12px}
+    .kv{display:grid;grid-template-columns:1fr;gap:10px}
+    .kv .line{
+      border:1px solid rgba(15,65,61,.12);
+      border-radius:14px;
+      padding:10px 12px;
+      background:rgba(255,255,255,.45);
+      backdrop-filter: blur(6px);
+    }
+    .kv b{display:block;font-size:12px}
+    .kv span{display:block;color:var(--muted);font-size:12px;margin-top:3px;line-height:1.3}
+
+    .addonPill{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      padding:12px 14px;
+      border-radius:14px;
+      border:1px solid rgba(15,65,61,.25);
+      background: linear-gradient(180deg, rgba(15,65,61,.06), rgba(15,65,61,.02));
+      margin-top:10px;
+    }
+    .addonPill b{font-size:13px}
+    .addonPill span{font-size:12px;color:var(--muted)}
+
+    .footer{margin-top:12px;color:var(--muted);font-size:12px;line-height:1.4}
+    .error{
+      margin-top:12px;
+      padding:12px 14px;
+      border-radius:14px;
+      border:1px solid rgba(185,28,28,.35);
+      background:rgba(185,28,28,.08);
+      color:#7a1b1b;
+      font-size:13px;
+    }
+    .loading{opacity:.85;filter:saturate(.95)}
+    .tiny{font-size:11px;color:var(--muted)}
+
+    @media (max-width: 920px){
+      .grid{grid-template-columns:1fr}
+      .logoImg{height:120px}
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <div class="top">
+      <div class="brand">
+        <img src="spruce-logo.png" alt="Spruce" class="logoImg" />
+        <div class="title">
+          <b>Welcome to Your Owner Portal</b>
+          <span id="ownerLine">Loading…</span>
+        </div>
+      </div>
+      <div class="chip"><span class="dot"></span> Secure link • Token access</div>
+    </div>
+
+    <div id="errBox" class="error" style="display:none;"></div>
+
+    <div class="grid">
+      <div class="card">
+        <h2>Invoices</h2>
+        <p class="sub">Your weekly invoices. You can review details and complete payment when needed. (Autopay will appear here after Stripe is fully enabled.)</p>
+
+        <table id="invTable">
+          <thead>
+            <tr>
+              <th>Invoice</th>
+              <th>Property</th>
+              <th>Week</th>
+              <th>Total</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+
+        <div class="footer">
+          <div class="tiny">
+            Tip: Once Stripe autopay + webhooks are live, this page will automatically update to show PAID, receipts, and hosted invoice links—no link changes needed.
+          </div>
+        </div>
+      </div>
+
+      <div class="rightStack">
+        <div class="card">
+          <h2>Account</h2>
+          <div class="kv">
+            <div class="line">
+              <b>Owner</b>
+              <span id="ownerName">—</span>
+            </div>
+            <div class="line">
+              <b>Email</b>
+              <span id="ownerEmail">—</span>
+            </div>
+          </div>
+          <div class="footer tiny">
+            This secure link is unique to you. Please do not forward it.
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>Enhancements</h2>
+          <p class="sub">Optional Spruce experiences (Sprigs, Scapes, Shopped, etc.) can be enabled per request. Toggle controls can be added next.</p>
+
+          <div class="addonPill">
+            <div>
+              <b>Spruce Scents</b>
+              <span>Signature scenting experience</span>
+            </div>
+            <span class="badge"><span class="bDot b-muted"></span>Available</span>
+          </div>
+
+          <div class="addonPill">
+            <div>
+              <b>Spruce Scapes</b>
+              <span>Tablescapes & elevated staging</span>
+            </div>
+            <span class="badge"><span class="bDot b-muted"></span>Available</span>
+          </div>
+
+          <div class="addonPill">
+            <div>
+              <b>Spruce Shopped</b>
+              <span>Curated pre-shopped pantry items</span>
+            </div>
+            <span class="badge"><span class="bDot b-muted"></span>Available</span>
+          </div>
+
+          <div class="addonPill">
+            <div>
+              <b>Spruce Salutations</b>
+              <span>Signature welcome gift</span>
+            </div>
+            <span class="badge"><span class="bDot b-muted"></span>Available</span>
+          </div>
+
+          <div class="addonPill">
+            <div>
+              <b>Spruce Sprigs</b>
+              <span>Thoughtfully placed florals</span>
+            </div>
+            <span class="badge"><span class="bDot b-muted"></span>Available</span>
+          </div>
+
+          <div class="addonPill">
+            <div>
+              <b>Spruce ’Spresso</b>
+              <span>Elevated coffee experience</span>
+            </div>
+            <span class="badge"><span class="bDot b-muted"></span>Available</span>
+          </div>
+
+          <div class="footer tiny">
+            Next step: add toggles that write to ADDON_REQUESTS, then approval automation.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+  const qs = new URLSearchParams(location.search);
+  const token = qs.get("t");
+
+  function showError(msg){
+    const box = document.getElementById("errBox");
+    box.style.display = "block";
+    box.textContent = msg;
+  }
+
+  function fmtDate(d){
+    try{
+      const dt = (d instanceof Date) ? d : new Date(d);
+      if (isNaN(dt)) return String(d||"");
+      return dt.toLocaleDateString(undefined,{month:"numeric",day:"numeric",year:"numeric"});
+    }catch(e){ return String(d||""); }
+  }
+
+  function money(x){
+    const n = Number(x);
+    if (!isFinite(n)) return String(x||"");
+    return n.toLocaleString(undefined,{style:"currency",currency:"USD"});
+  }
+
+  function statusBadge(status){
+    const s = String(status||"").toUpperCase();
+    let dot = "b-muted";
+    if (s.includes("PAID")) dot = "b-good";
+    else if (s.includes("NEEDS ACTION") || s.includes("ACTION REQUIRED") || s.includes("NO AUTOPAY")) dot = "b-warn";
+    else if (s.includes("FAIL") || s.includes("PAST DUE")) dot = "b-bad";
+    return `<span class="badge"><span class="bDot ${dot}"></span>${status || ""}</span>`;
+  }
+
+  function bestInvoiceLink(inv){
+    if (inv.hostedUrl) return { url: inv.hostedUrl, label: "View Invoice", cls: "primary" };
+    if (inv.paymentLink) return { url: inv.paymentLink, label: "Pay Now", cls: "warn" };
+    return null;
+  }
+
+  function renderInvoices(invoices){
+    const tbody = document.querySelector("#invTable tbody");
+    tbody.innerHTML = "";
+
+    if(!invoices || !invoices.length){
+      tbody.innerHTML = `<tr><td colspan="6" class="tiny">No invoices found yet.</td></tr>`;
+      return;
+    }
+
+    invoices.forEach(inv=>{
+      const week = `${fmtDate(inv.weekStart)} – ${fmtDate(inv.weekEnd)}`;
+      const link = bestInvoiceLink(inv);
+
+      const actions = [];
+      if (link) actions.push(`<a class="btn ${link.cls}" target="_blank" rel="noopener" href="${link.url}">${link.label}</a>`);
+      if (inv.pdfUrl) actions.push(`<a class="btn good" target="_blank" rel="noopener" href="${inv.pdfUrl}">PDF</a>`);
+
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${inv.invoiceId || ""}</td>
+        <td>${inv.property || ""}</td>
+        <td>${week}</td>
+        <td>${money(inv.total)}</td>
+        <td>${statusBadge(inv.status)}</td>
+        <td><div class="actions">${actions.join("") || '<span class="tiny">—</span>'}</div></td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  async function loadPortal(){
+    if(!token){
+      showError("Missing token. Please open your Portal Link from the OWNERS sheet (it includes ?t=...).");
+      document.getElementById("ownerLine").textContent = "Missing token";
+      return;
+    }
+
+    document.body.classList.add("loading");
+
+    const url = `/portal?path=portal&t=${encodeURIComponent(token)}`;
+
+    try{
+      const res = await fetch(url, { method:"GET", cache:"no-store" });
+      const text = await res.text();
+
+      let data;
+      try{
+        data = JSON.parse(text);
+        if (typeof data === "string") data = JSON.parse(data);
+      }catch(e){
+        throw new Error(`Non-JSON response (${res.status}): ${text.slice(0,200)}`);
+      }
+
+      console.log("PORTAL URL:", url);
+      console.log("PORTAL DATA:", data);
+
+      if(!res.ok){
+        throw new Error(data?.error || `Request failed (${res.status})`);
+      }
+
+      if(data?.error){
+        throw new Error(data.error);
+      }
+
+      const owner = data.owner || {};
+      document.getElementById("ownerLine").textContent = `${owner.ownerName || "Owner"} • ${owner.ownerEmail || ""}`;
+      document.getElementById("ownerName").textContent = owner.ownerName || "—";
+      document.getElementById("ownerEmail").textContent = owner.ownerEmail || "—";
+
+      renderInvoices(data.invoices || []);
+    }catch(err){
+      showError(String(err.message || err));
+      document.getElementById("ownerLine").textContent = "Load failed";
+    }finally{
+      document.body.classList.remove("loading");
+    }
+  }
+
+  loadPortal();
+</script>
+</body>
+</html>
