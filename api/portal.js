@@ -9,8 +9,12 @@ export default async function handler(req, res) {
     return;
   }
 
-  const UPSTREAM =
-    "https://script.google.com/macros/s/AKfycbxrMDwl8fRWUjtAI4VjT3NUxFP_9EMMAGbFxsmwj297DGgdtpBKVUdtOuWY2IhCUpEG/exec";
+  const UPSTREAM = process.env.UPSTREAM;
+
+if (!UPSTREAM) {
+  res.status(500).json({ error: "Missing UPSTREAM env var" });
+  return;
+}
 
   const upstreamUrl = new URL(UPSTREAM);
   upstreamUrl.searchParams.set("path", path);
