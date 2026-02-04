@@ -436,12 +436,39 @@
       document.body.classList.remove("loading");
     }
   }
+async function requestUpgradeToSignature(propertyId){
+  if (!confirm("Upgrade this property to the Signature plan? This request will be reviewed before activation.")) {
+    return;
+  }
+
+  try {
+    const res = await fetch(`/api/portal?path=addons_toggle&t=${encodeURIComponent(token)}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        addonKey: "plan",
+        action: "UPGRADE_TO_SIGNATURE",
+        propertyId: propertyId
+      })
+    });
+
+    const data = await res.json();
+    if (!res.ok || data.error) {
+      throw new Error(data.error || "Request failed");
+    }
+
+    alert("Upgrade request submitted. We’ll take it from here 🌱");
+  } catch (err) {
+    alert("Could not submit request: " + err.message);
+  }
+}
 
   loadPortal();
 </script>
 
 </body>
 </html>
+
 
 
 
