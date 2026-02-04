@@ -384,9 +384,24 @@
             <span>${sub}</span>
           </div>
           <div style="display:flex;gap:10px;align-items:center;">
-            <span class="badge"><span class="bDot ${dot}"></span>${u.badge}</span>
-            ${u.clickable ? `<span class="btn primary" style="cursor:pointer;">${u.cta}</span>` : ``}
-          </div>
+  <span class="badge">
+    <span class="bDot ${dot}"></span>${u.badge}
+  </span>
+
+  ${
+    u.cta === "Upgrade to Signature to Enable"
+      ? `<span class="btn primary"
+               style="cursor:pointer;"
+               onclick="requestUpgradeToSignature('${property.propertyId}')">
+           Upgrade to Signature
+         </span>`
+      : (u.clickable
+          ? `<span class="btn primary" style="cursor:pointer;">${u.cta}</span>`
+          : ""
+        )
+  }
+</div>
+
         </div>
       `;
     }).join("");
@@ -468,6 +483,7 @@ async function requestUpgradeToSignature(propertyId){
 
 </body>
 </html>
+
 
 
 
