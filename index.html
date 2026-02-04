@@ -161,6 +161,17 @@
       .grid{grid-template-columns:1fr}
       .logoImg{height:120px}
     }
+    .btn.big{
+  padding: 12px 14px;
+  border-radius: 14px;
+  font-size: 13px;
+  font-weight: 600;
+}
+.btn.block{
+  width: 100%;
+  justify-content: center;
+}
+
   </style>
 </head>
 
@@ -360,63 +371,73 @@
     return "b-muted";
   }
 
-  function renderAddons(property){
-    const box = document.getElementById("addonsBox");
-    if (!box) return;
+function renderAddons(property){
+  const box = document.getElementById("addonsBox");
+  if (!box) return;
 
-    const ui = (property && property.addonUi) ? property.addonUi : {};
-    const states = (property && property.addonStates) ? property.addonStates : {};
+  const plan = String(property?.planType || "").toUpperCase();
+  const ui = property?.addonUi || {};
+  const states = property?.addonStates || {};
 
-    const meta = [
-      { key:"scents",      title:"Spruce Scents",      desc:"Signature scenting experience" },
-      { key:"sprigs",      title:"Spruce Sprigs",      desc:"Thoughtfully placed florals" },
-      { key:"salutations", title:"Spruce Salutations", desc:"Signature welcome gift" },
-      { key:"scapes",      title:"Spruce Scapes",      desc:"Tablescapes & elevated staging" },
-      { key:"spresso",     title:"Spruce ’Spresso",    desc:"Elevated coffee experience" },
-      { key:"shopped",     title:"Spruce Shopped",     desc:"Curated pre-shopped pantry items" },
-    ];
+  // Single Sprucings (only these visible for now)
+  const meta = [
+    { key:"sprigs",      title:"Spruce Sprigs",      desc:"Thoughtfully placed florals" },
+    { key:"scents",      title:"Spruce Scents",      desc:"Signature scenting experience" },
+    { key:"salutations", title:"Spruce Salutations", desc:"Signature welcome gift" },
+  ];
 
-    box.innerHTML = meta.map(m=>{
-      const u = ui[m.key] || { badge:"—", cta:"—", clickable:false };
-      const st = states[m.key] || {};
-      const dot = badgeDotClass(u.badge);
+  // 1) Big upgrade button (Simply only)
+  const upgradeBlock = (plan === "SIMPLY") ? `
+    <div style="margin-bottom:12px;">
+      <div class="tiny" style="margin-bottom:8px;color:var(--muted);">
+        Want linens + lux amenities + bundled enhancements?
+      </div>
+      <button class="btn primary big block"
+        onclick="requestPlanUpgrade('${property.propertyId}', '${property.planType}')">
+        Spruce UP to Signature
+      </button>
+    </div>
+  ` : ``;
 
-      let sub = m.desc;
-      if (st.package && st.package !== "NONE"){
-        const pkgLabel = String(st.package).replaceAll("_"," ");
-        const remLabel = (typeof st.remaining === "number") ? ` • ${st.remaining} left` : "";
-        sub += ` • ${pkgLabel}${remLabel}`;
-      }
+  // 2) Single Sprucings list
+  const list = meta.map(m=>{
+    const u = ui[m.key] || { badge:"—", cta:"—", clickable:false };
+    const st = states[m.key] || {};
+    const dot = badgeDotClass(u.badge);
 
-      return `
-        <div class="addonPill">
-          <div>
-            <b>${m.title}</b>
-            <span>${sub}</span>
-          </div>
-          <div style="display:flex;gap:10px;align-items:center;">
-  <span class="badge">
-    <span class="bDot ${dot}"></span>${u.badge}
-  </span>
+    let sub = m.desc;
+    if (st.package && st.package !== "NONE"){
+      const pkgLabel = String(st.package).replaceAll("_"," ");
+      const remLabel = (typeof st.remaining === "number") ? ` • ${st.remaining} left` : "";
+      sub += ` • ${pkgLabel}${remLabel}`;
+    }
 
-  ${
-    u.cta === "Upgrade to Signature to Enable"
-      ? `<span class="btn primary"
-               style="cursor:pointer;"
-               onclick="requestUpgradeToSignature('${property.propertyId}')">
-           Upgrade to Signature
-         </span>`
-      : (u.clickable
-          ? `<span class="btn primary" style="cursor:pointer;">${u.cta}</span>`
-          : ""
-        )
-  }
-</div>
+    // Button behavior for add-ons (we’ll wire to ADDON_REQUESTS next)
+    const right = (u.clickable)
+      ? `<button class="btn primary" onclick="requestSingleSprucing('${property.propertyId}','${m.key}')">${u.cta}</button>`
+      : `<span class="badge"><span class="bDot ${dot}"></span>${u.badge}</span>`;
 
+    return `
+      <div class="addonPill">
+        <div>
+          <b>${m.title}</b>
+          <span>${sub}</span>
         </div>
-      `;
-    }).join("");
-  }
+        ${right}
+      </div>
+    `;
+  }).join("");
+
+  box.innerHTML = `
+    ${upgradeBlock}
+    <div style="margin-top:6px;">
+      <div class="tiny" style="margin:6px 0 8px;color:var(--muted);font-weight:600;">
+        Single Sprucings
+      </div>
+      ${list}
+    </div>
+  `;
+}
 
   // ---------- LOAD ----------
   async function loadPortal(){
@@ -488,12 +509,34 @@ async function requestUpgradeToSignature(propertyId){
     alert("Could not submit request: " + err.message);
   }
 }
+async function requestPlanUpgrade(propertyId, fromPlan){
+  if (!confirm("Request upgrade to Signature? This will be reviewed and scheduled before activation.")) return;
+
+  try{
+    const res = await fetch(`/api/portal?path=plan_change&t=${encodeURIComponent(token)}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        propertyId,
+        fromPlan,
+        toPlan: "Signature",
+        notes: "Requested from owner portal"
+      })
+    });
+    const data = await res.json();
+    if (!res.ok || data.error) throw new Error(data.error || "Request failed");
+    alert("Upgrade request submitted. We’ll confirm next steps shortly.");
+  }catch(err){
+    alert("Could not submit request: " + err.message);
+  }
+}
 
   loadPortal();
 </script>
 
 </body>
 </html>
+
 
 
 
