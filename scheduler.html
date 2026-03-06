@@ -1,43 +1,205 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Spruce Scheduler</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f6f6f8;
-      margin: 0;
-      padding: 24px;
-    }
-    .card {
-      background: white;
-      border-radius: 12px;
-      padding: 20px;
-      max-width: 900px;
-      margin: 0 auto;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.08);
-    }
-    h1 {
-      margin-top: 0;
-    }
-    .ok {
-      display: inline-block;
-      background: #16c784;
-      color: #06140e;
-      padding: 6px 10px;
-      border-radius: 999px;
-      font-weight: bold;
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Spruce Scheduler</title>
+
+<style>
+
+body{
+font-family:Arial,sans-serif;
+background:#f5f6fa;
+margin:0;
+padding:16px;
+}
+
+.topbar{
+background:#fff;
+border-radius:12px;
+padding:12px 14px;
+margin-bottom:12px;
+box-shadow:0 2px 10px rgba(0,0,0,0.06);
+display:flex;
+justify-content:space-between;
+align-items:center;
+gap:12px;
+flex-wrap:wrap;
+}
+
+.title{
+font-size:24px;
+font-weight:700;
+}
+
+.legend{
+display:flex;
+gap:10px;
+flex-wrap:wrap;
+font-size:12px;
+font-weight:700;
+}
+
+.legend-item{
+display:flex;
+align-items:center;
+gap:6px;
+background:#fff;
+padding:6px 10px;
+border-radius:999px;
+box-shadow:0 1px 6px rgba(0,0,0,0.05);
+}
+
+.dot{
+width:14px;
+height:14px;
+border-radius:4px;
+display:inline-block;
+}
+
+.board-wrap{
+background:#fff;
+border-radius:14px;
+box-shadow:0 2px 10px rgba(0,0,0,0.06);
+overflow:hidden;
+}
+
+.header-row,
+.job-row{
+display:grid;
+grid-template-columns:110px 70px 190px 110px 1fr 60px;
+align-items:center;
+}
+
+.header-row{
+background:#111;
+color:#fff;
+font-size:12px;
+font-weight:700;
+}
+
+.header-row div,
+.job-row div{
+padding:8px 10px;
+}
+
+.job-row{
+min-height:30px;
+border-bottom:1px solid #ececec;
+font-size:12px;
+}
+
+.property{
+font-weight:700;
+}
+
+.tile{
+border-radius:8px;
+padding:6px 8px;
+font-weight:700;
+text-align:center;
+}
+
+.turnover{background:#ff3bbd;color:#111;}
+.open{background:#ff2d2d;color:#fff;}
+.assigned{background:#16c784;color:#072016;}
+.callout{background:#ff8a00;color:#1f1300;}
+.locked{background:#2f6bff;color:#fff;}
+
+.lock{
+text-align:center;
+font-size:16px;
+}
+
+.notes{
+color:#444;
+white-space:nowrap;
+overflow:hidden;
+text-overflow:ellipsis;
+}
+
+</style>
 </head>
+
 <body>
-  <div class="card">
-    <h1>Spruce Scheduler</h1>
-    <p class="ok">Scheduler page is working</p>
-    <p>This is the first visual shell for the scheduler board.</p>
-    <p>Next step will be loading schedule rows from your real system.</p>
-  </div>
+
+<div class="topbar">
+
+<div class="title">Spruce Scheduler</div>
+
+<div class="legend">
+<div class="legend-item"><span class="dot" style="background:#ff3bbd;"></span>TURNOVER</div>
+<div class="legend-item"><span class="dot" style="background:#ff2d2d;"></span>OPEN</div>
+<div class="legend-item"><span class="dot" style="background:#16c784;"></span>ASSIGNED</div>
+<div class="legend-item"><span class="dot" style="background:#ff8a00;"></span>CALLOUT</div>
+<div class="legend-item"><span class="dot" style="background:#2f6bff;"></span>LOCKED</div>
+</div>
+
+</div>
+
+<div class="board-wrap">
+
+<div class="header-row">
+<div>Property</div>
+<div>Shift</div>
+<div>Assigned</div>
+<div>Status</div>
+<div>Notes</div>
+<div>Lock</div>
+</div>
+
+<div id="board"></div>
+
+</div>
+
+<script>
+
+const board=document.getElementById("board");
+
+for(let i=1;i<=60;i++){
+
+let type="assigned";
+let cleaner=["Maria","Kevin","Laura","Sasha"][i%4];
+let notes="";
+let lock="";
+
+if(i%7===0){
+type="open";
+cleaner="OPEN";
+}
+
+if(i%11===0){
+type="turnover";
+notes="TURNOVER";
+}
+
+if(i%13===0){
+type="locked";
+lock="🔒";
+}
+
+if(i%17===0){
+type="callout";
+cleaner="OPEN";
+notes="CALLOUT";
+}
+
+const row=document.createElement("div");
+row.className="job-row";
+
+row.innerHTML=
+`<div class="property">TP${i}</div>
+<div>${i%2===0?"AM":"PM"}</div>
+<div><div class="tile ${type}">${cleaner}</div></div>
+<div>${type.toUpperCase()}</div>
+<div class="notes">${notes}</div>
+<div class="lock">${lock}</div>`;
+
+board.appendChild(row);
+
+}
+
+</script>
+
 </body>
 </html>
