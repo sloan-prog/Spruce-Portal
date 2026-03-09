@@ -393,13 +393,14 @@ function renderBoard(target, rows){
     row.className = "job-row";
 
     row.innerHTML = `
-      <div class="property">${job.Property || ""}</div>
-      <div>${job.Shift || ""}</div>
-      <div><div class="tile ${job.type}">${job.AssignedCleaner || "OPEN"}</div></div>
-      <div class="status-text">${job.label}</div>
-      <div class="notes">${job.Notes || ""}</div>
-      <div class="lock">${String(job.Locked || "").toUpperCase() === "Y" ? "🔒" : ""}</div>
-    `;
+  <div>${job.Date || ""}</div>
+  <div class="property">${job.Property || ""}</div>
+  <div>${job.Shift || ""}</div>
+  <div><div class="tile ${job.type}">${job.AssignedCleaner || "OPEN"}</div></div>
+  <div class="status-text">${job.label}</div>
+  <div class="notes">${job.Notes || ""}</div>
+  <div class="lock">${String(job.Locked || "").toUpperCase() === "Y" ? "🔒" : ""}</div>
+`;
     target.appendChild(row);
   });
 }
@@ -429,10 +430,15 @@ async function loadSchedule(){
     });
 
     jobs.sort((a,b) => {
-      const r = rank(a) - rank(b);
-      if (r !== 0) return r;
-      return String(a.Property || "").localeCompare(String(b.Property || ""));
-    });
+
+  const d = String(a.Date || "").localeCompare(String(b.Date || ""));
+  if (d !== 0) return d;
+
+  const r = rank(a) - rank(b);
+  if (r !== 0) return r;
+
+  return String(a.Property || "").localeCompare(String(b.Property || ""));
+});
 
     const midpoint = Math.ceil(jobs.length / 2);
     const leftJobs = jobs.slice(0, midpoint);
