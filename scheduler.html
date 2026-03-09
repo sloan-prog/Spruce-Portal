@@ -408,8 +408,8 @@ function showError(msg){
 
 async function loadSchedule(){
   try {
-    const date = todayISO();
-    const url = `${API_BASE}?action=getSchedule&t=${encodeURIComponent(TOKEN)}&date=${encodeURIComponent(date)}`;
+    const url = `${API_BASE}?action=getSchedule&t=${encodeURIComponent(TOKEN)}`;
+    
     const resp = await fetch(url);
     const data = await resp.json();
 
