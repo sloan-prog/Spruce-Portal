@@ -368,6 +368,59 @@ body{
   border:2px solid #d8e1eb;
 }
 
+.cleaner-pool-grid{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+  margin-top:10px;
+}
+
+.cleaner-card{
+  background:#ffffff;
+  border:2px solid #00b8a9;
+  border-radius:14px;
+  padding:10px 12px;
+  min-width:220px;
+  box-shadow:0 2px 8px rgba(0,0,0,0.06);
+  cursor:grab;
+  transition:transform .12s ease, box-shadow .12s ease, border-color .12s ease;
+}
+
+.cleaner-card:hover{
+  transform:translateY(-1px);
+  box-shadow:0 6px 14px rgba(0,0,0,0.10);
+}
+
+.cleaner-card.dragging{
+  opacity:.7;
+}
+
+.cleaner-name{
+  font-size:12px;
+  font-weight:800;
+  margin-bottom:4px;
+}
+
+.cleaner-meta{
+  font-size:11px;
+  color:#555;
+}
+
+.job-row.drop-ok{
+  outline:3px dashed #2f6bff;
+  outline-offset:-3px;
+  background:#eef6ff !important;
+}
+
+.job-row.drop-no{
+  outline:3px dashed #d92d20;
+  outline-offset:-3px;
+}
+
+.job-row.is-droppable{
+  cursor:pointer;
+}
+  
 .pool-chip.available{ border-color:var(--rebalance); background:#ecfffb; }
 .pool-chip.rebalance{ border-color:var(--manual); background:#f7efff; }
 
@@ -497,13 +550,11 @@ body{
 </div>
 
 <div class="future-panel">
-  <h3>Next Panel Coming</h3>
-  <p>Available but not scheduled cleaners will live here as a separate section/tab in the next version.</p>
-  <div class="pool-note">
-    <span class="pool-chip available">AVAILABLE NOW</span>
-    <span class="pool-chip rebalance">REBALANCE CANDIDATE</span>
-  </div>
+  <h3>Available Cleaner Pool</h3>
+  <p>Drag a cleaner onto an OPEN / CALLOUT / NEW ICAL job with the same date and shift.</p>
+  <div id="cleanerPool" class="cleaner-pool-grid"></div>
 </div>
+
 
 <script>
 const API_BASE = "https://script.google.com/macros/s/AKfycbybs7g9bokXv5gbmbNVcSmW06ma0vfEIcwaLZ3a1UMemDtlO4M0JNp547P3aGWFYc5N7g/exec";
@@ -649,6 +700,7 @@ function escapeHtml(str){
 
 function renderBoard(target, rows){
   target.innerHTML = "";
+
   rows.forEach(job => {
     const row = document.createElement("div");
 
@@ -659,6 +711,13 @@ function renderBoard(target, rows){
       : "";
 
     row.className = `job-row ${job.rowState} type-${job.type} ${urgentClass}`.trim();
+
+    if (isDroppableJob(job)) {
+      row.classList.add('is-droppable');
+      row.dataset.jobId = job.JobID || '';
+      row.dataset.date = job.Date || '';
+      row.dataset.shift = job.Shift || '';
+    }
 
     const assignedText = job.AssignedCleaner || "OPEN";
     const lockedIcon = normalize(job.Locked) === "Y" ? "🔒" : "";
@@ -672,12 +731,144 @@ function renderBoard(target, rows){
       <div class="notes">${escapeHtml(job.Notes || "")}</div>
       <div class="lock">${lockedIcon}</div>
     `;
+
+    if (isDroppableJob(job)) {
+      row.addEventListener('dragover', (e) => {
+        e.preventDefault();
+
+        let cleaner;
+        try {
+          cleaner = JSON.parse(e.dataTransfer.getData('application/json'));
+        } catch (_) {
+          return;
+        }
+
+        row.classList.remove('drop-ok', 'drop-no');
+
+        if (sameDateShift(job, cleaner)) {
+          row.classList.add('drop-ok');
+        } else {
+          row.classList.add('drop-no');
+        }
+      });
+
+      row.addEventListener('dragleave', () => {
+        row.classList.remove('drop-ok', 'drop-no');
+      });
+
+      row.addEventListener('drop', async (e) => {
+        e.preventDefault();
+        row.classList.remove('drop-ok', 'drop-no');
+
+        let cleaner;
+        try {
+          cleaner = JSON.parse(e.dataTransfer.getData('application/json'));
+        } catch (_) {
+          return;
+        }
+
+        if (!sameDateShift(job, cleaner)) {
+          alert('Cleaner date/shift does not match this job.');
+          return;
+        }
+
+        try {
+          await assignCleaner(job.JobID, cleaner.CleanerID);
+          await loadSchedule();
+          await loadCleanerPool();
+        } catch (err) {
+          console.error(err);
+          alert('Could not assign cleaner: ' + err.message);
+        }
+      });
+    }
+
     target.appendChild(row);
   });
 }
 
+
 function showError(msg){
   document.getElementById("errorBox").innerHTML = `<div class="error">${escapeHtml(msg)}</div>`;
+}
+function isDroppableJob(job){
+  return ['open', 'turnopen', 'callout', 'newical', 'manual', 'rebalance'].includes(job.type);
+}
+
+function sameDateShift(job, cleaner){
+  return String(job.Date || '') === String(cleaner.Date || '') &&
+         String(job.Shift || '').toUpperCase() === String(cleaner.Shift || '').toUpperCase();
+}
+
+async function assignCleaner(jobId, cleanerId) {
+  const url = `${API_BASE}?action=assignCleaner&t=${encodeURIComponent(TOKEN)}&jobId=${encodeURIComponent(jobId)}&cleanerId=${encodeURIComponent(cleanerId)}`;
+
+  const resp = await fetch(url);
+  const data = await resp.json();
+
+  if (!data.ok) {
+    throw new Error(data.error || 'Assignment failed');
+  }
+
+  return data;
+}
+
+async function loadCleanerPool() {
+  try {
+    const url = `${API_BASE}?action=getCleanerPool&t=${encodeURIComponent(TOKEN)}`;
+    const resp = await fetch(url);
+    const data = await resp.json();
+
+    if (!data.ok) {
+      throw new Error(data.error || 'Cleaner pool API returned error');
+    }
+
+    const wrap = document.getElementById('cleanerPool');
+    wrap.innerHTML = '';
+
+    const rows = data.availableNow || [];
+
+    if (!rows.length) {
+      wrap.innerHTML = `<div class="pool-chip">No available cleaners found</div>`;
+      return;
+    }
+
+    rows.forEach(c => {
+      const card = document.createElement('div');
+      card.className = 'cleaner-card';
+      card.draggable = true;
+      card.dataset.cleanerId = c.CleanerID;
+      card.dataset.cleanerName = c.AssignedCleaner;
+      card.dataset.date = c.Date;
+      card.dataset.shift = c.Shift;
+
+      card.innerHTML = `
+        <div class="cleaner-name">${escapeHtml(c.AssignedCleaner)}</div>
+        <div class="cleaner-meta">${escapeHtml(c.Date)} • ${escapeHtml(c.Shift)} • ${escapeHtml(String(c.slotsLeft))} slot${Number(c.slotsLeft) === 1 ? '' : 's'} left</div>
+      `;
+
+      card.addEventListener('dragstart', (e) => {
+        card.classList.add('dragging');
+        e.dataTransfer.setData('application/json', JSON.stringify(c));
+      });
+
+      card.addEventListener('dragend', () => {
+        card.classList.remove('dragging');
+        document.querySelectorAll('.job-row').forEach(r => {
+          r.classList.remove('drop-ok', 'drop-no');
+        });
+      });
+
+      wrap.appendChild(card);
+    });
+
+  } catch (err) {
+    console.error('Cleaner pool load failed', err);
+    const wrap = document.getElementById('cleanerPool');
+    if (wrap) {
+      wrap.innerHTML = `<div class="pool-chip">Could not load cleaner pool</div>`;
+    }
+  }
 }
 
 async function loadSchedule(){
@@ -739,9 +930,13 @@ async function loadSchedule(){
     showError("Could not load live schedule: " + err.message);
     console.error(err);
   }
+async function bootScheduler() {
+  await loadSchedule();
+  await loadCleanerPool();
 }
 
-loadSchedule();
+bootScheduler();
+
 </script>
 
 </body>
