@@ -555,7 +555,6 @@ body{
   <div id="cleanerPool" class="cleaner-pool-grid"></div>
 </div>
 
-
 <script>
 const API_BASE = "https://script.google.com/macros/s/AKfycbybs7g9bokXv5gbmbNVcSmW06ma0vfEIcwaLZ3a1UMemDtlO4M0JNp547P3aGWFYc5N7g/exec";
 const TOKEN = "spruce_scheduler_2026";
@@ -564,12 +563,17 @@ function normalize(v){
   return String(v || "").trim().toUpperCase();
 }
 
-function todayISO(){
-  const d = new Date();
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, "0");
-  const day = String(d.getDate()).padStart(2, "0");
-  return `${y}-${m}-${day}`;
+function escapeHtml(str){
+  return String(str || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+function showError(msg){
+  document.getElementById("errorBox").innerHTML = `<div class="error">${escapeHtml(msg)}</div>`;
 }
 
 function classify(job){
@@ -689,13 +693,25 @@ function rank(job){
   return 99;
 }
 
-function escapeHtml(str){
-  return String(str || "")
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
+function isDroppableJob(job){
+  return ['open', 'turnopen', 'callout', 'newical', 'manual', 'rebalance'].includes(job.type);
+}
+
+function sameDateShift(job, cleaner){
+  return String(job.Date || '') === String(cleaner.Date || '') &&
+         String(job.Shift || '').toUpperCase() === String(cleaner.Shift || '').toUpperCase();
+}
+
+async function assignCleaner(jobId, cleanerId) {
+  const url = `${API_BASE}?action=assignCleaner&t=${encodeURIComponent(TOKEN)}&jobId=${encodeURIComponent(jobId)}&cleanerId=${encodeURIComponent(cleanerId)}`;
+  const resp = await fetch(url);
+  const data = await resp.json();
+
+  if (!data.ok) {
+    throw new Error(data.error || 'Assignment failed');
+  }
+
+  return data;
 }
 
 function renderBoard(target, rows){
@@ -787,17 +803,62 @@ function renderBoard(target, rows){
   });
 }
 
+async function loadCleanerPool() {
+  try {
+    const url = `${API_BASE}?action=getCleanerPool&t=${encodeURIComponent(TOKEN)}`;
+    const resp = await fetch(url);
+    const data = await resp.json();
 
-function showError(msg){
-  document.getElementById("errorBox").innerHTML = `<div class="error">${escapeHtml(msg)}</div>`;
-}
-function isDroppableJob(job){
-  return ['open', 'turnopen', 'callout', 'newical', 'manual', 'rebalance'].includes(job.type);
-}
+    if (!data.ok) {
+      throw new Error(data.error || 'Cleaner pool API returned error');
+    }
 
-function sameDateShift(job, cleaner){
-  return String(job.Date || '') === String(cleaner.Date || '') &&
-         String(job.Shift || '').toUpperCase() === String(cleaner.Shift || '').toUpperCase();
+    const wrap = document.getElementById('cleanerPool');
+    wrap.innerHTML = '';
+
+    const rows = data.availableNow || [];
+
+    if (!rows.length) {
+      wrap.innerHTML = `<div class="pool-chip">No available cleaners found</div>`;
+      return;
+    }
+
+    rows.forEach(c => {
+      const card = document.createElement('div');
+      card.className = 'cleaner-card';
+      card.draggable = true;
+      card.dataset.cleanerId = c.CleanerID;
+      card.dataset.cleanerName = c.AssignedCleaner;
+      card.dataset.date = c.Date;
+      card.dataset.shift = c.Shift;
+
+      card.innerHTML = `
+        <div class="cleaner-name">${escapeHtml(c.AssignedCleaner)}</div>
+        <div class="cleaner-meta">${escapeHtml(c.Date)} • ${escapeHtml(c.Shift)} • ${escapeHtml(String(c.slotsLeft))} slot${Number(c.slotsLeft) === 1 ? '' : 's'} left</div>
+      `;
+
+      card.addEventListener('dragstart', (e) => {
+        card.classList.add('dragging');
+        e.dataTransfer.setData('application/json', JSON.stringify(c));
+      });
+
+      card.addEventListener('dragend', () => {
+        card.classList.remove('dragging');
+        document.querySelectorAll('.job-row').forEach(r => {
+          r.classList.remove('drop-ok', 'drop-no');
+        });
+      });
+
+      wrap.appendChild(card);
+    });
+
+  } catch (err) {
+    console.error('Cleaner pool load failed', err);
+    const wrap = document.getElementById('cleanerPool');
+    if (wrap) {
+      wrap.innerHTML = `<div class="pool-chip">Could not load cleaner pool</div>`;
+    }
+  }
 }
 
 async function loadSchedule(){
@@ -873,3 +934,5 @@ async function bootScheduler() {
 }
 
 bootScheduler();
+</script>
+
