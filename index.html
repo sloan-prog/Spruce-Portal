@@ -5,220 +5,783 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Spruce Owner Portal</title>
   <meta name="robots" content="noindex,nofollow" />
+
   <style>
     :root{
-      --bg:#f7edea;
-      --bg2:#f7edea;
+      --bg:#fbf8f4;
+      --bg-soft:#f7f1ea;
       --card:#ffffff;
-      --border:rgba(15,65,61,.15);
-      --text:#1f2933;
-      --muted:#6b7280;
-      --accent:#0f413d;
-      --accent2:#145a54;
-      --warn:#b45309;
-      --danger:#b91c1c;
-      --shadow: 0 18px 45px rgba(0,0,0,.08);
-      --radius:18px;
+      --card-soft:#fcfaf7;
+      --border:rgba(25,66,61,.12);
+      --border-strong:rgba(25,66,61,.18);
+      --text:#223038;
+      --muted:#6f7b83;
+      --accent:#184d43;
+      --accent-2:#2d6a5f;
+      --accent-3:#dfece8;
+      --gold:#b6864b;
+      --warn:#b7791f;
+      --danger:#b42318;
+      --shadow:0 20px 50px rgba(24,50,47,.08);
+      --radius-xl:28px;
+      --radius-lg:22px;
+      --radius-md:16px;
+      --max:1280px;
     }
 
     *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
 
     body{
       margin:0;
       min-height:100vh;
-      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
       color:var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
       background:
-        radial-gradient(900px 500px at 15% 10%, rgba(15,65,61,.10), transparent 60%),
-        radial-gradient(700px 400px at 85% 0%, rgba(20,90,84,.12), transparent 55%),
-        linear-gradient(180deg, #f6efe6, #f2e7dc);
+        radial-gradient(900px 480px at 10% 0%, rgba(45,106,95,.07), transparent 60%),
+        radial-gradient(700px 380px at 100% 0%, rgba(182,134,75,.06), transparent 55%),
+        linear-gradient(180deg, #fffdfa 0%, #f9f4ee 48%, #f7f1ea 100%);
     }
 
-    .wrap{max-width:1100px;margin:0 auto;padding:26px 16px 60px;}
-    .top{
-      display:flex; gap:14px; align-items:center; justify-content:space-between;
-      margin-bottom:14px;
+    img{max-width:100%;display:block}
+    a{color:inherit}
+    button{font:inherit}
+
+    .wrap{
+      max-width:var(--max);
+      margin:0 auto;
+      padding:24px 18px 64px;
     }
-    .brand{display:flex;gap:12px;align-items:center;}
-    .logoImg{height:168px;width:auto;}
 
-    .title{line-height:1.15}
-    .title b{display:block;font-size:18px;letter-spacing:.2px}
-    .title span{display:block;font-size:12px;color:var(--muted);margin-top:3px}
+    .topbar{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:16px;
+      margin-bottom:18px;
+    }
 
-    .chip{
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:14px;
+      min-width:0;
+    }
+
+    .logoShell{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      width:78px;
+      height:78px;
+      border-radius:22px;
+      background:linear-gradient(180deg, rgba(255,255,255,.95), rgba(244,248,246,.9));
+      border:1px solid rgba(25,66,61,.10);
+      box-shadow:0 10px 26px rgba(24,50,47,.06);
+      overflow:hidden;
+      flex:0 0 auto;
+    }
+
+    .logoImg{
+      max-height:58px;
+      width:auto;
+      object-fit:contain;
+    }
+
+    .title{
+      min-width:0;
+      line-height:1.15;
+    }
+
+    .eyebrow{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:7px 11px;
+      border-radius:999px;
+      background:rgba(255,255,255,.75);
       border:1px solid var(--border);
-      background:rgba(255,255,255,.35);
-      padding:10px 12px;border-radius:999px;
-      font-size:12px;color:var(--muted);
-      display:flex;gap:8px;align-items:center;
-      backdrop-filter: blur(6px);
+      color:var(--muted);
+      font-size:11px;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+      margin-bottom:8px;
+      backdrop-filter:blur(8px);
     }
+
+    .eyebrowDot{
+      width:7px;
+      height:7px;
+      border-radius:50%;
+      background:var(--accent-2);
+      box-shadow:0 0 0 5px rgba(45,106,95,.10);
+    }
+
+    .title b{
+      display:block;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size:30px;
+      letter-spacing:.01em;
+      font-weight:600;
+    }
+
+    .title span{
+      display:block;
+      margin-top:5px;
+      color:var(--muted);
+      font-size:14px;
+    }
+
+    .secureChip{
+      display:inline-flex;
+      align-items:center;
+      gap:9px;
+      padding:12px 14px;
+      border-radius:999px;
+      border:1px solid var(--border);
+      background:rgba(255,255,255,.7);
+      color:var(--muted);
+      font-size:12px;
+      white-space:nowrap;
+      backdrop-filter:blur(10px);
+      box-shadow:0 10px 25px rgba(24,50,47,.04);
+    }
+
     .dot{
-      width:8px;height:8px;border-radius:50%;
-      background:var(--accent2);
-      box-shadow:0 0 0 4px rgba(20,90,84,.12);
+      width:8px;
+      height:8px;
+      border-radius:50%;
+      background:var(--accent-2);
+      box-shadow:0 0 0 5px rgba(45,106,95,.11);
     }
 
-    .grid{display:grid;grid-template-columns:1.35fr .65fr;gap:14px;}
-
-    .card{
-      background: linear-gradient(180deg, #ffffff, #faf8f5);
-      border: 1px solid rgba(15,65,61,.18);
-      border-radius: var(--radius);
-      box-shadow: 0 18px 45px rgba(0,0,0,.08), inset 0 1px 0 rgba(255,255,255,.6);
-      padding:16px;
+    .hero{
+      position:relative;
+      overflow:hidden;
+      border-radius:34px;
+      min-height:340px;
+      background:
+        linear-gradient(to top, rgba(18,45,42,.40), rgba(18,45,42,.10)),
+        url("couch-hero.jpg") center/cover no-repeat;
+      border:1px solid rgba(255,255,255,.45);
+      box-shadow:
+        0 28px 70px rgba(24,50,47,.10),
+        inset 0 1px 0 rgba(255,255,255,.35);
     }
 
-    h2{
-      margin:0 0 10px;
-      font-size:12px;color:var(--muted);
-      letter-spacing:.12em;text-transform:uppercase;
+    .hero::after{
+      content:"";
+      position:absolute;
+      inset:0;
+      background:
+        linear-gradient(90deg, rgba(255,255,255,.04), transparent 40%),
+        linear-gradient(180deg, transparent 0%, rgba(255,255,255,.05) 100%);
+      pointer-events:none;
     }
-    .sub{color:var(--muted);font-size:12px;margin:0 0 10px;line-height:1.4}
 
-    table{width:100%;border-collapse:separate;border-spacing:0}
-    th,td{
-      padding:10px 10px;
-      border-bottom:1px solid rgba(15,65,61,.10);
-      font-size:13px;vertical-align:middle;
+    .heroInner{
+      position:relative;
+      z-index:1;
+      min-height:340px;
+      display:flex;
+      flex-direction:column;
+      justify-content:space-between;
+      padding:26px;
     }
-    th{color:var(--muted);font-weight:600;text-align:left;font-size:12px}
-    tr:hover td{background:rgba(15,65,61,.03)}
 
-    .actions{display:flex;gap:8px;flex-wrap:wrap}
+    .heroTop{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:14px;
+      flex-wrap:wrap;
+    }
+
+    .heroPillRow{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:10px 13px;
+      border-radius:999px;
+      background:rgba(255,255,255,.80);
+      border:1px solid rgba(255,255,255,.55);
+      color:#45605b;
+      font-size:12px;
+      backdrop-filter:blur(12px);
+    }
+
+    .heroBottom{
+      display:flex;
+      align-items:flex-end;
+      justify-content:space-between;
+      gap:20px;
+      flex-wrap:wrap;
+      margin-top:32px;
+    }
+
+    .heroText{
+      max-width:760px;
+      color:#fff;
+    }
+
+    .heroText h1{
+      margin:0;
+      font-family: Georgia, "Times New Roman", serif;
+      font-weight:600;
+      font-size:52px;
+      line-height:1.02;
+      letter-spacing:-.02em;
+    }
+
+    .heroText p{
+      margin:12px 0 0;
+      max-width:620px;
+      font-size:16px;
+      line-height:1.55;
+      color:rgba(255,255,255,.90);
+    }
+
+    .heroActions{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+
     .btn{
-      display:inline-flex;gap:8px;align-items:center;
-      border:1px solid rgba(15,65,61,.20);
-      background:rgba(255,255,255,.55);
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:8px;
+      min-height:44px;
+      padding:11px 16px;
+      border-radius:14px;
+      border:1px solid var(--border);
+      background:rgba(255,255,255,.82);
       color:var(--text);
       text-decoration:none;
-      padding:8px 10px;border-radius:12px;
-      font-size:12px;
-      transition:.15s ease;
+      cursor:pointer;
+      transition:transform .16s ease, border-color .16s ease, background .16s ease, box-shadow .16s ease;
+      box-shadow:0 8px 18px rgba(24,50,47,.05);
+      backdrop-filter:blur(8px);
+      font-size:13px;
       white-space:nowrap;
-      backdrop-filter: blur(6px);
     }
-    .btn:hover{border-color:rgba(15,65,61,.55);transform:translateY(-1px)}
-    .btn.primary{border-color:rgba(15,65,61,.55);background:rgba(15,65,61,.08)}
-    .btn.good{border-color:rgba(20,90,84,.55);background:rgba(20,90,84,.10)}
-    .btn.warn{border-color:rgba(180,83,9,.55);background:rgba(180,83,9,.10)}
+
+    .btn:hover{
+      transform:translateY(-1px);
+      border-color:rgba(24,77,67,.34);
+    }
+
+    .btn.primary{
+      background:linear-gradient(180deg, #21594f, #184d43);
+      color:#fff;
+      border-color:rgba(24,77,67,.75);
+      box-shadow:0 12px 26px rgba(24,77,67,.20);
+    }
+
+    .btn.good{
+      border-color:rgba(45,106,95,.34);
+      background:rgba(45,106,95,.10);
+    }
+
+    .btn.warn{
+      border-color:rgba(183,121,31,.38);
+      background:rgba(183,121,31,.10);
+    }
+
+    .btn.big{
+      width:100%;
+      min-height:48px;
+      border-radius:16px;
+      font-size:14px;
+      font-weight:600;
+    }
+
+    .sectionShell{
+      margin-top:18px;
+      display:grid;
+      grid-template-columns:1.45fr .70fr;
+      gap:16px;
+      align-items:start;
+    }
+
+    .stack{
+      display:grid;
+      gap:16px;
+    }
+
+    .card{
+      background:linear-gradient(180deg, rgba(255,255,255,.96), rgba(252,250,247,.96));
+      border:1px solid var(--border-strong);
+      border-radius:var(--radius-xl);
+      box-shadow:var(--shadow), inset 0 1px 0 rgba(255,255,255,.7);
+      padding:20px;
+      overflow:hidden;
+    }
+
+    .cardHeader{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:16px;
+      margin-bottom:14px;
+      flex-wrap:wrap;
+    }
+
+    .cardTitleWrap h2{
+      margin:0;
+      font-size:12px;
+      color:var(--muted);
+      letter-spacing:.13em;
+      text-transform:uppercase;
+      font-weight:700;
+    }
+
+    .cardTitleWrap p{
+      margin:8px 0 0;
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.55;
+      max-width:760px;
+    }
+
+    .subtleDivider{
+      height:1px;
+      margin:2px 0 12px;
+      background:linear-gradient(90deg, rgba(24,77,67,.10), rgba(24,77,67,.03), transparent);
+    }
+
+    table{
+      width:100%;
+      border-collapse:separate;
+      border-spacing:0;
+      overflow:hidden;
+    }
+
+    th,td{
+      padding:13px 12px;
+      border-bottom:1px solid rgba(24,77,67,.08);
+      vertical-align:middle;
+      font-size:13px;
+      text-align:left;
+    }
+
+    th{
+      font-size:12px;
+      color:var(--muted);
+      font-weight:600;
+    }
+
+    tbody tr:hover td{
+      background:rgba(24,77,67,.03);
+    }
+
+    .actions{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+    }
 
     .badge{
-      display:inline-flex;align-items:center;gap:8px;
-      padding:6px 10px;border-radius:999px;
-      border:1px solid rgba(15,65,61,.20);
-      background:rgba(255,255,255,.55);
-      font-size:12px;color:var(--muted);
-      backdrop-filter: blur(6px);
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:7px 11px;
+      border-radius:999px;
+      border:1px solid rgba(24,77,67,.13);
+      background:rgba(255,255,255,.75);
+      font-size:12px;
+      color:var(--muted);
+      backdrop-filter:blur(10px);
     }
-    .badge .bDot{width:7px;height:7px;border-radius:50%}
-    .b-good{background:var(--accent2)}
+
+    .badge .bDot{
+      width:7px;
+      height:7px;
+      border-radius:50%;
+    }
+
+    .b-good{background:var(--accent-2)}
     .b-warn{background:var(--warn)}
     .b-bad{background:var(--danger)}
-    .b-muted{background:rgba(15,65,61,.35)}
+    .b-muted{background:rgba(24,77,67,.35)}
 
-    .rightStack{display:flex;flex-direction:column;gap:12px}
-    .kv{display:grid;grid-template-columns:1fr;gap:10px}
-    .kv .line{
-      border:1px solid rgba(15,65,61,.12);
-      border-radius:14px;
-      padding:10px 12px;
-      background:rgba(255,255,255,.45);
-      backdrop-filter: blur(6px);
+    .rightStack{
+      display:grid;
+      gap:16px;
+      position:sticky;
+      top:18px;
     }
-    .kv b{display:block;font-size:12px}
-    .kv span{display:block;color:var(--muted);font-size:12px;margin-top:3px;line-height:1.3}
+
+    .kv{
+      display:grid;
+      gap:10px;
+    }
+
+    .line{
+      border:1px solid rgba(24,77,67,.10);
+      border-radius:18px;
+      padding:13px 14px;
+      background:linear-gradient(180deg, rgba(255,255,255,.82), rgba(248,245,241,.78));
+    }
+
+    .line b{
+      display:block;
+      font-size:12px;
+      margin-bottom:4px;
+    }
+
+    .line span{
+      display:block;
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.4;
+      word-break:break-word;
+    }
+
+    .miniGrid{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:12px;
+    }
+
+    .miniCard{
+      border:1px solid rgba(24,77,67,.10);
+      border-radius:18px;
+      padding:14px;
+      background:linear-gradient(180deg, rgba(255,255,255,.82), rgba(248,245,241,.76));
+      min-height:104px;
+    }
+
+    .miniCard b{
+      display:block;
+      font-size:12px;
+      margin-bottom:8px;
+    }
+
+    .miniCard span{
+      display:block;
+      color:var(--muted);
+      font-size:12px;
+      line-height:1.45;
+    }
 
     .addonPill{
       display:flex;
       align-items:center;
       justify-content:space-between;
       gap:10px;
-      padding:12px 14px;
-      border-radius:14px;
-      border:1px solid rgba(15,65,61,.25);
-      background: linear-gradient(180deg, rgba(15,65,61,.06), rgba(15,65,61,.02));
+      padding:14px 15px;
+      border-radius:18px;
+      border:1px solid rgba(24,77,67,.14);
+      background:linear-gradient(180deg, rgba(24,77,67,.05), rgba(24,77,67,.02));
       margin-top:10px;
     }
-    .addonPill b{font-size:13px}
-    .addonPill span{font-size:12px;color:var(--muted)}
 
-    .footer{margin-top:12px;color:var(--muted);font-size:12px;line-height:1.4}
+    .addonPill b{
+      display:block;
+      font-size:13px;
+      margin-bottom:4px;
+    }
+
+    .addonPill span{
+      display:block;
+      color:var(--muted);
+      font-size:12px;
+      line-height:1.45;
+    }
+
+    .footer{
+      margin-top:14px;
+      color:var(--muted);
+      font-size:12px;
+      line-height:1.5;
+    }
+
+    .tiny{
+      font-size:11px;
+      color:var(--muted);
+      line-height:1.55;
+    }
+
+    .placeholderSection{
+      min-height:180px;
+      display:flex;
+      align-items:flex-end;
+      justify-content:flex-start;
+      border:1px dashed rgba(24,77,67,.14);
+      border-radius:22px;
+      padding:18px;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.60), rgba(247,243,238,.55)),
+        radial-gradient(circle at top right, rgba(223,236,232,.55), transparent 45%);
+    }
+
+    .placeholderSection b{
+      display:block;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size:22px;
+      font-weight:600;
+      margin-bottom:8px;
+    }
+
+    .placeholderSection span{
+      display:block;
+      max-width:520px;
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.55;
+    }
+
     .error{
-      margin-top:12px;
+      margin:14px 0 0;
       padding:12px 14px;
-      border-radius:14px;
-      border:1px solid rgba(185,28,28,.35);
-      background:rgba(185,28,28,.08);
-      color:#7a1b1b;
+      border-radius:16px;
+      border:1px solid rgba(180,35,24,.25);
+      background:rgba(180,35,24,.07);
+      color:#84231c;
       font-size:13px;
     }
-    .loading{opacity:.85;filter:saturate(.95)}
-    .tiny{font-size:11px;color:var(--muted)}
 
-    @media (max-width: 920px){
-      .grid{grid-template-columns:1fr}
-      .logoImg{height:120px}
+    .loading{
+      opacity:.92;
+      filter:saturate(.96);
     }
-    .btn.big{
-  padding: 12px 14px;
-  border-radius: 14px;
-  font-size: 13px;
-  font-weight: 600;
-}
-.btn.block{
-  width: 100%;
-  justify-content: center;
-}
 
+    .sectionNav{
+      margin-top:18px;
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+
+    .anchor{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:10px 13px;
+      border-radius:999px;
+      border:1px solid var(--border);
+      background:rgba(255,255,255,.72);
+      text-decoration:none;
+      font-size:12px;
+      color:var(--muted);
+      backdrop-filter:blur(8px);
+    }
+
+    .anchor:hover{
+      border-color:rgba(24,77,67,.24);
+      color:var(--accent);
+    }
+
+    @media (max-width: 1080px){
+      .sectionShell{
+        grid-template-columns:1fr;
+      }
+      .rightStack{
+        position:static;
+      }
+    }
+
+    @media (max-width: 720px){
+      .wrap{
+        padding:16px 12px 46px;
+      }
+
+      .topbar{
+        flex-direction:column;
+        align-items:stretch;
+      }
+
+      .brand{
+        align-items:flex-start;
+      }
+
+      .logoShell{
+        width:66px;
+        height:66px;
+        border-radius:18px;
+      }
+
+      .logoImg{
+        max-height:48px;
+      }
+
+      .title b{
+        font-size:24px;
+      }
+
+      .hero{
+        min-height:300px;
+        border-radius:26px;
+      }
+
+      .heroInner{
+        min-height:300px;
+        padding:18px;
+      }
+
+      .heroText h1{
+        font-size:36px;
+      }
+
+      .heroText p{
+        font-size:14px;
+      }
+
+      .miniGrid{
+        grid-template-columns:1fr;
+      }
+
+      th, td{
+        padding:11px 9px;
+        font-size:12px;
+      }
+
+      .actions{
+        flex-direction:column;
+        align-items:flex-start;
+      }
+    }
   </style>
 </head>
 
 <body>
   <div class="wrap">
-    <div class="top">
+    <div class="topbar">
       <div class="brand">
-        <img src="spruce-logo.png" alt="Spruce" class="logoImg" />
+        <div class="logoShell">
+          <img src="spruce-logo.png" alt="Spruce" class="logoImg" />
+        </div>
+
         <div class="title">
-          <b>Welcome to Your Owner Portal</b>
+          <div class="eyebrow">
+            <span class="eyebrowDot"></span>
+            Owner portal
+          </div>
+          <b>Welcome to Your Spruce Portal</b>
           <span id="ownerLine">Loading…</span>
         </div>
       </div>
-      <div class="chip"><span class="dot"></span> Secure link • Token access</div>
+
+      <div class="secureChip">
+        <span class="dot"></span>
+        Secure link • Token access
+      </div>
+    </div>
+
+    <section class="hero">
+      <div class="heroInner">
+        <div class="heroTop">
+          <div class="heroPillRow">
+            <div class="pill">Boutique hospitality</div>
+            <div class="pill">Private owner access</div>
+            <div class="pill">Weekly visibility</div>
+          </div>
+        </div>
+
+        <div class="heroBottom">
+          <div class="heroText">
+            <h1>Your property, beautifully managed at a glance.</h1>
+            <p>
+              A refined view into invoices, enhancements, and future owner-facing updates —
+              designed to feel polished now and ready for deeper portal sections as Spruce grows.
+            </p>
+          </div>
+
+          <div class="heroActions">
+            <a href="#invoices" class="btn">View invoices</a>
+            <a href="#enhancements" class="btn">Enhancements</a>
+            <a href="#account" class="btn primary">Owner details</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="sectionNav">
+      <a class="anchor" href="#invoices">Invoices</a>
+      <a class="anchor" href="#account">Account</a>
+      <a class="anchor" href="#enhancements">Enhancements</a>
+      <a class="anchor" href="#future-sections">Future sections</a>
     </div>
 
     <div id="errBox" class="error" style="display:none;"></div>
 
-    <div class="grid">
-      <div class="card">
-        <h2>Invoices</h2>
-        <p class="sub">Your weekly invoices. You can review details and complete payment when needed. (Autopay will appear here after Stripe is fully enabled.)</p>
-
-        <table id="invTable">
-          <thead>
-            <tr>
-              <th>Invoice</th>
-              <th>Property</th>
-              <th>Week</th>
-              <th>Total</th>
-              <th>Status</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
-
-        <div class="footer">
-          <div class="tiny">
-            Tip: Once Stripe autopay + webhooks are live, this page will automatically update to show PAID, receipts, and hosted invoice links—no link changes needed.
+    <div class="sectionShell">
+      <main class="stack">
+        <section id="invoices" class="card">
+          <div class="cardHeader">
+            <div class="cardTitleWrap">
+              <h2>Invoices</h2>
+              <p>
+                Your weekly invoices appear here for review and payment. As Stripe automation is finalized,
+                hosted invoice links, payment status, and receipts will update in place.
+              </p>
+            </div>
           </div>
-        </div>
-      </div>
 
-      <div class="rightStack">
-        <div class="card">
-          <h2>Account</h2>
+          <div class="subtleDivider"></div>
+
+          <table id="invTable">
+            <thead>
+              <tr>
+                <th>Invoice</th>
+                <th>Property</th>
+                <th>Week</th>
+                <th>Total</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+
+          <div class="footer">
+            <div class="tiny">
+              Tip: once Stripe autopay and webhooks are fully enabled, this section can automatically display
+              PAID status, hosted invoice links, receipts, and cleaner owner-facing billing updates without changing the portal link.
+            </div>
+          </div>
+        </section>
+
+        <section id="future-sections" class="card">
+          <div class="cardHeader">
+            <div class="cardTitleWrap">
+              <h2>Portal expansion</h2>
+              <p>
+                This section keeps the page feeling layered and scrollable now, while leaving room for future
+                sections like cleans, issues, recent reports, onboarding, or documents.
+              </p>
+            </div>
+          </div>
+
+          <div class="placeholderSection">
+            <div>
+              <b>Luxury, layered, and ready to grow.</b>
+              <span>
+                We can turn this lower section into client-facing cards for recent cleans, issue reporting,
+                PDFs, invoices by week, seasonal enhancements, and plan change status — without changing the top visual feel.
+              </span>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <aside class="rightStack">
+        <section id="account" class="card">
+          <div class="cardHeader">
+            <div class="cardTitleWrap">
+              <h2>Account</h2>
+              <p>Your secure owner details and portal identity.</p>
+            </div>
+          </div>
+
           <div class="kv">
             <div class="line">
               <b>Owner</b>
@@ -229,319 +792,291 @@
               <span id="ownerEmail">—</span>
             </div>
           </div>
-          <div class="footer tiny">
-            This secure link is unique to you. Please do not forward it.
+
+          <div class="miniGrid" style="margin-top:12px;">
+            <div class="miniCard">
+              <b>Access</b>
+              <span>Private token-based portal link for owner-facing visibility.</span>
+            </div>
+            <div class="miniCard">
+              <b>Status</b>
+              <span>Designed for future expansion without changing the visual framework.</span>
+            </div>
           </div>
-        </div>
-
-        <div class="card">
-  <h2>Enhancements</h2>
-  <p class="sub">
-    Optional Spruce experiences (Sprigs, Scapes, Shopped, etc.)
-    can be enabled per request.
-  </p>
-
-  <div id="addonsBox"></div>
-
-  <div class="footer tiny">
-    Requests are reviewed before activation.
-  </div>
-</div>
-
-
-          <div id="addonsBox"></div>
-<div class="footer tiny">
-  Next step: add toggles that write to ADDON_REQUESTS, then approval automation.
-</div>
-
-
-          <div id="addonsBox"></div>
-<div class="footer tiny">
-  Next step: add toggles that write to ADDON_REQUESTS, then approval automation.
-</div>
-
-
-          <div id="addonsBox"></div>
-<div class="footer tiny">
-  Next step: add toggles that write to ADDON_REQUESTS, then approval automation.
-</div>
-
-
-          <<div id="addonsBox"></div>
-<div class="footer tiny">
-  Next step: add toggles that write to ADDON_REQUESTS, then approval automation.
-</div>
-
-
-          <div id="addonsBox"></div>
-<div class="footer tiny">
-  Next step: add toggles that write to ADDON_REQUESTS, then approval automation.
-</div>
-
-          <div id="addonsBox"></div>
-<div class="footer tiny">
-  Next step: add toggles that write to ADDON_REQUESTS, then approval automation.
-</div>
-
 
           <div class="footer tiny">
-            Next step: add toggles that write to ADDON_REQUESTS, then approval automation.
+            This secure portal link is unique to you. Please do not forward it.
           </div>
-        </div>
-      </div>
+        </section>
+
+        <section id="enhancements" class="card">
+          <div class="cardHeader">
+            <div class="cardTitleWrap">
+              <h2>Enhancements</h2>
+              <p>
+                Optional Spruce experiences like Sprigs, Scents, and Salutations can be requested here.
+              </p>
+            </div>
+          </div>
+
+          <div id="addonsBox"></div>
+
+          <div class="footer tiny">
+            Requests are reviewed before activation.
+          </div>
+        </section>
+      </aside>
     </div>
   </div>
 
-<script>
-  const qs = new URLSearchParams(location.search);
-  const token = qs.get("t");
+  <script>
+    const qs = new URLSearchParams(location.search);
+    const token = qs.get("t");
 
-  function showError(msg){
-    const box = document.getElementById("errBox");
-    box.style.display = "block";
-    box.textContent = msg;
-  }
-
-  function fmtDate(d){
-    try{
-      const dt = (d instanceof Date) ? d : new Date(d);
-      if (isNaN(dt)) return String(d||"");
-      return dt.toLocaleDateString(undefined,{month:"numeric",day:"numeric",year:"numeric"});
-    }catch(e){ return String(d||""); }
-  }
-
-  function money(x){
-    const n = Number(x);
-    if (!isFinite(n)) return String(x||"");
-    return n.toLocaleString(undefined,{style:"currency",currency:"USD"});
-  }
-
-  function statusBadge(status){
-    const s = String(status||"").toUpperCase();
-    let dot = "b-muted";
-    if (s.includes("PAID")) dot = "b-good";
-    else if (s.includes("NEEDS ACTION") || s.includes("ACTION REQUIRED") || s.includes("NO AUTOPAY")) dot = "b-warn";
-    else if (s.includes("FAIL") || s.includes("PAST DUE")) dot = "b-bad";
-    return `<span class="badge"><span class="bDot ${dot}"></span>${status || ""}</span>`;
-  }
-
-  function bestInvoiceLink(inv){
-    if (inv.hostedUrl) return { url: inv.hostedUrl, label: "View Invoice", cls: "primary" };
-    if (inv.paymentLink) return { url: inv.paymentLink, label: "Pay Now", cls: "warn" };
-    return null;
-  }
-
-  function renderInvoices(invoices){
-    const tbody = document.querySelector("#invTable tbody");
-    tbody.innerHTML = "";
-
-    if(!invoices || !invoices.length){
-      tbody.innerHTML = `<tr><td colspan="6" class="tiny">No invoices found yet.</td></tr>`;
-      return;
+    function showError(msg){
+      const box = document.getElementById("errBox");
+      box.style.display = "block";
+      box.textContent = msg;
     }
 
-    invoices.forEach(inv=>{
-      const week = `${fmtDate(inv.weekStart)} – ${fmtDate(inv.weekEnd)}`;
-      const link = bestInvoiceLink(inv);
-
-      const actions = [];
-      if (link) actions.push(`<a class="btn ${link.cls}" target="_blank" rel="noopener" href="${link.url}">${link.label}</a>`);
-      if (inv.pdfUrl) actions.push(`<a class="btn good" target="_blank" rel="noopener" href="${inv.pdfUrl}">PDF</a>`);
-
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td>${inv.invoiceId || ""}</td>
-        <td>${inv.property || ""}</td>
-        <td>${week}</td>
-        <td>${money(inv.total)}</td>
-        <td>${statusBadge(inv.status)}</td>
-        <td><div class="actions">${actions.join("") || '<span class="tiny">—</span>'}</div></td>
-      `;
-      tbody.appendChild(tr);
-    });
-  }
-
-  // ---------- ADDONS (v2) ----------
-  function badgeDotClass(badgeText){
-    const b = String(badgeText||"").toUpperCase();
-    if (b.includes("ACTIVE")) return "b-good";
-    if (b.includes("RENEW")) return "b-warn";
-    if (b.includes("UPGRADE") || b.includes("NOT")) return "b-bad";
-    if (b.includes("COMING")) return "b-muted";
-    return "b-muted";
-  }
-
-function renderAddons(property){
-  const box = document.getElementById("addonsBox");
-  if (!box) return;
-
-  const plan = String(property?.planType || "").toUpperCase();
-  const ui = property?.addonUi || {};
-  const states = property?.addonStates || {};
-
-  // Single Sprucings (only these visible for now)
-  const meta = [
-    { key:"sprigs",      title:"Spruce Sprigs",      desc:"Thoughtfully placed florals" },
-    { key:"scents",      title:"Spruce Scents",      desc:"Signature scenting experience" },
-    { key:"salutations", title:"Spruce Salutations", desc:"Signature welcome gift" },
-  ];
-
-  // 1) Big upgrade button (Simply only)
-  const upgradeBlock = (plan === "SIMPLY") ? `
-    <div style="margin-bottom:12px;">
-      <div class="tiny" style="margin-bottom:8px;color:var(--muted);">
-        Want linens + lux amenities + bundled enhancements?
-      </div>
-      <button class="btn primary big block"
-        onclick="requestPlanUpgrade('${property.propertyId}', '${property.planType}')">
-        Spruce UP to Signature
-      </button>
-    </div>
-  ` : ``;
-
-  // 2) Single Sprucings list
-  const list = meta.map(m=>{
-    const u = ui[m.key] || { badge:"—", cta:"—", clickable:false };
-    const st = states[m.key] || {};
-    const dot = badgeDotClass(u.badge);
-
-    let sub = m.desc;
-    if (st.package && st.package !== "NONE"){
-      const pkgLabel = String(st.package).replaceAll("_"," ");
-      const remLabel = (typeof st.remaining === "number") ? ` • ${st.remaining} left` : "";
-      sub += ` • ${pkgLabel}${remLabel}`;
-    }
-
-    // Button behavior for add-ons (we’ll wire to ADDON_REQUESTS next)
-    const right = (u.clickable)
-      ? `<button class="btn primary" onclick="requestSingleSprucing('${property.propertyId}','${m.key}')">${u.cta}</button>`
-      : `<span class="badge"><span class="bDot ${dot}"></span>${u.badge}</span>`;
-
-    return `
-      <div class="addonPill">
-        <div>
-          <b>${m.title}</b>
-          <span>${sub}</span>
-        </div>
-        ${right}
-      </div>
-    `;
-  }).join("");
-
-  box.innerHTML = `
-    ${upgradeBlock}
-    <div style="margin-top:6px;">
-      <div class="tiny" style="margin:6px 0 8px;color:var(--muted);font-weight:600;">
-        Single Sprucings
-      </div>
-      ${list}
-    </div>
-  `;
-}
-
-  // ---------- LOAD ----------
-  async function loadPortal(){
-    if(!token){
-      showError("Missing token. Please open your Portal Link from the OWNERS sheet (it includes ?t=...).");
-      document.getElementById("ownerLine").textContent = "Missing token";
-      return;
-    }
-
-    document.body.classList.add("loading");
-
-    const url = `/api/portal?path=portal_v2&t=${encodeURIComponent(token)}`;
-
-    try{
-      const res = await fetch(url, { method:"GET", cache:"no-store" });
-      const text = await res.text();
-
-      let data;
+    function fmtDate(d){
       try{
-        data = JSON.parse(text);
-        if (typeof data === "string") data = JSON.parse(data);
+        const dt = (d instanceof Date) ? d : new Date(d);
+        if (isNaN(dt)) return String(d || "");
+        return dt.toLocaleDateString(undefined, {
+          month:"numeric",
+          day:"numeric",
+          year:"numeric"
+        });
       }catch(e){
-        throw new Error(`Non-JSON response (${res.status}): ${text.slice(0,200)}`);
+        return String(d || "");
+      }
+    }
+
+    function money(x){
+      const n = Number(x);
+      if (!isFinite(n)) return String(x || "");
+      return n.toLocaleString(undefined, { style:"currency", currency:"USD" });
+    }
+
+    function statusBadge(status){
+      const s = String(status || "").toUpperCase();
+      let dot = "b-muted";
+
+      if (s.includes("PAID")) dot = "b-good";
+      else if (s.includes("NEEDS ACTION") || s.includes("ACTION REQUIRED") || s.includes("NO AUTOPAY")) dot = "b-warn";
+      else if (s.includes("FAIL") || s.includes("PAST DUE")) dot = "b-bad";
+
+      return `<span class="badge"><span class="bDot ${dot}"></span>${status || ""}</span>`;
+    }
+
+    function bestInvoiceLink(inv){
+      if (inv.hostedUrl) return { url: inv.hostedUrl, label: "View Invoice", cls: "primary" };
+      if (inv.paymentLink) return { url: inv.paymentLink, label: "Pay Now", cls: "warn" };
+      return null;
+    }
+
+    function renderInvoices(invoices){
+      const tbody = document.querySelector("#invTable tbody");
+      tbody.innerHTML = "";
+
+      if (!invoices || !invoices.length){
+        tbody.innerHTML = `<tr><td colspan="6" class="tiny">No invoices found yet.</td></tr>`;
+        return;
       }
 
-      if(!res.ok) throw new Error(data?.error || `Request failed (${res.status})`);
-      if(data?.error) throw new Error(data.error);
+      invoices.forEach(inv => {
+        const week = `${fmtDate(inv.weekStart)} – ${fmtDate(inv.weekEnd)}`;
+        const link = bestInvoiceLink(inv);
 
-      const owner = data.owner || {};
-      document.getElementById("ownerLine").textContent = `${owner.ownerName || "Owner"} • ${owner.ownerEmail || ""}`;
-      document.getElementById("ownerName").textContent = owner.ownerName || "—";
-      document.getElementById("ownerEmail").textContent = owner.ownerEmail || "—";
+        const actions = [];
+        if (link) {
+          actions.push(`<a class="btn ${link.cls}" target="_blank" rel="noopener" href="${link.url}">${link.label}</a>`);
+        }
+        if (inv.pdfUrl) {
+          actions.push(`<a class="btn good" target="_blank" rel="noopener" href="${inv.pdfUrl}">PDF</a>`);
+        }
 
-      renderInvoices(data.invoices || []);
-
-      const firstProp = (data.properties && data.properties[0]) ? data.properties[0] : null;
-      if (firstProp) renderAddons(firstProp);
-
-    }catch(err){
-      showError(String(err.message || err));
-      document.getElementById("ownerLine").textContent = "Load failed";
-    }finally{
-      document.body.classList.remove("loading");
-    }
-  }
-async function requestUpgradeToSignature(propertyId){
-  if (!confirm("Upgrade this property to the Signature plan? This request will be reviewed before activation.")) {
-    return;
-  }
-
-  try {
-    const res = await fetch(`/api/portal?path=addons_toggle&t=${encodeURIComponent(token)}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        addonKey: "plan",
-        action: "UPGRADE_TO_SIGNATURE",
-        propertyId: propertyId
-      })
-    });
-
-    const data = await res.json();
-    if (!res.ok || data.error) {
-      throw new Error(data.error || "Request failed");
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${inv.invoiceId || ""}</td>
+          <td>${inv.property || ""}</td>
+          <td>${week}</td>
+          <td>${money(inv.total)}</td>
+          <td>${statusBadge(inv.status)}</td>
+          <td><div class="actions">${actions.join("") || '<span class="tiny">—</span>'}</div></td>
+        `;
+        tbody.appendChild(tr);
+      });
     }
 
-    alert("Upgrade request submitted. We’ll take it from here 🌱");
-  } catch (err) {
-    alert("Could not submit request: " + err.message);
-  }
-}
-async function requestPlanUpgrade(propertyId, fromPlan){
-  if (!confirm("Request upgrade to Signature? This will be reviewed and scheduled before activation.")) return;
+    function badgeDotClass(badgeText){
+      const b = String(badgeText || "").toUpperCase();
+      if (b.includes("ACTIVE")) return "b-good";
+      if (b.includes("RENEW")) return "b-warn";
+      if (b.includes("UPGRADE") || b.includes("NOT")) return "b-bad";
+      if (b.includes("COMING")) return "b-muted";
+      return "b-muted";
+    }
 
-  try{
-    const res = await fetch(`/api/portal?path=plan_change&t=${encodeURIComponent(token)}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        propertyId,
-        fromPlan,
-        toPlan: "Signature",
-        notes: "Requested from owner portal"
-      })
-    });
-    const data = await res.json();
-    if (!res.ok || data.error) throw new Error(data.error || "Request failed");
-    alert("Upgrade request submitted. We’ll confirm next steps shortly.");
-  }catch(err){
-    alert("Could not submit request: " + err.message);
-  }
-}
+    function renderAddons(property){
+      const box = document.getElementById("addonsBox");
+      if (!box) return;
 
-  loadPortal();
-</script>
+      const plan = String(property?.planType || "").toUpperCase();
+      const ui = property?.addonUi || {};
+      const states = property?.addonStates || {};
 
+      const meta = [
+        { key:"sprigs", title:"Spruce Sprigs", desc:"Thoughtfully placed florals" },
+        { key:"scents", title:"Spruce Scents", desc:"Signature scenting experience" },
+        { key:"salutations", title:"Spruce Salutations", desc:"Signature welcome gift" }
+      ];
+
+      const upgradeBlock = (plan === "SIMPLY") ? `
+        <div style="margin-bottom:12px;">
+          <div class="tiny" style="margin-bottom:8px;">
+            Want linens, luxury amenities, and bundled enhancements?
+          </div>
+          <button class="btn primary big" onclick="requestPlanUpgrade('${property.propertyId}', '${property.planType}')">
+            Spruce UP to Signature
+          </button>
+        </div>
+      ` : ``;
+
+      const list = meta.map(m => {
+        const u = ui[m.key] || { badge:"—", cta:"—", clickable:false };
+        const st = states[m.key] || {};
+        const dot = badgeDotClass(u.badge);
+
+        let sub = m.desc;
+        if (st.package && st.package !== "NONE"){
+          const pkgLabel = String(st.package).replaceAll("_"," ");
+          const remLabel = (typeof st.remaining === "number") ? ` • ${st.remaining} left` : "";
+          sub += ` • ${pkgLabel}${remLabel}`;
+        }
+
+        const right = u.clickable
+          ? `<button class="btn primary" onclick="requestSingleSprucing('${property.propertyId}','${m.key}')">${u.cta}</button>`
+          : `<span class="badge"><span class="bDot ${dot}"></span>${u.badge}</span>`;
+
+        return `
+          <div class="addonPill">
+            <div>
+              <b>${m.title}</b>
+              <span>${sub}</span>
+            </div>
+            ${right}
+          </div>
+        `;
+      }).join("");
+
+      box.innerHTML = `
+        ${upgradeBlock}
+        <div style="margin-top:6px;">
+          <div class="tiny" style="margin:6px 0 8px; font-weight:600;">
+            Single Sprucings
+          </div>
+          ${list}
+        </div>
+      `;
+    }
+
+    async function loadPortal(){
+      if (!token){
+        showError("Missing token. Please open your Portal Link from the OWNERS sheet (it includes ?t=...).");
+        document.getElementById("ownerLine").textContent = "Missing token";
+        return;
+      }
+
+      document.body.classList.add("loading");
+
+      const url = `/api/portal?path=portal_v2&t=${encodeURIComponent(token)}`;
+
+      try{
+        const res = await fetch(url, { method:"GET", cache:"no-store" });
+        const text = await res.text();
+
+        let data;
+        try{
+          data = JSON.parse(text);
+          if (typeof data === "string") data = JSON.parse(data);
+        }catch(e){
+          throw new Error(`Non-JSON response (${res.status}): ${text.slice(0,200)}`);
+        }
+
+        if (!res.ok) throw new Error(data?.error || `Request failed (${res.status})`);
+        if (data?.error) throw new Error(data.error);
+
+        const owner = data.owner || {};
+        document.getElementById("ownerLine").textContent = `${owner.ownerName || "Owner"} • ${owner.ownerEmail || ""}`;
+        document.getElementById("ownerName").textContent = owner.ownerName || "—";
+        document.getElementById("ownerEmail").textContent = owner.ownerEmail || "—";
+
+        renderInvoices(data.invoices || []);
+
+        const firstProp = (data.properties && data.properties[0]) ? data.properties[0] : null;
+        if (firstProp) renderAddons(firstProp);
+
+      }catch(err){
+        showError(String(err.message || err));
+        document.getElementById("ownerLine").textContent = "Load failed";
+      }finally{
+        document.body.classList.remove("loading");
+      }
+    }
+
+    async function requestUpgradeToSignature(propertyId){
+      if (!confirm("Upgrade this property to the Signature plan? This request will be reviewed before activation.")) {
+        return;
+      }
+
+      try {
+        const res = await fetch(`/api/portal?path=addons_toggle&t=${encodeURIComponent(token)}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            addonKey: "plan",
+            action: "UPGRADE_TO_SIGNATURE",
+            propertyId: propertyId
+          })
+        });
+
+        const data = await res.json();
+        if (!res.ok || data.error) {
+          throw new Error(data.error || "Request failed");
+        }
+
+        alert("Upgrade request submitted. We’ll take it from here 🌱");
+      } catch (err) {
+        alert("Could not submit request: " + err.message);
+      }
+    }
+
+    async function requestPlanUpgrade(propertyId, fromPlan){
+      if (!confirm("Request upgrade to Signature? This will be reviewed and scheduled before activation.")) return;
+
+      try{
+        const res = await fetch(`/api/portal?path=plan_change&t=${encodeURIComponent(token)}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            propertyId,
+            fromPlan,
+            toPlan: "Signature",
+            notes: "Requested from owner portal"
+          })
+        });
+
+        const data = await res.json();
+        if (!res.ok || data.error) throw new Error(data.error || "Request failed");
+        alert("Upgrade request submitted. We’ll confirm next steps shortly.");
+      }catch(err){
+        alert("Could not submit request: " + err.message);
+      }
+    }
+
+    loadPortal();
+  </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
