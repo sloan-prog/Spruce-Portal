@@ -1,175 +1,164 @@
-export default function SpruceClientPortalMockup() {
-  const navItems = [
-    { label: "Overview", active: true, icon: "▦" },
-    { label: "Activity", active: false, icon: "◫" },
-    { label: "Tasks", active: false, icon: "☰" },
-    { label: "Files", active: false, icon: "📄" },
-    { label: "Payments", active: false, icon: "$" },
-    { label: "Notes", active: false, icon: "✎" },
-  ];
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Spruce Portal</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f6f4f1;
+      display: flex;
+    }
 
-  const cardsTop = [
-    {
-      title: "Property Details",
-      empty: "Beachfront hospitality dashboard coming Thursday.",
-    },
-    {
-      title: "Messages",
-      empty: "No messages yet",
-      footer: "Go to Activity",
-    },
-  ];
+    /* SIDEBAR */
+    .sidebar {
+      width: 260px;
+      background: #f7f5f2;
+      border-right: 1px solid #ddd;
+      padding: 20px;
+      height: 100vh;
+    }
 
-  const cardsBottom = [
-    { title: "Tasks", empty: "No tasks", footer: "Go to Tasks" },
-    { title: "Active Files", empty: "No active files", footer: "Go to Files" },
-    { title: "Bookmarks", empty: "No bookmarks", footer: "Go to Files" },
-    { title: "Notes", empty: "No notes", footer: "Go to Notes" },
-  ];
+    .logo {
+      font-size: 24px;
+      font-weight: bold;
+      color: #184d43;
+    }
 
-  return (
-    <div className="min-h-screen bg-[#f6f4f1] text-[#1d1d1b]">
-      <div className="flex min-h-screen">
-        <aside className="w-[258px] shrink-0 border-r border-[#ddd8d2] bg-[#f7f5f2] flex flex-col justify-between">
-          <div>
-            <div className="px-8 pt-10 pb-6 border-b border-[#e5e0da]">
-              <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-full bg-[#dfe9e3] flex items-center justify-center text-[#1f4f45] text-xl">
-                  S
-                </div>
-                <div>
-                  <div className="font-serif text-[28px] leading-none text-[#20493f]">
-                    spruce
-                  </div>
-                  <div className="uppercase tracking-[0.28em] text-[10px] text-[#7c817d] mt-1">
-                    hospitality systems
-                  </div>
-                </div>
-              </div>
+    .nav-item {
+      padding: 12px;
+      margin-top: 8px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
 
-              <div className="mt-8">
-                <div className="text-[28px] leading-tight font-serif">
-                  Spruce Hospitality
-                </div>
-                <div className="mt-2 text-[17px] text-[#494949]">
-                  Miss Hoa&apos;s Project
-                </div>
-              </div>
-            </div>
+    .nav-item.active {
+      background: #184d43;
+      color: white;
+    }
 
-            <nav className="px-3 py-5 space-y-1">
-              {navItems.map((item) => (
-                <button
-                  key={item.label}
-                  className={`w-full flex items-center gap-4 rounded-xl px-4 py-3 text-left transition ${
-                    item.active
-                      ? "bg-[#184d43] text-white shadow-sm"
-                      : "text-[#222] hover:bg-[#ece7e1]"
-                  }`}
-                >
-                  <span className="text-lg w-5">{item.icon}</span>
-                  <span className="text-[18px]">{item.label}</span>
-                </button>
-              ))}
-            </nav>
-          </div>
+    /* MAIN */
+    .main {
+      flex: 1;
+      padding: 20px;
+    }
 
-          <div className="p-4 border-t border-[#e5e0da]">
-            <div className="flex items-center gap-3 rounded-xl px-3 py-3 hover:bg-[#ece7e1] cursor-pointer">
-              <div className="h-10 w-10 rounded-full bg-[#d9dde2] flex items-center justify-center text-sm font-semibold">
-                JV
-              </div>
-              <span className="text-[18px]">Settings</span>
-            </div>
-            <div className="flex items-center gap-3 rounded-xl px-3 py-3 hover:bg-[#ece7e1] cursor-pointer">
-              <div className="h-10 w-10 rounded-full bg-transparent flex items-center justify-center text-lg">
-                ↪
-              </div>
-              <span className="text-[18px]">Log out</span>
-            </div>
-          </div>
-        </aside>
+    .hero {
+      height: 250px;
+      background-image: url('couch-hero.jpg');
+      background-size: cover;
+      border-radius: 10px;
+    }
 
-        <main className="flex-1 overflow-y-auto">
-          <div className="max-w-[1320px] mx-auto px-10 py-8">
-            <div
-              className="h-[310px] w-full rounded-[10px] bg-cover bg-center shadow-sm"
-              style={{
-                backgroundImage:
-                  "linear-gradient(rgba(255,255,255,0.08), rgba(255,255,255,0.08)), url('/couch-hero.jpg')",
-              }}
-            />
+    .header {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 20px;
+    }
 
-            <div className="mt-6 flex items-start justify-between gap-6">
-              <div>
-                <div className="flex items-center gap-4 flex-wrap">
-                  <h1 className="font-serif text-[54px] leading-none text-[#151515]">
-                    Miss Hoa&apos;s Project
-                  </h1>
-                  <span className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-[#d7dde2] text-sm font-semibold text-[#3b4650]">
-                    JV
-                  </span>
-                </div>
-                <div className="mt-3 text-[22px] text-[#555]">
-                  Orange Beach Signature property
-                </div>
-              </div>
+    .title {
+      font-size: 32px;
+      font-weight: bold;
+    }
 
-              <div className="flex items-center gap-4 pt-3">
-                <button className="inline-flex items-center gap-2 rounded-xl border border-[#d8d3cc] bg-white px-5 py-3 text-[18px] hover:bg-[#faf8f5]">
-                  <span>⤴</span>
-                  <span>Upload</span>
-                </button>
-                <button className="rounded-xl bg-[#184d43] px-7 py-3 text-[18px] font-medium text-white shadow-sm hover:bg-[#123d35]">
-                  Send a message
-                </button>
-              </div>
-            </div>
+    .btn {
+      padding: 10px 16px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+    }
 
-            <section className="mt-8 grid grid-cols-1 xl:grid-cols-2 gap-6">
-              {cardsTop.map((card) => (
-                <div
-                  key={card.title}
-                  className="rounded-[10px] border border-[#ddd8d2] bg-white min-h-[420px] flex flex-col"
-                >
-                  <div className="px-7 pt-7 pb-4 font-serif text-[22px]">
-                    {card.title}
-                  </div>
-                  <div className="flex-1 flex items-center justify-center px-8 text-center text-[22px] text-[#8b8f98]">
-                    {card.empty}
-                  </div>
-                  {card.footer ? (
-                    <div className="px-7 pb-7 text-[18px] font-medium text-[#111] flex items-center gap-2">
-                      <span>{card.footer}</span>
-                      <span>›</span>
-                    </div>
-                  ) : null}
-                </div>
-              ))}
-            </section>
+    .btn-green {
+      background: #184d43;
+      color: white;
+    }
 
-            <section className="mt-6 grid grid-cols-1 xl:grid-cols-2 gap-6">
-              {cardsBottom.map((card) => (
-                <div
-                  key={card.title}
-                  className="rounded-[10px] border border-[#ddd8d2] bg-white min-h-[380px] flex flex-col"
-                >
-                  <div className="px-7 pt-7 pb-4 font-serif text-[22px]">
-                    {card.title}
-                  </div>
-                  <div className="flex-1 flex items-center justify-center px-8 text-center text-[22px] text-[#8b8f98]">
-                    {card.empty}
-                  </div>
-                  <div className="px-7 pb-7 text-[18px] font-medium text-[#111] flex items-center gap-2">
-                    <span>{card.footer}</span>
-                    <span>›</span>
-                  </div>
-                </div>
-              ))}
-            </section>
-          </div>
-        </main>
+    /* CARDS */
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-top: 20px;
+    }
+
+    .card {
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      padding: 20px;
+      min-height: 200px;
+    }
+
+    .card-title {
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+
+    .empty {
+      color: #888;
+      text-align: center;
+      margin-top: 50px;
+    }
+
+  </style>
+</head>
+
+<body>
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="logo">Spruce</div>
+
+    <div class="nav-item active">Overview</div>
+    <div class="nav-item">Activity</div>
+    <div class="nav-item">Cleans</div>
+    <div class="nav-item">Invoices</div>
+    <div class="nav-item">Files</div>
+    <div class="nav-item">Notes</div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+
+    <div class="hero"></div>
+
+    <div class="header">
+      <div>
+        <div class="title">Miss Hoa's Project</div>
+        <div>Orange Beach Signature Property</div>
+      </div>
+
+      <div>
+        <button class="btn">Upload</button>
+        <button class="btn btn-green">Send Message</button>
       </div>
     </div>
-  );
-}
+
+    <div class="grid">
+      <div class="card">
+        <div class="card-title">Property Details</div>
+        <div class="empty">Coming Thursday</div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Messages</div>
+        <div class="empty">No messages</div>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <div class="card-title">Cleans</div>
+        <div class="empty">No cleans</div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Invoices</div>
+        <div class="empty">No invoices</div>
+      </div>
+    </div>
+
+  </div>
+
+</body>
+</html>
