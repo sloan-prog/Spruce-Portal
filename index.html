@@ -1,24 +1,31 @@
 export default function SpruceClientPortalMockup() {
   const navItems = [
-    { label: 'Overview', active: true, icon: '▦' },
-    { label: 'Activity', active: false, icon: '◫' },
-    { label: 'Tasks', active: false, icon: '☰' },
-    { label: 'Files', active: false, icon: '📄' },
-    { label: 'Payments', active: false, icon: '$' },
-    { label: 'Notes', active: false, icon: '✎' },
-  ]
+    { label: "Overview", active: true, icon: "▦" },
+    { label: "Activity", active: false, icon: "◫" },
+    { label: "Tasks", active: false, icon: "☰" },
+    { label: "Files", active: false, icon: "📄" },
+    { label: "Payments", active: false, icon: "$" },
+    { label: "Notes", active: false, icon: "✎" },
+  ];
 
   const cardsTop = [
-    { title: 'Property details', empty: 'Beachfront hospitality dashboard coming Thursday.' },
-    { title: 'Messages', empty: 'No messages yet', footer: 'Go to Activity' },
-  ]
+    {
+      title: "Property Details",
+      empty: "Beachfront hospitality dashboard coming Thursday.",
+    },
+    {
+      title: "Messages",
+      empty: "No messages yet",
+      footer: "Go to Activity",
+    },
+  ];
 
   const cardsBottom = [
-    { title: 'Tasks', empty: 'No tasks', footer: 'Go to Tasks' },
-    { title: 'Active files', empty: 'No active files', footer: 'Go to Files' },
-    { title: 'Bookmarks', empty: 'No bookmarks', footer: 'Go to Files' },
-    { title: 'Notes', empty: 'No notes', footer: 'Go to Notes' },
-  ]
+    { title: "Tasks", empty: "No tasks", footer: "Go to Tasks" },
+    { title: "Active Files", empty: "No active files", footer: "Go to Files" },
+    { title: "Bookmarks", empty: "No bookmarks", footer: "Go to Files" },
+    { title: "Notes", empty: "No notes", footer: "Go to Notes" },
+  ];
 
   return (
     <div className="min-h-screen bg-[#f6f4f1] text-[#1d1d1b]">
@@ -27,16 +34,26 @@ export default function SpruceClientPortalMockup() {
           <div>
             <div className="px-8 pt-10 pb-6 border-b border-[#e5e0da]">
               <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-full bg-[#dfe9e3] flex items-center justify-center text-[#1f4f45] text-xl">S</div>
+                <div className="h-10 w-10 rounded-full bg-[#dfe9e3] flex items-center justify-center text-[#1f4f45] text-xl">
+                  S
+                </div>
                 <div>
-                  <div className="font-serif text-[28px] leading-none text-[#20493f]">spruce</div>
-                  <div className="uppercase tracking-[0.28em] text-[10px] text-[#7c817d] mt-1">hospitality systems</div>
+                  <div className="font-serif text-[28px] leading-none text-[#20493f]">
+                    spruce
+                  </div>
+                  <div className="uppercase tracking-[0.28em] text-[10px] text-[#7c817d] mt-1">
+                    hospitality systems
+                  </div>
                 </div>
               </div>
 
               <div className="mt-8">
-                <div className="text-[28px] leading-tight font-serif">Spruce Hospitality</div>
-                <div className="mt-2 text-[17px] text-[#494949]">Miss Hoa's Project</div>
+                <div className="text-[28px] leading-tight font-serif">
+                  Spruce Hospitality
+                </div>
+                <div className="mt-2 text-[17px] text-[#494949]">
+                  Miss Hoa&apos;s Project
+                </div>
               </div>
             </div>
 
@@ -46,8 +63,8 @@ export default function SpruceClientPortalMockup() {
                   key={item.label}
                   className={`w-full flex items-center gap-4 rounded-xl px-4 py-3 text-left transition ${
                     item.active
-                      ? 'bg-[#184d43] text-white shadow-sm'
-                      : 'text-[#222] hover:bg-[#ece7e1]'
+                      ? "bg-[#184d43] text-white shadow-sm"
+                      : "text-[#222] hover:bg-[#ece7e1]"
                   }`}
                 >
                   <span className="text-lg w-5">{item.icon}</span>
@@ -59,11 +76,15 @@ export default function SpruceClientPortalMockup() {
 
           <div className="p-4 border-t border-[#e5e0da]">
             <div className="flex items-center gap-3 rounded-xl px-3 py-3 hover:bg-[#ece7e1] cursor-pointer">
-              <div className="h-10 w-10 rounded-full bg-[#d9dde2] flex items-center justify-center text-sm font-semibold">JV</div>
+              <div className="h-10 w-10 rounded-full bg-[#d9dde2] flex items-center justify-center text-sm font-semibold">
+                JV
+              </div>
               <span className="text-[18px]">Settings</span>
             </div>
             <div className="flex items-center gap-3 rounded-xl px-3 py-3 hover:bg-[#ece7e1] cursor-pointer">
-              <div className="h-10 w-10 rounded-full bg-transparent flex items-center justify-center text-lg">↪</div>
+              <div className="h-10 w-10 rounded-full bg-transparent flex items-center justify-center text-lg">
+                ↪
+              </div>
               <span className="text-[18px]">Log out</span>
             </div>
           </div>
@@ -75,17 +96,23 @@ export default function SpruceClientPortalMockup() {
               className="h-[310px] w-full rounded-[10px] bg-cover bg-center shadow-sm"
               style={{
                 backgroundImage:
-                  "linear-gradient(rgba(255,255,255,0.08), rgba(255,255,255,0.08)), url('https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1800&q=80')",
+                  "linear-gradient(rgba(255,255,255,0.08), rgba(255,255,255,0.08)), url('/couch-hero.jpg')",
               }}
             />
 
             <div className="mt-6 flex items-start justify-between gap-6">
               <div>
                 <div className="flex items-center gap-4 flex-wrap">
-                  <h1 className="font-serif text-[54px] leading-none text-[#151515]">Miss Hoa's Project</h1>
-                  <span className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-[#d7dde2] text-sm font-semibold text-[#3b4650]">JV</span>
+                  <h1 className="font-serif text-[54px] leading-none text-[#151515]">
+                    Miss Hoa&apos;s Project
+                  </h1>
+                  <span className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-[#d7dde2] text-sm font-semibold text-[#3b4650]">
+                    JV
+                  </span>
                 </div>
-                <div className="mt-3 text-[22px] text-[#555]">Orange Beach Signature property</div>
+                <div className="mt-3 text-[22px] text-[#555]">
+                  Orange Beach Signature property
+                </div>
               </div>
 
               <div className="flex items-center gap-4 pt-3">
@@ -101,8 +128,13 @@ export default function SpruceClientPortalMockup() {
 
             <section className="mt-8 grid grid-cols-1 xl:grid-cols-2 gap-6">
               {cardsTop.map((card) => (
-                <div key={card.title} className="rounded-[10px] border border-[#ddd8d2] bg-white min-h-[420px] flex flex-col">
-                  <div className="px-7 pt-7 pb-4 font-serif text-[22px]">{card.title}</div>
+                <div
+                  key={card.title}
+                  className="rounded-[10px] border border-[#ddd8d2] bg-white min-h-[420px] flex flex-col"
+                >
+                  <div className="px-7 pt-7 pb-4 font-serif text-[22px]">
+                    {card.title}
+                  </div>
                   <div className="flex-1 flex items-center justify-center px-8 text-center text-[22px] text-[#8b8f98]">
                     {card.empty}
                   </div>
@@ -118,8 +150,13 @@ export default function SpruceClientPortalMockup() {
 
             <section className="mt-6 grid grid-cols-1 xl:grid-cols-2 gap-6">
               {cardsBottom.map((card) => (
-                <div key={card.title} className="rounded-[10px] border border-[#ddd8d2] bg-white min-h-[380px] flex flex-col">
-                  <div className="px-7 pt-7 pb-4 font-serif text-[22px]">{card.title}</div>
+                <div
+                  key={card.title}
+                  className="rounded-[10px] border border-[#ddd8d2] bg-white min-h-[380px] flex flex-col"
+                >
+                  <div className="px-7 pt-7 pb-4 font-serif text-[22px]">
+                    {card.title}
+                  </div>
                   <div className="flex-1 flex items-center justify-center px-8 text-center text-[22px] text-[#8b8f98]">
                     {card.empty}
                   </div>
@@ -134,6 +171,5 @@ export default function SpruceClientPortalMockup() {
         </main>
       </div>
     </div>
-  )
+  );
 }
-
