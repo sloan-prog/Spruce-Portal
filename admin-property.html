@@ -5,6 +5,8 @@
   <style>
     body { font-family: Arial; padding:30px; background:#f6f4ef; color:#24382f; }
     .top { display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; }
+    .actions { margin-bottom:20px; display:flex; gap:10px; flex-wrap:wrap; }
+    button { padding:10px 14px; border:0; border-radius:10px; background:#24382f; color:white; font-weight:bold; cursor:pointer; }
     a { color:#24382f; }
     .grid { display:grid; grid-template-columns: repeat(4, 1fr); gap:16px; margin-bottom:20px; }
     .card, .section { background:white; padding:18px; border-radius:14px; box-shadow:0 4px 14px rgba(0,0,0,.07); }
@@ -17,13 +19,16 @@
     .muted { color:#777; }
   </style>
 </head>
+
 <body>
-<div style="margin-bottom:20px;">
+
+<div class="actions">
   <a href="/add-property.html"><button>Edit Property</button></a>
-  <button onclick="alert('Coming next: Generate QR')">Generate QR</button>
-  <button onclick="alert('Coming next: Proposal')">Proposal</button>
-  <button onclick="runPAR()">Run PAR</button>
+  <button type="button" onclick="alert('Coming next: Generate QR')">Generate QR</button>
+  <button type="button" onclick="alert('Coming next: Proposal')">Proposal</button>
+  <button type="button" onclick="runPAR()">Run PAR</button>
 </div>
+
 <div class="top">
   <h1 id="propertyName">Loading...</h1>
   <a href="/admin-properties.html">← Back to Properties</a>
@@ -150,6 +155,7 @@ function dateOnly(value) {
 function emptyRow(colspan, text) {
   return `<tr><td colspan="${colspan}" class="muted">${text}</td></tr>`;
 }
+
 async function runPAR() {
   const params = new URLSearchParams(window.location.search);
   const propertyId = params.get('id');
@@ -166,6 +172,11 @@ async function runPAR() {
     alert('PAR error: ' + data.error);
     return;
   }
+
+  alert('PAR generated successfully: ' + data.rows.length + ' rows');
+  location.reload();
+}
+
 async function loadPropertyDetail() {
   const params = new URLSearchParams(window.location.search);
   const propertyId = params.get('id');
@@ -178,10 +189,6 @@ async function loadPropertyDetail() {
     return;
   }
 
-
-  alert('PAR generated successfully.');
-  location.reload();
-}
   const p = data.property;
 
   document.getElementById('propertyName').innerText = p.property_name || propertyId;
@@ -197,8 +204,7 @@ async function loadPropertyDetail() {
   document.getElementById('totalRevenue').innerText = money(data.totals.revenue);
   document.getElementById('totalProfit').innerText = money(data.totals.profit);
 
-  const cleansBody = document.getElementById('cleansBody');
-  cleansBody.innerHTML = data.cleans.length ? data.cleans.map(c => `
+  document.getElementById('cleansBody').innerHTML = data.cleans.length ? data.cleans.map(c => `
     <tr>
       <td>${dateOnly(c.clean_date)}</td>
       <td>${c.cleaner_name || ''}</td>
@@ -207,8 +213,7 @@ async function loadPropertyDetail() {
     </tr>
   `).join('') : emptyRow(4, 'No cleans yet.');
 
-  const urgentBody = document.getElementById('urgentBody');
-  urgentBody.innerHTML = data.urgentIssues.length ? data.urgentIssues.map(i => `
+  document.getElementById('urgentBody').innerHTML = data.urgentIssues.length ? data.urgentIssues.map(i => `
     <tr>
       <td>${dateOnly(i.date_reported)}</td>
       <td>${i.issue_category || ''}</td>
@@ -217,8 +222,7 @@ async function loadPropertyDetail() {
     </tr>
   `).join('') : emptyRow(4, 'No urgent issues.');
 
-  const nonUrgentBody = document.getElementById('nonUrgentBody');
-  nonUrgentBody.innerHTML = data.nonUrgentIssues.length ? data.nonUrgentIssues.map(i => `
+  document.getElementById('nonUrgentBody').innerHTML = data.nonUrgentIssues.length ? data.nonUrgentIssues.map(i => `
     <tr>
       <td>${dateOnly(i.date_reported)}</td>
       <td>${i.issue_category || ''}</td>
@@ -227,8 +231,7 @@ async function loadPropertyDetail() {
     </tr>
   `).join('') : emptyRow(4, 'No regular issues.');
 
-  const laundryBody = document.getElementById('laundryBody');
-  laundryBody.innerHTML = data.laundry.length ? data.laundry.map(l => `
+  document.getElementById('laundryBody').innerHTML = data.laundry.length ? data.laundry.map(l => `
     <tr>
       <td>${dateOnly(l.requested_pickup_date)}</td>
       <td>${l.pickup_status || ''}</td>
@@ -238,8 +241,7 @@ async function loadPropertyDetail() {
     </tr>
   `).join('') : emptyRow(5, 'No laundry jobs.');
 
-  const financialsBody = document.getElementById('financialsBody');
-  financialsBody.innerHTML = data.financials.length ? data.financials.map(f => `
+  document.getElementById('financialsBody').innerHTML = data.financials.length ? data.financials.map(f => `
     <tr>
       <td>${dateOnly(f.event_date)}</td>
       <td>${money(f.total_revenue)}</td>
