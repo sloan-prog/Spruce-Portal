@@ -91,7 +91,32 @@
 
   <div class="msg" id="msg"></div>
 </div>
+async function loadOwners() {
+  const select = document.getElementById('ownerSelect');
 
+  try {
+    const res = await fetch('/api/get-owners');
+    const data = await res.json();
+
+    select.innerHTML = '<option value="">Select owner</option>';
+
+    if (!data.success || !data.owners.length) {
+      select.innerHTML = '<option value="">No owners found</option>';
+      return;
+    }
+
+    data.owners.forEach(owner => {
+      const option = document.createElement('option');
+      option.value = owner.owner_id;
+      option.textContent = `${owner.owner_name} (${owner.owner_id})`;
+      select.appendChild(option);
+    });
+  } catch (err) {
+    select.innerHTML = '<option value="">Error loading owners</option>';
+  }
+}
+
+loadOwners();
 <script>
 document.getElementById('propertyForm').addEventListener('submit', async (e) => {
   e.preventDefault();
