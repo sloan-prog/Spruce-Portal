@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Property | Spruce Admin</title>
+  <style>
+    body { font-family: Arial; padding:30px; background:#f6f4ef; }
+    .box { background:white; padding:20px; border-radius:12px; }
+  </style>
+</head>
+<body>
+
+<div class="box">
+  <h1 id="name">Loading...</h1>
+  <p><b>Building:</b> <span id="building"></span></p>
+  <p><b>Plan:</b> <span id="plan"></span></p>
+</div>
+
+<script>
+async function loadProperty() {
+  const params = new URLSearchParams(window.location.search);
+  const id = params.get('id');
+
+  const res = await fetch('/api/get-properties');
+  const data = await res.json();
+
+  const p = data.properties.find(x => x.property_id === id);
+
+  document.getElementById('name').innerText = p.property_name;
+  document.getElementById('building').innerText = p.building;
+  document.getElementById('plan').innerText = p.plan_type;
+}
+
+loadProperty();
+</script>
+
+</body>
+</html>
