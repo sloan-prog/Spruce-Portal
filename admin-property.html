@@ -2,13 +2,6 @@
 <html>
 <head>
   <title>Property Detail | Spruce Admin</title>
-<div style="margin-bottom:20px;">
-  <a href="/add-property.html"><button>Edit Property</button></a>
-  <button onclick="alert('Coming next: Generate QR')">Generate QR</button>
-  <button onclick="alert('Coming next: Run PAR')">Run PAR</button>
-  <button onclick="alert('Coming next: Proposal')">Proposal</button>
-  <button onclick="runPAR()">Run PAR</button>
-</div>
   <style>
     body { font-family: Arial; padding:30px; background:#f6f4ef; color:#24382f; }
     .top { display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; }
@@ -25,7 +18,12 @@
   </style>
 </head>
 <body>
-
+<div style="margin-bottom:20px;">
+  <a href="/add-property.html"><button>Edit Property</button></a>
+  <button onclick="alert('Coming next: Generate QR')">Generate QR</button>
+  <button onclick="alert('Coming next: Proposal')">Proposal</button>
+  <button onclick="runPAR()">Run PAR</button>
+</div>
 <div class="top">
   <h1 id="propertyName">Loading...</h1>
   <a href="/admin-properties.html">← Back to Properties</a>
@@ -152,18 +150,6 @@ function dateOnly(value) {
 function emptyRow(colspan, text) {
   return `<tr><td colspan="${colspan}" class="muted">${text}</td></tr>`;
 }
-
-async function loadPropertyDetail() {
-  const params = new URLSearchParams(window.location.search);
-  const propertyId = params.get('id');
-
-  const res = await fetch(`/api/get-property-detail?property_id=${encodeURIComponent(propertyId)}`);
-  const data = await res.json();
-
-  if (!data.success) {
-    document.body.innerHTML = `<h1>Error</h1><p>${data.error}</p>`;
-    return;
-  }
 async function runPAR() {
   const params = new URLSearchParams(window.location.search);
   const propertyId = params.get('id');
@@ -180,6 +166,18 @@ async function runPAR() {
     alert('PAR error: ' + data.error);
     return;
   }
+async function loadPropertyDetail() {
+  const params = new URLSearchParams(window.location.search);
+  const propertyId = params.get('id');
+
+  const res = await fetch(`/api/get-property-detail?property_id=${encodeURIComponent(propertyId)}`);
+  const data = await res.json();
+
+  if (!data.success) {
+    document.body.innerHTML = `<h1>Error</h1><p>${data.error}</p>`;
+    return;
+  }
+
 
   alert('PAR generated successfully.');
   location.reload();
