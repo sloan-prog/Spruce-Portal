@@ -171,14 +171,29 @@ async function runPAR() {
       body: JSON.stringify({ property_id: propertyId })
     });
 
-    alert('API status: ' + res.status);
+    const rawText = await res.text();
 
-    const data = await res.json();
+    alert('API status: ' + res.status + '\n\nResponse:\n' + rawText.slice(0, 500));
+
+    let data;
+    try {
+      data = JSON.parse(rawText);
+    } catch (jsonErr) {
+      return;
+    }
 
     if (!data.success) {
       alert('PAR error: ' + data.error);
       return;
     }
+
+    alert('PAR generated successfully: ' + data.rows.length + ' rows');
+    location.reload();
+
+  } catch (err) {
+    alert('JavaScript error: ' + err.message);
+  }
+}
 
     alert('PAR generated successfully: ' + data.rows.length + ' rows');
     location.reload();
