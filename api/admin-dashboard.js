@@ -19,7 +19,7 @@ export default async function handler(req, res) {
   const { count: urgentIssues } = await supabase
     .from('urgent_issues')
     .select('*', { count: 'exact', head: true })
-    .eq('status', 'open');
+    .not('status', 'is', null)
 
   // Callouts
   const { count: callouts } = await supabase
@@ -45,7 +45,7 @@ export default async function handler(req, res) {
   const { count: laundry } = await supabase
     .from('laundry_jobs')
     .select('*', { count: 'exact', head: true })
-    .eq('pickup_status', 'pending');
+    .not('pickup_status', 'is', null)
 
   res.status(200).json({
     cleansToday: cleansToday || 0,
