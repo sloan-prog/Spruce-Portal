@@ -59,28 +59,26 @@ module.exports = async function handler(req, res) {
       coffeeBags = Math.ceil((totalCups * 0.4) / 20);
     }
 
-    const items = [
-      const items = [
-  { item_code: 'CON-001', target_par: Math.ceil(bathrooms * parCleans * 2) }, // Toilet Paper
-  { item_code: 'CON-002', target_par: parCleans }, // Paper Towels
-  { item_code: 'CON-003', target_par: 120 }, // Large Trash Bags
-  { item_code: 'CON-004', target_par: 120 }, // Small Trash Bags
-  { item_code: 'CON-011', target_par: Math.ceil(bathrooms * parCleans) }, // Makeup Wipes
-  { item_code: 'CON-006', target_par: parCleans * 3 }, // Laundry Packs
-  { item_code: 'CON-005', target_par: parCleans }, // Dish Liquid
-  { item_code: 'CON-007', target_par: parCleans * 3 }, // Dishwasher Pods
-  { item_code: 'CON-008', target_par: Math.ceil(bathrooms * parCleans) }, // Shampoo
-  { item_code: 'CON-009', target_par: Math.ceil(bathrooms * parCleans) }, // Conditioner
-  { item_code: 'CON-010', target_par: Math.ceil(bathrooms * parCleans) }, // Body Gel/Soap
-  { item_code: 'CON-016', target_par: coffeePods }, // Coffee Pods
-  { item_code: 'CON-017', target_par: coffeeBags }, // Coffee Bags
-  { item_code: 'CON-013', target_par: coffeeEnabled ? totalCups : 0 }, // Sugar
-  { item_code: 'CON-015', target_par: coffeeEnabled ? totalCups : 0 }, // Creamer
-  { item_code: 'CON-014', target_par: coffeeEnabled ? totalCups : 0 } // Stirrers
-  { item_code: 'GFT-001', target_par: isSignature ? parCleans : 0 }    
+    
+const items = [
+  { item_code: 'CON-001', target_par: Math.ceil(bathrooms * parCleans * 2) },
+  { item_code: 'CON-002', target_par: parCleans },
+  { item_code: 'CON-003', target_par: 120 },
+  { item_code: 'CON-004', target_par: 120 },
+  { item_code: 'CON-011', target_par: Math.ceil(bathrooms * parCleans) },
+  { item_code: 'CON-006', target_par: parCleans * 3 },
+  { item_code: 'CON-005', target_par: parCleans },
+  { item_code: 'CON-007', target_par: parCleans * 3 },
+  { item_code: 'CON-008', target_par: Math.ceil(bathrooms * parCleans) },
+  { item_code: 'CON-009', target_par: Math.ceil(bathrooms * parCleans) },
+  { item_code: 'CON-010', target_par: Math.ceil(bathrooms * parCleans) },
+  { item_code: 'CON-016', target_par: coffeePods },
+  { item_code: 'CON-017', target_par: coffeeBags },
+  { item_code: 'CON-013', target_par: coffeeEnabled ? totalCups : 0 },
+  { item_code: 'CON-015', target_par: coffeeEnabled ? totalCups : 0 },
+  { item_code: 'CON-014', target_par: coffeeEnabled ? totalCups : 0 },
+  { item_code: 'GFT-001', target_par: isSignature ? parCleans : 0 }
 ];
-    ];
-
     const rows = items.map(item => ({
       property_id,
       item_code: item.item_code,
