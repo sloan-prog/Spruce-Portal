@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Spruce Admin</title>
+  <style>
+    body {
+      font-family: Arial;
+      background: #f5f5f5;
+      padding: 20px;
+    }
+    h1 {
+      margin-bottom: 20px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
+    }
+    .card {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    .title {
+      font-size: 14px;
+      color: gray;
+    }
+    .value {
+      font-size: 28px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+
+<body>
+
+<h1>Spruce Admin Dashboard</h1>
+
+<div class="grid">
+  <div class="card">
+    <div class="title">Cleans Today</div>
+    <div class="value" id="cleansToday">-</div>
+  </div>
+
+  <div class="card">
+    <div class="title">Cleans This Week</div>
+    <div class="value" id="cleansWeek">-</div>
+  </div>
+
+  <div class="card">
+    <div class="title">Urgent Issues</div>
+    <div class="value" id="urgentIssues">-</div>
+  </div>
+
+  <div class="card">
+    <div class="title">Callouts</div>
+    <div class="value" id="callouts">-</div>
+  </div>
+
+  <div class="card">
+    <div class="title">Revenue Today</div>
+    <div class="value" id="revenueToday">$-</div>
+  </div>
+
+  <div class="card">
+    <div class="title">Net Today</div>
+    <div class="value" id="netToday">$-</div>
+  </div>
+
+  <div class="card">
+    <div class="title">Laundry Pickups</div>
+    <div class="value" id="laundry">-</div>
+  </div>
+</div>
+
+<script>
+async function loadDashboard() {
+  const res = await fetch('/api/admin-dashboard');
+  const data = await res.json();
+
+  document.getElementById('cleansToday').innerText = data.cleansToday;
+  document.getElementById('cleansWeek').innerText = data.cleansWeek;
+  document.getElementById('urgentIssues').innerText = data.urgentIssues;
+  document.getElementById('callouts').innerText = data.callouts;
+  document.getElementById('revenueToday').innerText = "$" + data.revenueToday;
+  document.getElementById('netToday').innerText = "$" + data.netToday;
+  document.getElementById('laundry').innerText = data.laundry;
+}
+
+loadDashboard();
+</script>
+
+</body>
+</html>
