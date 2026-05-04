@@ -49,7 +49,14 @@ export default async function handler(req, res) {
 
   res.status(200).json({
     cleansToday: cleansToday || 0,
-    cleansWeek: 0, // add later
+    const startOfWeek = new Date();
+startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay());
+const start = startOfWeek.toISOString().split('T')[0];
+
+const { count: cleansWeek } = await supabase
+  .from('cleans_normalized')
+  .select('*', { count: 'exact', head: true })
+  .gte('clean_date', start);
     urgentIssues: urgentIssues || 0,
     callouts: callouts || 0,
     revenueToday,
