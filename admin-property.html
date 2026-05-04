@@ -157,24 +157,35 @@ function emptyRow(colspan, text) {
 }
 
 async function runPAR() {
+  alert('Run PAR button clicked');
+
   const params = new URLSearchParams(window.location.search);
   const propertyId = params.get('id');
 
-  const res = await fetch('/api/run-par', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ property_id: propertyId })
-  });
+  alert('Property ID from URL: ' + propertyId);
 
-  const data = await res.json();
+  try {
+    const res = await fetch('/api/run-par', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ property_id: propertyId })
+    });
 
-  if (!data.success) {
-    alert('PAR error: ' + data.error);
-    return;
+    alert('API status: ' + res.status);
+
+    const data = await res.json();
+
+    if (!data.success) {
+      alert('PAR error: ' + data.error);
+      return;
+    }
+
+    alert('PAR generated successfully: ' + data.rows.length + ' rows');
+    location.reload();
+
+  } catch (err) {
+    alert('JavaScript error: ' + err.message);
   }
-
-  alert('PAR generated successfully: ' + data.rows.length + ' rows');
-  location.reload();
 }
 
 async function loadPropertyDetail() {
