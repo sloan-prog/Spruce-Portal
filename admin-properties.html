@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Properties | Spruce Admin</title>
+  <style>
+    body { font-family: Arial; padding:30px; background:#f6f4ef; }
+    table { width:100%; background:white; border-collapse: collapse; }
+    th, td { padding:12px; border-bottom:1px solid #eee; }
+    tr:hover { background:#f2f2f2; cursor:pointer; }
+  </style>
+</head>
+<body>
+
+<h1>Properties</h1>
+
+<table id="table">
+  <thead>
+    <tr>
+      <th>Property</th>
+      <th>Owner</th>
+      <th>Building</th>
+      <th>Plan</th>
+    </tr>
+  </thead>
+  <tbody></tbody>
+</table>
+
+<script>
+async function loadProperties() {
+  const res = await fetch('/api/get-properties');
+  const data = await res.json();
+
+  const tbody = document.querySelector('#table tbody');
+  tbody.innerHTML = '';
+
+  data.properties.forEach(p => {
+    const row = document.createElement('tr');
+
+    row.innerHTML = `
+      <td>${p.property_name}</td>
+      <td>${p.owners?.owner_name || ''}</td>
+      <td>${p.building || ''}</td>
+      <td>${p.plan_type}</td>
+    `;
+
+    row.onclick = () => {
+      window.location.href = `/admin-property.html?id=${p.property_id}`;
+    };
+
+    tbody.appendChild(row);
+  });
+}
+
+loadProperties();
+</script>
+
+</body>
+</html>
