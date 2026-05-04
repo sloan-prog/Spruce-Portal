@@ -13,7 +13,7 @@ export default async function handler(req, res) {
   const { count: cleansToday } = await supabase
     .from('cleans_normalized')
     .select('*', { count: 'exact', head: true })
-    .eq('clean_date', today);
+    .gte('clean_date', '2026-01-01')
 
   // Urgent Issues
   const { count: urgentIssues } = await supabase
