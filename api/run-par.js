@@ -40,37 +40,65 @@ module.exports = async function handler(req, res) {
     const coffeeType = property.coffee_type;
     const isSignature = property.plan_type === 'SIGNATURE';
 
-    const totalCups = Math.ceil(sleeps * 2.5 * parCleans);
-
     let coffeePods = 0;
     let coffeeBags = 0;
+    let sugarPacks = 0;
+    let creamerPacks = 0;
+    let stirrers = 0;
 
-    if (coffeeEnabled && coffeeType === 'PODS') coffeePods = totalCups;
-    if (coffeeEnabled && coffeeType === 'GROUND') coffeeBags = Math.ceil(totalCups / 20);
-    if (coffeeEnabled && coffeeType === 'BOTH') {
-      coffeePods = Math.ceil(totalCups * 0.6);
-      coffeeBags = Math.ceil((totalCups * 0.4) / 20);
+    const totalCups = Math.ceil(sleeps * 2.5 * parCleans);
+
+    if (coffeeEnabled) {
+      sugarPacks = totalCups;
+      creamerPacks = totalCups;
+      stirrers = totalCups;
+
+      if (coffeeType === 'PODS') {
+        coffeePods = totalCups;
+        coffeeBags = 0;
+      }
+
+      if (coffeeType === 'GROUND') {
+        coffeePods = 0;
+        coffeeBags = parCleans;
+      }
+
+      if (coffeeType === 'BOTH') {
+        coffeePods = Math.ceil(totalCups * 0.5);
+        coffeeBags = parCleans;
+      }
     }
 
-    const items = [
-      { item_code: 'CON-001', target_par: Math.ceil(bathrooms * parCleans * 2) },
-      { item_code: 'CON-002', target_par: parCleans },
-      { item_code: 'CON-003', target_par: 120 },
-      { item_code: 'CON-004', target_par: 120 },
-      { item_code: 'CON-011', target_par: Math.ceil(bathrooms * parCleans) },
-      { item_code: 'CON-006', target_par: parCleans * 3 },
-      { item_code: 'CON-005', target_par: parCleans },
-      { item_code: 'CON-007', target_par: parCleans * 3 },
-      { item_code: 'CON-008', target_par: Math.ceil(bathrooms * parCleans) },
-      { item_code: 'CON-009', target_par: Math.ceil(bathrooms * parCleans) },
-      { item_code: 'CON-010', target_par: Math.ceil(bathrooms * parCleans) },
-      { item_code: 'CON-016', target_par: coffeePods },
-      { item_code: 'CON-017', target_par: coffeeBags },
-      { item_code: 'CON-013', target_par: coffeeEnabled ? totalCups : 0 },
-      { item_code: 'CON-015', target_par: coffeeEnabled ? totalCups : 0 },
-      { item_code: 'CON-014', target_par: coffeeEnabled ? totalCups : 0 },
-      { item_code: 'GFT-001', target_par: isSignature ? parCleans : 0 }
+    const rawItems = [
+      // Bathroom consumables
+      { item_code: 'CON-001', target_par: Math.ceil((bathrooms * 2 + 2) * parCleans) }, // Toilet tissue
+      { item_code: 'CON-008', target_par: Math.ceil(bathrooms * 2 * parCleans) }, // Shampoo
+      { item_code: 'CON-009', target_par: Math.ceil(bathrooms * 2 * parCleans) }, // Conditioner
+      { item_code: 'CON-010', target_par: Math.ceil(bathrooms * 2 * parCleans) }, // Bath/body gel
+      { item_code: 'CON-011', target_par: Math.ceil(bathrooms * 6 * parCleans) }, // Makeup wipes
+
+      // Kitchen / general consumables
+      { item_code: 'CON-002', target_par: Math.ceil(parCleans * 1) }, // Paper towels
+      { item_code: 'CON-003', target_par: 120 }, // Large trash bags fixed full roll
+      { item_code: 'CON-004', target_par: 120 }, // Small trash bags fixed full roll
+      { item_code: 'CON-005', target_par: Math.ceil(parCleans * 1) }, // Dish liquid
+      { item_code: 'CON-007', target_par: Math.ceil(parCleans * 3) }, // Dish pods
+      { item_code: 'CON-006', target_par: Math.ceil(parCleans * 3) }, // Laundry packs
+      { item_code: 'CON-012', target_par: Math.ceil(parCleans * 0.1) }, // Jet Dry
+
+      // Coffee station
+      { item_code: 'CON-016', target_par: coffeePods }, // Coffee pods
+      { item_code: 'CON-017', target_par: coffeeBags }, // Coffee bags
+      { item_code: 'CON-013', target_par: sugarPacks }, // Sugar packets
+      { item_code: 'CON-015', target_par: creamerPacks }, // Creamer
+      { item_code: 'CON-014', target_par: stirrers }, // Stirrers
+
+      // Laundry / hospitality
+      { item_code: 'MSC-001', target_par: Math.ceil(parCleans * 2) }, // Laundry bags
+      { item_code: 'GFT-001', target_par: isSignature ? parCleans : 0 } // Arrival gift
     ];
+
+    const items = rawItems.filter(item => item.target_par > 0);
 
     const now = new Date().toISOString();
 
