@@ -11,70 +11,81 @@ export default async function handler(req, res) {
   }
 
   try {
-    const body = typeof req.body === 'string'
-      ? JSON.parse(req.body)
-      : req.body;
+    // JotForm sends data as form-encoded string
+    // need to parse it differently
+    let raw = {};
+    
+    if (typeof req.body === 'string') {
+      // Parse URL-encoded form data
+      const params = new URLSearchParams(req.body);
+      params.forEach((value, key) => {
+        raw[key] = value;
+      });
+    } else if (req.body && req.body.rawRequest) {
+      raw = typeof req.body.rawRequest === 'string'
+        ? JSON.parse(req.body.rawRequest)
+        : req.body.rawRequest;
+    } else {
+      raw = req.body || {};
+    }
 
-    const raw = body.rawRequest || body;
+    const submission_id = raw.submissionID || raw.submission_id || '';
+    const property_id   = raw.property_id  || raw.propertyid   || '';
+
+    if (!property_id) {
+      return res.status(400).json({ error: 'Missing property_id' });
+    }
 
     const row = {
-      submission_id:   String(body.submissionID || ''),
+      submission_id:   String(submission_id),
       submission_date: new Date().toISOString(),
-      property_id:     String(raw.propertyid   || raw.property_id   || ''),
-      property_name:   String(raw.propertyname || raw.property      || ''),
-      bedrooms:        Number(raw.bedrooms)     || null,
-      bathrooms:       Number(raw.baths)        || null,
+      property_id:     String(property_id),
+      property_name:   String(raw.property      || ''),
+      bedrooms:        Number(raw.beds)          || null,
+      bathrooms:       Number(raw.baths)         || null,
       sleeps:          Number(raw.sleeps)        || null,
-      plan_type:       String(raw.plantype      || ''),
-      coffee_enabled:  String(raw.coffeeenabled || ''),
-      coffee_type:     String(raw.coffeetype    || ''),
-
-      // Bathroom items
+      plan_type:       String(raw.plan_type      || ''),
+      coffee_enabled:  String(raw.coffeeenabled  || ''),
+      coffee_type:     String(raw.coffee_type    || ''),
       toilet_tissue:          Number(raw.toilettissue)      || 0,
       sm_trash_bags:          Number(raw.smalltrashbags)    || 0,
       shampoo:                Number(raw.shampoo)           || 0,
       conditioner:            Number(raw.conditioner)       || 0,
       soap:                   Number(raw.soap)              || 0,
       makeup_wipes:           Number(raw.makeupwipes)       || 0,
-      bathroom_at_standard:   String(raw.bathroomadjusted  || ''),
+      bathroom_at_standard:   String(raw.bathroomadjusted   || ''),
       toilet_tissue_adjusted: Number(raw.toilettissueadjusted) || 0,
       sm_trash_bag_adjusted:  Number(raw.smalltrashbagadjusted) || 0,
       makeup_wipes_adjusted:  Number(raw.makeupwipesadjusted)   || 0,
       shampoo_adjusted:       Number(raw.shampooajusted)    || 0,
-      conditioner_adjusted:   Number(raw.conditioneradjusted) || 0,
+      conditioner_adjusted:   Number(raw.conditioneradjusted)   || 0,
       soap_adjusted:          Number(raw.soapadjusted)      || 0,
-
-      // Kitchen items
       paper_towels:           Number(raw.papertowels)       || 0,
       lg_trash_bags:          Number(raw.largetrashbags)    || 0,
       dish_liquid:            Number(raw.dishliquid)        || 0,
       dish_pods:              Number(raw.dishpods)          || 0,
       laundry_packs:          Number(raw.laundrypacks)      || 0,
       kitchen_at_standard:    String(raw.kitchenadjusted    || ''),
-      paper_towels_adjusted:  Number(raw.papertowelsadjusted) || 0,
+      paper_towels_adjusted:  Number(raw.papertowelsadjusted)   || 0,
       lg_trash_bags_adjusted: Number(raw.largetrashbagsadjusted) || 0,
-      dish_liquid_adjusted:   Number(raw.dishliquidadjusted) || 0,
+      dish_liquid_adjusted:   Number(raw.dishliquidadjusted)    || 0,
       dish_pods_adjusted:     Number(raw.dishpodsadjusted)  || 0,
-      laundry_packs_adjusted: Number(raw.laundrypacksadjusted) || 0,
-
-      // Coffee items
+      laundry_packs_adjusted: Number(raw.laundrypacksadjusted)  || 0,
       coffee_pods:            Number(raw.coffeepods)        || 0,
       coffee_bags:            Number(raw.coffeebags)        || 0,
       sugar:                  Number(raw.sugar)             || 0,
       creamer:                Number(raw.creamer)           || 0,
       stirrers:               Number(raw.stirrers)          || 0,
       coffee_at_standard:     String(raw.coffeeadjusted     || ''),
-      coffee_pods_adjusted:   Number(raw.coffeepodsadjusted) || 0,
-      coffee_bags_adjusted:   Number(raw.coffeebagsadjusted) || 0,
+      coffee_pods_adjusted:   Number(raw.coffeepodsadjusted)    || 0,
+      coffee_bags_adjusted:   Number(raw.coffeebagsadjusted)    || 0,
       sugar_adjusted:         Number(raw.sugaradjusted)     || 0,
       creamer_adjusted:       Number(raw.creameradjusted)   || 0,
       stirrers_adjusted:      Number(raw.stirrersadjusted)  || 0,
       arrival_gift:           Number(raw.arrivalgifts)      || 0,
-
       processed: false,
     };
 
-    // Insert into raw table
     const { error: insertError } = await supabase
       .from('raw_closet_to_counter')
       .insert(row);
@@ -84,7 +95,7 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: insertError.message });
     }
 
-    // Decrement property_stock for each item set out
+    // Decrement stock
     if (row.property_id) {
       const deductions = [
         { item_code: 'CON-001', qty: row.toilet_tissue_adjusted || row.toilet_tissue },
