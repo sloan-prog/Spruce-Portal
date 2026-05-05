@@ -4,10 +4,10 @@
   <title>Property Detail | Spruce Admin</title>
   <style>
     body { font-family: Arial; padding:30px; background:#f6f4ef; color:#24382f; }
-    .top { display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; }
     .actions { margin-bottom:20px; display:flex; gap:10px; flex-wrap:wrap; }
     button { padding:10px 14px; border:0; border-radius:10px; background:#24382f; color:white; font-weight:bold; cursor:pointer; }
     a { color:#24382f; }
+    .top { display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; }
     .grid { display:grid; grid-template-columns: repeat(4, 1fr); gap:16px; margin-bottom:20px; }
     .card, .section { background:white; padding:18px; border-radius:14px; box-shadow:0 4px 14px rgba(0,0,0,.07); }
     .label { color:#777; font-size:13px; }
@@ -23,15 +23,13 @@
 <body>
 
 <div class="actions">
-  <a href="/add-property.html"><button>Edit Property</button></a>
-  <button type="button" onclick="alert('Coming next: Generate QR')">Generate QR</button>
-  <button type="button" onclick="alert('Coming next: Proposal')">Proposal</button>
+  <a href="/admin-properties.html"><button type="button">Back to Properties</button></a>
+  <a href="/add-property.html"><button type="button">Edit Property</button></a>
   <button type="button" onclick="runPAR()">Run PAR</button>
 </div>
 
 <div class="top">
   <h1 id="propertyName">Loading...</h1>
-  <a href="/admin-properties.html">← Back to Properties</a>
 </div>
 
 <div class="grid">
@@ -39,17 +37,14 @@
     <div class="label">Plan</div>
     <div class="value" id="planType">-</div>
   </div>
-
   <div class="card">
     <div class="label">Cleaning Fee</div>
     <div class="value" id="cleaningFee">$-</div>
   </div>
-
   <div class="card">
     <div class="label">Total Revenue</div>
     <div class="value" id="totalRevenue">$-</div>
   </div>
-
   <div class="card">
     <div class="label">Total Profit</div>
     <div class="value" id="totalProfit">$-</div>
@@ -68,14 +63,7 @@
 <div class="section">
   <h2>Recent Cleans</h2>
   <table>
-    <thead>
-      <tr>
-        <th>Date</th>
-        <th>Cleaner</th>
-        <th>Status</th>
-        <th>Proof</th>
-      </tr>
-    </thead>
+    <thead><tr><th>Date</th><th>Cleaner</th><th>Status</th><th>Proof</th></tr></thead>
     <tbody id="cleansBody"></tbody>
   </table>
 </div>
@@ -83,14 +71,7 @@
 <div class="section">
   <h2>Urgent Issues</h2>
   <table>
-    <thead>
-      <tr>
-        <th>Date</th>
-        <th>Category</th>
-        <th>Description</th>
-        <th>Status</th>
-      </tr>
-    </thead>
+    <thead><tr><th>Date</th><th>Category</th><th>Description</th><th>Status</th></tr></thead>
     <tbody id="urgentBody"></tbody>
   </table>
 </div>
@@ -98,14 +79,7 @@
 <div class="section">
   <h2>Regular Issues</h2>
   <table>
-    <thead>
-      <tr>
-        <th>Date</th>
-        <th>Category</th>
-        <th>Description</th>
-        <th>Status</th>
-      </tr>
-    </thead>
+    <thead><tr><th>Date</th><th>Category</th><th>Description</th><th>Status</th></tr></thead>
     <tbody id="nonUrgentBody"></tbody>
   </table>
 </div>
@@ -113,15 +87,7 @@
 <div class="section">
   <h2>Laundry</h2>
   <table>
-    <thead>
-      <tr>
-        <th>Pickup Date</th>
-        <th>Status</th>
-        <th>Bags</th>
-        <th>Weight</th>
-        <th>Cost</th>
-      </tr>
-    </thead>
+    <thead><tr><th>Pickup Date</th><th>Status</th><th>Bags</th><th>Weight</th><th>Cost</th></tr></thead>
     <tbody id="laundryBody"></tbody>
   </table>
 </div>
@@ -129,15 +95,7 @@
 <div class="section">
   <h2>Financials</h2>
   <table>
-    <thead>
-      <tr>
-        <th>Date</th>
-        <th>Revenue</th>
-        <th>Cost</th>
-        <th>Profit</th>
-        <th>Margin</th>
-      </tr>
-    </thead>
+    <thead><tr><th>Date</th><th>Revenue</th><th>Cost</th><th>Profit</th><th>Margin</th></tr></thead>
     <tbody id="financialsBody"></tbody>
   </table>
 </div>
@@ -156,13 +114,20 @@ function emptyRow(colspan, text) {
   return `<tr><td colspan="${colspan}" class="muted">${text}</td></tr>`;
 }
 
-async function runPAR() {
-  alert('Run PAR button clicked');
-
+function getPropertyIdFromUrl() {
   const params = new URLSearchParams(window.location.search);
-  const propertyId = params.get('id');
+  return params.get('id');
+}
 
-  alert('Property ID from URL: ' + propertyId);
+async function runPAR() {
+  const propertyId = getPropertyIdFromUrl();
+
+  if (!propertyId) {
+    alert('No property ID found in URL.');
+    return;
+  }
+
+  alert('Running PAR for property: ' + propertyId);
 
   try {
     const res = await fetch('/api/run-par', {
@@ -171,14 +136,13 @@ async function runPAR() {
       body: JSON.stringify({ property_id: propertyId })
     });
 
-    const rawText = await res.text();
-
-    alert('API status: ' + res.status + '\n\nResponse:\n' + rawText.slice(0, 500));
+    const text = await res.text();
 
     let data;
     try {
-      data = JSON.parse(rawText);
-    } catch (jsonErr) {
+      data = JSON.parse(text);
+    } catch (err) {
+      alert('API returned non-JSON response. Status: ' + res.status + '\n\n' + text.slice(0, 300));
       return;
     }
 
@@ -187,15 +151,7 @@ async function runPAR() {
       return;
     }
 
-    alert('PAR generated successfully: ' + data.rows.length + ' rows');
-    location.reload();
-
-  } catch (err) {
-    alert('JavaScript error: ' + err.message);
-  }
-}
-
-    alert('PAR generated successfully: ' + data.rows.length + ' rows');
+    alert('PAR generated successfully: ' + data.count + ' rows');
     location.reload();
 
   } catch (err) {
@@ -204,8 +160,12 @@ async function runPAR() {
 }
 
 async function loadPropertyDetail() {
-  const params = new URLSearchParams(window.location.search);
-  const propertyId = params.get('id');
+  const propertyId = getPropertyIdFromUrl();
+
+  if (!propertyId) {
+    document.body.innerHTML = '<h1>Error</h1><p>No property ID in URL.</p>';
+    return;
+  }
 
   const res = await fetch(`/api/get-property-detail?property_id=${encodeURIComponent(propertyId)}`);
   const data = await res.json();
