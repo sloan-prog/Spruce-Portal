@@ -61,6 +61,24 @@
 </div>
 
 <div class="section">
+  <h2>Inventory / Property Stock</h2>
+  <p><b>Total Stock Value:</b> <span id="stockTotalValue">$-</span></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Item</th>
+        <th>On Hand</th>
+        <th>Target PAR</th>
+        <th>Min</th>
+        <th>Unit Cost</th>
+        <th>Total Value</th>
+      </tr>
+    </thead>
+    <tbody id="stockBody"></tbody>
+  </table>
+</div>
+  
+<div class="section">
   <h2>Recent Cleans</h2>
   <table>
     <thead><tr><th>Date</th><th>Cleaner</th><th>Status</th><th>Proof</th></tr></thead>
@@ -159,6 +177,32 @@ async function runPAR() {
   }
 }
 
+async function loadPropertyStock() {
+  const propertyId = getPropertyIdFromUrl();
+
+  const res = await fetch(`/api/get-property-stock?property_id=${encodeURIComponent(propertyId)}`);
+  const data = await res.json();
+
+  if (!data.success) {
+    document.getElementById('stockBody').innerHTML =
+      emptyRow(6, 'Could not load stock: ' + data.error);
+    return;
+  }
+
+  document.getElementById('stockTotalValue').innerText = money(data.total_value);
+
+  document.getElementById('stockBody').innerHTML = data.rows.length ? data.rows.map(item => `
+    <tr>
+      <td>${item.item_name}<br><span class="muted">${item.item_code}</span></td>
+      <td>${item.current_on_hand}</td>
+      <td>${item.target_par}</td>
+      <td>${item.min_threshold}</td>
+      <td>${money(item.unit_cost)}</td>
+      <td>${money(item.total_value)}</td>
+    </tr>
+  `).join('') : emptyRow(6, 'No property stock yet. Run PAR first.');
+}
+  
 async function loadPropertyDetail() {
   const propertyId = getPropertyIdFromUrl();
 
@@ -239,6 +283,7 @@ async function loadPropertyDetail() {
 }
 
 loadPropertyDetail();
+loadPropertyStock();
 </script>
 
 </body>
