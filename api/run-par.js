@@ -1,259 +1,105 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <title>Property Detail | Spruce Admin</title>
-  <style>
-    body { font-family: Arial; padding:30px; background:#f6f4ef; color:#24382f; }
-    .top { display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; }
-    .actions { margin-bottom:20px; display:flex; gap:10px; flex-wrap:wrap; }
-    button { padding:10px 14px; border:0; border-radius:10px; background:#24382f; color:white; font-weight:bold; cursor:pointer; }
-    a { color:#24382f; }
-    .grid { display:grid; grid-template-columns: repeat(4, 1fr); gap:16px; margin-bottom:20px; }
-    .card, .section { background:white; padding:18px; border-radius:14px; box-shadow:0 4px 14px rgba(0,0,0,.07); }
-    .label { color:#777; font-size:13px; }
-    .value { font-size:24px; font-weight:bold; margin-top:5px; }
-    .section { margin-top:18px; }
-    table { width:100%; border-collapse:collapse; margin-top:10px; }
-    th, td { padding:10px; border-bottom:1px solid #eee; text-align:left; font-size:14px; }
-    th { color:#666; }
-    .muted { color:#777; }
-  </style>
-</head>
+const { createClient } = require('@supabase/supabase-js');
 
-<body>
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY
+);
 
-<div class="actions">
-  <a href="/add-property.html"><button>Edit Property</button></a>
-  <button type="button" onclick="alert('Coming next: Generate QR')">Generate QR</button>
-  <button type="button" onclick="alert('Coming next: Proposal')">Proposal</button>
-  <button type="button" onclick="runPAR()">Run PAR</button>
-</div>
-
-<div class="top">
-  <h1 id="propertyName">Loading...</h1>
-  <a href="/admin-properties.html">← Back to Properties</a>
-</div>
-
-<div class="grid">
-  <div class="card">
-    <div class="label">Plan</div>
-    <div class="value" id="planType">-</div>
-  </div>
-
-  <div class="card">
-    <div class="label">Cleaning Fee</div>
-    <div class="value" id="cleaningFee">$-</div>
-  </div>
-
-  <div class="card">
-    <div class="label">Total Revenue</div>
-    <div class="value" id="totalRevenue">$-</div>
-  </div>
-
-  <div class="card">
-    <div class="label">Total Profit</div>
-    <div class="value" id="totalProfit">$-</div>
-  </div>
-</div>
-
-<div class="section">
-  <h2>Property Snapshot</h2>
-  <p><b>Property ID:</b> <span id="propertyId"></span></p>
-  <p><b>Building:</b> <span id="building"></span></p>
-  <p><b>Unit:</b> <span id="unit"></span></p>
-  <p><b>Region:</b> <span id="region"></span></p>
-  <p><b>Beds/Baths/Sleeps:</b> <span id="layout"></span></p>
-</div>
-
-<div class="section">
-  <h2>Recent Cleans</h2>
-  <table>
-    <thead>
-      <tr>
-        <th>Date</th>
-        <th>Cleaner</th>
-        <th>Status</th>
-        <th>Proof</th>
-      </tr>
-    </thead>
-    <tbody id="cleansBody"></tbody>
-  </table>
-</div>
-
-<div class="section">
-  <h2>Urgent Issues</h2>
-  <table>
-    <thead>
-      <tr>
-        <th>Date</th>
-        <th>Category</th>
-        <th>Description</th>
-        <th>Status</th>
-      </tr>
-    </thead>
-    <tbody id="urgentBody"></tbody>
-  </table>
-</div>
-
-<div class="section">
-  <h2>Regular Issues</h2>
-  <table>
-    <thead>
-      <tr>
-        <th>Date</th>
-        <th>Category</th>
-        <th>Description</th>
-        <th>Status</th>
-      </tr>
-    </thead>
-    <tbody id="nonUrgentBody"></tbody>
-  </table>
-</div>
-
-<div class="section">
-  <h2>Laundry</h2>
-  <table>
-    <thead>
-      <tr>
-        <th>Pickup Date</th>
-        <th>Status</th>
-        <th>Bags</th>
-        <th>Weight</th>
-        <th>Cost</th>
-      </tr>
-    </thead>
-    <tbody id="laundryBody"></tbody>
-  </table>
-</div>
-
-<div class="section">
-  <h2>Financials</h2>
-  <table>
-    <thead>
-      <tr>
-        <th>Date</th>
-        <th>Revenue</th>
-        <th>Cost</th>
-        <th>Profit</th>
-        <th>Margin</th>
-      </tr>
-    </thead>
-    <tbody id="financialsBody"></tbody>
-  </table>
-</div>
-
-<script>
-function money(value) {
-  return '$' + Number(value || 0).toFixed(2);
+function num(value, fallback = 0) {
+  const n = Number(value);
+  return Number.isFinite(n) ? n : fallback;
 }
 
-function dateOnly(value) {
-  if (!value) return '';
-  return String(value).split('T')[0];
-}
-
-function emptyRow(colspan, text) {
-  return `<tr><td colspan="${colspan}" class="muted">${text}</td></tr>`;
-}
-
-async function runPAR() {
-  const params = new URLSearchParams(window.location.search);
-  const propertyId = params.get('id');
-
-  const res = await fetch('/api/run-par', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ property_id: propertyId })
-  });
-
-  const data = await res.json();
-
-  if (!data.success) {
-    alert('PAR error: ' + data.error);
-    return;
+module.exports = async function handler(req, res) {
+  if (req.method !== 'POST') {
+    return res.status(405).json({ success: false, error: 'Method not allowed' });
   }
 
-  alert('PAR generated successfully: ' + data.rows.length + ' rows');
-  location.reload();
-}
+  try {
+    const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
+    const property_id = body.property_id;
 
-async function loadPropertyDetail() {
-  const params = new URLSearchParams(window.location.search);
-  const propertyId = params.get('id');
+    if (!property_id) {
+      return res.status(400).json({ success: false, error: 'Missing property_id' });
+    }
 
-  const res = await fetch(`/api/get-property-detail?property_id=${encodeURIComponent(propertyId)}`);
-  const data = await res.json();
+    const { data: property, error: propertyError } = await supabase
+      .from('properties')
+      .select('*')
+      .eq('property_id', property_id)
+      .single();
 
-  if (!data.success) {
-    document.body.innerHTML = `<h1>Error</h1><p>${data.error}</p>`;
-    return;
+    if (propertyError) {
+      return res.status(400).json({ success: false, error: propertyError.message });
+    }
+
+    const parCleans = num(property.par_cleans, 10);
+    const bathrooms = num(property.bathrooms, 1);
+    const sleeps = num(property.sleeps, 2);
+    const coffeeEnabled = property.coffee_enabled === true;
+    const coffeeType = property.coffee_type;
+    const isSignature = property.plan_type === 'SIGNATURE';
+
+    const totalCups = Math.ceil(sleeps * 2.5 * parCleans);
+
+    let coffeePods = 0;
+    let coffeeBags = 0;
+
+    if (coffeeEnabled && coffeeType === 'PODS') coffeePods = totalCups;
+    if (coffeeEnabled && coffeeType === 'GROUND') coffeeBags = Math.ceil(totalCups / 20);
+    if (coffeeEnabled && coffeeType === 'BOTH') {
+      coffeePods = Math.ceil(totalCups * 0.6);
+      coffeeBags = Math.ceil((totalCups * 0.4) / 20);
+    }
+
+    const items = [
+      { item_code: 'CON-001', target_par: Math.ceil(bathrooms * parCleans * 2) },
+      { item_code: 'CON-002', target_par: parCleans },
+      { item_code: 'CON-003', target_par: 120 },
+      { item_code: 'CON-004', target_par: 120 },
+      { item_code: 'CON-011', target_par: Math.ceil(bathrooms * parCleans) },
+      { item_code: 'CON-006', target_par: parCleans * 3 },
+      { item_code: 'CON-005', target_par: parCleans },
+      { item_code: 'CON-007', target_par: parCleans * 3 },
+      { item_code: 'CON-008', target_par: Math.ceil(bathrooms * parCleans) },
+      { item_code: 'CON-009', target_par: Math.ceil(bathrooms * parCleans) },
+      { item_code: 'CON-010', target_par: Math.ceil(bathrooms * parCleans) },
+      { item_code: 'CON-016', target_par: coffeePods },
+      { item_code: 'CON-017', target_par: coffeeBags },
+      { item_code: 'CON-013', target_par: coffeeEnabled ? totalCups : 0 },
+      { item_code: 'CON-015', target_par: coffeeEnabled ? totalCups : 0 },
+      { item_code: 'CON-014', target_par: coffeeEnabled ? totalCups : 0 },
+      { item_code: 'GFT-001', target_par: isSignature ? parCleans : 0 }
+    ];
+
+    const now = new Date().toISOString();
+
+    const rows = items.map(item => ({
+      property_id,
+      item_code: item.item_code,
+      target_par: item.target_par,
+      current_on_hand: item.target_par,
+      min_threshold: Math.ceil(item.target_par * 0.3),
+      last_updated: now
+    }));
+
+    const { data, error } = await supabase
+      .from('property_stock')
+      .upsert(rows, { onConflict: 'property_id,item_code' })
+      .select();
+
+    if (error) {
+      return res.status(400).json({ success: false, error: error.message });
+    }
+
+    return res.status(200).json({
+      success: true,
+      property_id,
+      count: data.length,
+      rows: data
+    });
+
+  } catch (err) {
+    return res.status(500).json({ success: false, error: err.message });
   }
-
-  const p = data.property;
-
-  document.getElementById('propertyName').innerText = p.property_name || propertyId;
-  document.getElementById('propertyId').innerText = p.property_id || '';
-  document.getElementById('planType').innerText = p.plan_type || '-';
-  document.getElementById('cleaningFee').innerText = money(p.cleaning_fee);
-  document.getElementById('building').innerText = p.building || '';
-  document.getElementById('unit').innerText = p.unit_number || '';
-  document.getElementById('region').innerText = p.region || '';
-  document.getElementById('layout').innerText =
-    `${p.bedrooms || 0} BR / ${p.bathrooms || 0} BA / Sleeps ${p.sleeps || 0}`;
-
-  document.getElementById('totalRevenue').innerText = money(data.totals.revenue);
-  document.getElementById('totalProfit').innerText = money(data.totals.profit);
-
-  document.getElementById('cleansBody').innerHTML = data.cleans.length ? data.cleans.map(c => `
-    <tr>
-      <td>${dateOnly(c.clean_date)}</td>
-      <td>${c.cleaner_name || ''}</td>
-      <td>${c.status || ''}</td>
-      <td>${c.pdf_proof_link ? `<a href="${c.pdf_proof_link}" target="_blank">PDF</a>` : ''}</td>
-    </tr>
-  `).join('') : emptyRow(4, 'No cleans yet.');
-
-  document.getElementById('urgentBody').innerHTML = data.urgentIssues.length ? data.urgentIssues.map(i => `
-    <tr>
-      <td>${dateOnly(i.date_reported)}</td>
-      <td>${i.issue_category || ''}</td>
-      <td>${i.issue_description || ''}</td>
-      <td>${i.status || ''}</td>
-    </tr>
-  `).join('') : emptyRow(4, 'No urgent issues.');
-
-  document.getElementById('nonUrgentBody').innerHTML = data.nonUrgentIssues.length ? data.nonUrgentIssues.map(i => `
-    <tr>
-      <td>${dateOnly(i.date_reported)}</td>
-      <td>${i.issue_category || ''}</td>
-      <td>${i.description || ''}</td>
-      <td>${i.status || ''}</td>
-    </tr>
-  `).join('') : emptyRow(4, 'No regular issues.');
-
-  document.getElementById('laundryBody').innerHTML = data.laundry.length ? data.laundry.map(l => `
-    <tr>
-      <td>${dateOnly(l.requested_pickup_date)}</td>
-      <td>${l.pickup_status || ''}</td>
-      <td>${l.bag_count || ''}</td>
-      <td>${l.weight_lbs || ''}</td>
-      <td>${money(l.cost)}</td>
-    </tr>
-  `).join('') : emptyRow(5, 'No laundry jobs.');
-
-  document.getElementById('financialsBody').innerHTML = data.financials.length ? data.financials.map(f => `
-    <tr>
-      <td>${dateOnly(f.event_date)}</td>
-      <td>${money(f.total_revenue)}</td>
-      <td>${money(f.total_cost)}</td>
-      <td>${money(f.profit)}</td>
-      <td>${f.margin ? Number(f.margin).toFixed(2) + '%' : ''}</td>
-    </tr>
-  `).join('') : emptyRow(5, 'No financial records.');
-}
-
-loadPropertyDetail();
-</script>
-
-</body>
-</html>
+};
