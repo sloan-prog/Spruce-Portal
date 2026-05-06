@@ -1,18 +1,14 @@
-import { createClient } from '@supabase/supabase-js';
+const { createClient } = require('@supabase/supabase-js');
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
-// Tell Vercel NOT to auto-parse — we'll do it manually
-export const config = {
-  api: {
-    bodyParser: false,
-  },
+module.exports.config = {
+  api: { bodyParser: false },
 };
 
-// Helper to read raw body
 function getRawBody(req) {
   return new Promise((resolve, reject) => {
     let data = '';
@@ -22,7 +18,7 @@ function getRawBody(req) {
   });
 }
 
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
@@ -33,7 +29,6 @@ export default async function handler(req, res) {
 
     let raw = {};
 
-    // Try JSON first
     try {
       const parsed = JSON.parse(bodyStr);
       if (parsed.rawRequest) {
@@ -44,7 +39,6 @@ export default async function handler(req, res) {
         raw = parsed;
       }
     } catch {
-      // Fall back to URL-encoded
       const params = new URLSearchParams(bodyStr);
       params.forEach((value, key) => { raw[key] = value; });
     }
@@ -55,7 +49,7 @@ export default async function handler(req, res) {
     const property_id   = raw.property_id  || raw.propertyid   || '';
 
     if (!property_id) {
-      console.log('Missing property_id. raw keys:', Object.keys(raw));
+      console.log('Missing property_id. Keys:', Object.keys(raw));
       return res.status(400).json({ error: 'Missing property_id' });
     }
 
@@ -76,35 +70,35 @@ export default async function handler(req, res) {
       conditioner:            Number(raw.conditioner)    || 0,
       soap:                   Number(raw.soap)           || 0,
       makeup_wipes:           Number(raw.makeupwipes)    || 0,
-      bathroom_at_standard:   String(raw.bathroomadjusted  || ''),
-      toilet_tissue_adjusted: Number(raw.toilettissueadjusted) || 0,
+      bathroom_at_standard:   String(raw.bathroomadjusted   || ''),
+      toilet_tissue_adjusted: Number(raw.toilettissueadjusted)  || 0,
       sm_trash_bag_adjusted:  Number(raw.smalltrashbagadjusted) || 0,
       makeup_wipes_adjusted:  Number(raw.makeupwipesadjusted)   || 0,
-      shampoo_adjusted:       Number(raw.shampooajusted)  || 0,
+      shampoo_adjusted:       Number(raw.shampooajusted)    || 0,
       conditioner_adjusted:   Number(raw.conditioneradjusted)   || 0,
-      soap_adjusted:          Number(raw.soapadjusted)    || 0,
+      soap_adjusted:          Number(raw.soapadjusted)      || 0,
       paper_towels:           Number(raw.papertowels)    || 0,
       lg_trash_bags:          Number(raw.largetrashbags) || 0,
       dish_liquid:            Number(raw.dishliquid)     || 0,
       dish_pods:              Number(raw.dishpods)       || 0,
       laundry_packs:          Number(raw.laundrypacks)   || 0,
-      kitchen_at_standard:    String(raw.kitchenadjusted || ''),
+      kitchen_at_standard:    String(raw.kitchenadjusted    || ''),
       paper_towels_adjusted:  Number(raw.papertowelsadjusted)   || 0,
       lg_trash_bags_adjusted: Number(raw.largetrashbagsadjusted) || 0,
       dish_liquid_adjusted:   Number(raw.dishliquidadjusted)    || 0,
-      dish_pods_adjusted:     Number(raw.dishpodsadjusted) || 0,
+      dish_pods_adjusted:     Number(raw.dishpodsadjusted)  || 0,
       laundry_packs_adjusted: Number(raw.laundrypacksadjusted)  || 0,
       coffee_pods:            Number(raw.coffeepods)     || 0,
       coffee_bags:            Number(raw.coffeebags)     || 0,
       sugar:                  Number(raw.sugar)          || 0,
       creamer:                Number(raw.creamer)        || 0,
       stirrers:               Number(raw.stirrers)       || 0,
-      coffee_at_standard:     String(raw.coffeeadjusted  || ''),
-      coffee_pods_adjusted:   Number(raw.coffeepodsadjusted) || 0,
-      coffee_bags_adjusted:   Number(raw.coffeebagsadjusted) || 0,
+      coffee_at_standard:     String(raw.coffeeadjusted     || ''),
+      coffee_pods_adjusted:   Number(raw.coffeepodsadjusted)    || 0,
+      coffee_bags_adjusted:   Number(raw.coffeebagsadjusted)    || 0,
       sugar_adjusted:         Number(raw.sugaradjusted)  || 0,
-      creamer_adjusted:       Number(raw.creameradjusted) || 0,
-      stirrers_adjusted:      Number(raw.stirrersadjusted) || 0,
+      creamer_adjusted:       Number(raw.creameradjusted)   || 0,
+      stirrers_adjusted:      Number(raw.stirrersadjusted)  || 0,
       arrival_gift:           Number(raw.arrivalgifts)   || 0,
       processed: false,
     };
@@ -154,5 +148,4 @@ export default async function handler(req, res) {
     console.error('Handler error:', err);
     return res.status(500).json({ error: err.message });
   }
-}
-}
+};
