@@ -11,7 +11,8 @@ export default async function handler(req, res) {
   }
 
   try {
-    // JotForm sends data as form-encoded string
+  console.log('RAW BODY:', JSON.stringify(req.body));
+  console.log('RAW TYPE:', typeof req.body);  // JotForm sends data as form-encoded string
     // need to parse it differently
     let raw = {};
     
