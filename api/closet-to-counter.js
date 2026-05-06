@@ -1,4 +1,5 @@
 const { createClient } = require('@supabase/supabase-js');
+const Busboy = require('busboy');
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -9,12 +10,14 @@ module.exports.config = {
   api: { bodyParser: false },
 };
 
-function getRawBody(req) {
+function parseMultipart(req) {
   return new Promise((resolve, reject) => {
-    let data = '';
-    req.on('data', chunk => { data += chunk; });
-    req.on('end', () => resolve(data));
-    req.on('error', reject);
+    const fields = {};
+    const bb = Busboy({ headers: req.headers });
+    bb.on('field', (name, val) => { fields[name] = val; });
+    bb.on('finish', () => resolve(fields));
+    bb.on('error', reject);
+    req.pipe(bb);
   });
 }
 
@@ -24,29 +27,25 @@ module.exports = async function handler(req, res) {
   }
 
   try {
-    const bodyStr = await getRawBody(req);
-    console.log('RAW BODY STRING:', bodyStr.slice(0, 500));
+    const fields = await parseMultipart(req);
+    console.log('FIELDS:', JSON.stringify(fields).slice(0, 500));
 
+    // JotForm sends rawRequest as a JSON string inside the multipart
     let raw = {};
-
-    try {
-      const parsed = JSON.parse(bodyStr);
-      if (parsed.rawRequest) {
-        raw = typeof parsed.rawRequest === 'string'
-          ? JSON.parse(parsed.rawRequest)
-          : parsed.rawRequest;
-      } else {
-        raw = parsed;
+    if (fields.rawRequest) {
+      try {
+        raw = JSON.parse(fields.rawRequest);
+      } catch {
+        raw = fields;
       }
-    } catch {
-      const params = new URLSearchParams(bodyStr);
-      params.forEach((value, key) => { raw[key] = value; });
+    } else {
+      raw = fields;
     }
 
-    console.log('PARSED RAW:', JSON.stringify(raw).slice(0, 500));
+    console.log('RAW:', JSON.stringify(raw).slice(0, 500));
 
-    const submission_id = raw.submissionID || raw.submission_id || '';
-    const property_id   = raw.property_id  || raw.propertyid   || '';
+    const submission_id = fields.submissionID || raw.submissionID || '';
+    const property_id   = raw.property_id || raw.propertyid || '';
 
     if (!property_id) {
       console.log('Missing property_id. Keys:', Object.keys(raw));
