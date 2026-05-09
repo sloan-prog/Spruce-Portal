@@ -1,15 +1,12 @@
 const { createClient } = require('@supabase/supabase-js');
 const Busboy = require('busboy');
-
 const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
-
 module.exports.config = {
   api: { bodyParser: false },
 };
-
 function parseMultipart(req) {
   return new Promise((resolve, reject) => {
     const fields = {};
@@ -20,12 +17,10 @@ function parseMultipart(req) {
     req.pipe(bb);
   });
 }
-
 module.exports = async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
-
   try {
     const fields = await parseMultipart(req);
     let raw = {};
@@ -35,15 +30,13 @@ module.exports = async function handler(req, res) {
     } else {
       raw = fields;
     }
-
+    console.log('KEYS:', JSON.stringify(Object.keys(raw)));
     const submission_id = fields.submissionID || '';
     const property_id   = raw.q3_property_id  || '';
-
     if (!property_id) {
       console.log('Missing property_id. Keys:', Object.keys(raw));
       return res.status(400).json({ error: 'Missing property_id' });
     }
-
     const row = {
       submission_id:   String(submission_id),
       submission_date: new Date().toISOString(),
@@ -58,18 +51,14 @@ module.exports = async function handler(req, res) {
       clean_id:        String(raw.q14_clean_id        || ''),
       processed:       false,
     };
-
     const { error: insertError } = await supabase
       .from('raw_begin_clean')
       .insert(row);
-
     if (insertError) {
       console.error('Insert error:', insertError);
       return res.status(400).json({ error: insertError.message });
     }
-
     return res.status(200).json({ success: true });
-
   } catch (err) {
     console.error('Handler error:', err);
     return res.status(500).json({ error: err.message });
