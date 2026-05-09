@@ -30,13 +30,17 @@ module.exports = async function handler(req, res) {
     } else {
       raw = fields;
     }
-    console.log('KEYS:', JSON.stringify(Object.keys(raw)));
     const submission_id = fields.submissionID || '';
     const property_id   = raw.q3_property_id  || '';
     if (!property_id) {
       console.log('Missing property_id. Keys:', Object.keys(raw));
       return res.status(400).json({ error: 'Missing property_id' });
     }
+    // Cleaner is one combined name field (q20_cleanerName). Split on first space.
+    const cleanerFull   = String(raw.q20_cleanerName || '').trim();
+    const firstSpace    = cleanerFull.indexOf(' ');
+    const cleaner_first = firstSpace === -1 ? cleanerFull : cleanerFull.slice(0, firstSpace);
+    const cleaner_last  = firstSpace === -1 ? ''          : cleanerFull.slice(firstSpace + 1);
     const row = {
       submission_id:   String(submission_id),
       submission_date: new Date().toISOString(),
@@ -49,6 +53,8 @@ module.exports = async function handler(req, res) {
       plan_type:       String(raw.q12_plan_type       || ''),
       coffee_type:     String(raw.q10_coffee_type     || ''),
       clean_id:        String(raw.q14_clean_id        || ''),
+      cleaner_first,
+      cleaner_last,
       processed:       false,
     };
     const { error: insertError } = await supabase
