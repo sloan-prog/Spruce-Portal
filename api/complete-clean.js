@@ -36,10 +36,6 @@ module.exports = async function handler(req, res) {
       raw = fields;
     }
 
-    console.log('KEYS:', JSON.stringify(Object.keys(raw)));
-
-    // ---- Field mapping confirmed from KEYS log ----
-
     const submission_id = fields.submissionID || '';
     const property_id   = raw.q8_property_id || '';
 
@@ -48,11 +44,38 @@ module.exports = async function handler(req, res) {
       return res.status(400).json({ error: 'Missing property_id' });
     }
 
-    // Cleaner is one combined name field on this form. Split on first space.
-    const cleanerFull   = String(raw.q15_cleanerName || '').trim();
-    const firstSpace    = cleanerFull.indexOf(' ');
-    const cleaner_first = firstSpace === -1 ? cleanerFull : cleanerFull.slice(0, firstSpace);
-    const cleaner_last  = firstSpace === -1 ? ''          : cleanerFull.slice(firstSpace + 1);
+    // Cleaner extraction — defensive, handles every JotForm name shape we've seen.
+    let cleaner_first = '';
+    let cleaner_last  = '';
+    const nameField = raw.q15_cleanerName;
+
+    if (nameField && typeof nameField === 'object') {
+      // JotForm Full Name / Name field — object with first/last (and possibly prefix/middle/suffix)
+      cleaner_first = String(nameField.first || nameField.first_name || '').trim();
+      cleaner_last  = String(nameField.last  || nameField.last_name  || '').trim();
+    } else if (typeof nameField === 'string' && nameField.trim()) {
+      const str = nameField.trim();
+      // Try parsing as JSON in case it's a stringified object
+      let parsed = null;
+      try { parsed = JSON.parse(str); } catch {}
+      if (parsed && typeof parsed === 'object') {
+        cleaner_first = String(parsed.first || parsed.first_name || '').trim();
+        cleaner_last  = String(parsed.last  || parsed.last_name  || '').trim();
+      } else {
+        // Plain "First Last" string — split on first space
+        const firstSpace = str.indexOf(' ');
+        cleaner_first = firstSpace === -1 ? str : str.slice(0, firstSpace);
+        cleaner_last  = firstSpace === -1 ? ''  : str.slice(firstSpace + 1);
+      }
+    }
+
+    // Fallback: bracketed sibling keys (multipart form-data style)
+    if (!cleaner_first && raw['q15_cleanerName[first]']) {
+      cleaner_first = String(raw['q15_cleanerName[first]']).trim();
+    }
+    if (!cleaner_last && raw['q15_cleanerName[last]']) {
+      cleaner_last = String(raw['q15_cleanerName[last]']).trim();
+    }
 
     // JotForm auto-generates a PDF of every submission at this URL.
     // Valid while submission exists in JotForm. Long-term: mirror to Supabase Storage.
