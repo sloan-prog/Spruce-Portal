@@ -36,11 +36,20 @@ module.exports = async function handler(req, res) {
       console.log('Missing property_id. Keys:', Object.keys(raw));
       return res.status(400).json({ error: 'Missing property_id' });
     }
-    // Cleaner is one combined name field (q20_cleanerName). Split on first space.
-    const cleanerFull   = String(raw.q20_cleanerName || '').trim();
-    const firstSpace    = cleanerFull.indexOf(' ');
-    const cleaner_first = firstSpace === -1 ? cleanerFull : cleanerFull.slice(0, firstSpace);
-    const cleaner_last  = firstSpace === -1 ? ''          : cleanerFull.slice(firstSpace + 1);
+    // Cleaner field can be a string ("Maria Lopez") OR a JotForm Full Name widget
+    // object ({first: "Maria", last: "Lopez"}). Handle both shapes.
+    const nameField     = raw.q20_cleanerName;
+    let   cleaner_first = '';
+    let   cleaner_last  = '';
+    if (nameField && typeof nameField === 'object') {
+      cleaner_first = String(nameField.first || '').trim();
+      cleaner_last  = String(nameField.last  || '').trim();
+    } else if (typeof nameField === 'string') {
+      const cleanerFull = nameField.trim();
+      const firstSpace  = cleanerFull.indexOf(' ');
+      cleaner_first = firstSpace === -1 ? cleanerFull : cleanerFull.slice(0, firstSpace);
+      cleaner_last  = firstSpace === -1 ? ''          : cleanerFull.slice(firstSpace + 1);
+    }
     const row = {
       submission_id:   String(submission_id),
       submission_date: new Date().toISOString(),
