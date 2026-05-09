@@ -55,7 +55,7 @@ module.exports = async function handler(req, res) {
     const cleaner_last  = firstSpace === -1 ? ''          : cleanerFull.slice(firstSpace + 1);
 
     // JotForm auto-generates a PDF of every submission at this URL.
-    // Valid while submission exists in JotForm. Long-term plan: mirror to Supabase Storage.
+    // Valid while submission exists in JotForm. Long-term: mirror to Supabase Storage.
     const submission_url = submission_id
       ? `https://www.jotform.com/pdf-submission/${submission_id}`
       : null;
@@ -69,4 +69,55 @@ module.exports = async function handler(req, res) {
     };
 
     const row = {
-      submission_id:   String(submissio
+      submission_id:   String(submission_id),
+      submission_date: new Date().toISOString(),
+      property_id:     String(property_id),
+      property_name:   String(raw.q3_property      || ''),
+      plan_type:       String(raw.q38_plan_type    || ''),
+      coffee_type:     String(raw.q39_coffee_type  || ''),
+      clean_id:        String(raw.q9_clean_id      || ''),
+      bedrooms:        Number(raw.q11_beds)   || null,
+      bathrooms:       Number(raw.q12_baths)  || null,
+      sleeps:          Number(raw.q37_sleeps) || null,
+
+      cleaner_first,
+      cleaner_last,
+      owner_email:     String(raw.q16_ownerEmail || ''),
+
+      // Room fields - camelCase, no q-prefix on this form. Conditionally rendered
+      // by JotForm based on property bed/bath count, so anything absent lands as null.
+      bathroom_1:      asText(raw.bathroom1),
+      bathroom_2:      asText(raw.bathroom2),
+      bathroom_3:      asText(raw.bathroom3),
+      bathroom_4:      asText(raw.bathroom4),
+      bathroom_5:      asText(raw.bathroom5),
+      bedroom_1:       asText(raw.bedroom1),
+      bedroom_2:       asText(raw.bedroom2),
+      bedroom_3:       asText(raw.bedroom3),
+      bedroom_4:       asText(raw.bedroom4),
+      bedroom_5:       asText(raw.bedroom5),
+      bedroom_6:       asText(raw.bedroom6),
+      living_room:     asText(raw.livingRoom),
+      kitchen_area:    asText(raw.kitchenArea),
+      patio:           asText(raw.patio),
+
+      submission_url,
+      processed:       false,
+    };
+
+    const { error: insertError } = await supabase
+      .from('raw_completed_clean')
+      .insert(row);
+
+    if (insertError) {
+      console.error('Insert error:', insertError);
+      return res.status(400).json({ error: insertError.message });
+    }
+
+    return res.status(200).json({ success: true, submission_url });
+
+  } catch (err) {
+    console.error('Handler error:', err);
+    return res.status(500).json({ error: err.message });
+  }
+};
