@@ -94,7 +94,7 @@ module.exports = async function handler(req, res) {
     const laundryRate = getConfig(configRows, 'laundry_rate_per_lb', 1.2);
     const simplyMarkupPct = getConfig(configRows, 'simply_markup_pct', 52);
     const signatureMarkupPct = getConfig(configRows, 'signature_markup_pct', 87);
-    const linenFeeCharged = bedrooms * linenFeePerBed;
+    const linenFeePerBed = getConfig(configRows, 'linen_fee_per_bedroom', 175);
     const sheetPar = getConfig(configRows, 'sheet_par', 2);
     const towelPar = getConfig(configRows, 'towel_par', 3);
     const puraSqFtThreshold = getConfig(configRows, 'pura_sqft_threshold', 1200);
@@ -266,7 +266,7 @@ module.exports = async function handler(req, res) {
       0
     );
 
-    const linenFeeCharged = totalBeds * linenFeePerBed;
+    const linenFeeCharged = bedrooms * linenFeePerBed;
     const linenToRecoup = Math.max(totalLinenOrderCost - linenFeeCharged, 0);
     const annualCleans = annualBookings;
     const linenRecoupPerClean = annualCleans > 0 ? linenToRecoup / annualCleans : 0;
