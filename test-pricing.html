@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Test Pricing</title>
+</head>
+<body style="font-family:Arial;padding:40px;">
+
+<h1>Test Pricing Engine</h1>
+
+<button onclick="runTest()">Run Test</button>
+
+<pre id="output"></pre>
+
+<script>
+async function runTest() {
+
+  const payload = {
+    bedrooms: 3,
+    bathrooms: 3,
+    sleeps: 8,
+    sq_ft: 1800,
+
+    plan_type: 'SIGNATURE',
+
+    coffee_enabled: true,
+    coffee_type: 'BOTH',
+
+    annual_bookings: 32,
+    adr: 650,
+
+    king: 1,
+    queen: 1,
+    full_beds: 0,
+    twin: 2,
+    sofa: 1
+  };
+
+  const res = await fetch('/api/calculate-property-pricing', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(payload)
+  });
+
+  const data = await res.json();
+
+  document.getElementById('output').textContent =
+    JSON.stringify(data, null, 2);
+}
+</script>
+
+</body>
+</html>
