@@ -232,35 +232,42 @@ module.exports = async function handler(req, res) {
     }
 
     // Sheets/topcovers, PAR 2
-    addLinen('SHT-001', king * sheetPar); // King fitted
-    addLinen('SHT-002', king * sheetPar); // King flat
-    addLinen('SHT-003', king * 4 * sheetPar); // King pillowcases
-    addLinen('SHT-005', king * sheetPar); // King topcover
+    // Sheets / Linen Order
 
-    addLinen('SHT-009', queen * sheetPar);
-    addLinen('SHT-010', queen * sheetPar);
-    addLinen('SHT-011', queen * 4 * sheetPar);
-    addLinen('SHT-013', queen * sheetPar);
+// KING
+addLinen('SHT-001', king * sheetPar); // King fitted
+addLinen('SHT-002', king * sheetPar * 3); // Triple-sheet flats
+addLinen('SHT-003', king * 4 * sheetPar); // Pillowcases
+addLinen('SHT-004', king * 2); // Inserts
 
-    addLinen('SHT-014', fullEquivalent * sheetPar);
-    addLinen('SHT-015', fullEquivalent * sheetPar);
-    addLinen('SHT-016', fullEquivalent * 2 * sheetPar);
-    addLinen('SHT-018', fullEquivalent * sheetPar);
+// QUEEN
+addLinen('SHT-009', queen * sheetPar); // Queen fitted
+addLinen('SHT-010', queen * sheetPar * 2); // Triple-sheet flats
+addLinen('SHT-011', queen * 4 * sheetPar); // Pillowcases
+addLinen('SHT-012', queen * 2); // Inserts
 
-    addLinen('SHT-019', twin * sheetPar);
-    addLinen('SHT-020', twin * sheetPar);
-    addLinen('SHT-021', twin * 1 * sheetPar);
-    addLinen('SHT-023', twin * sheetPar);
+// FULL + SOFA
+addLinen('SHT-014', fullEquivalent * sheetPar); // Full fitted
+addLinen('SHT-015', fullEquivalent * sheetPar * 2); // Triple-sheet flats
+addLinen('SHT-016', fullEquivalent * 2 * sheetPar); // Pillowcases
+addLinen('SHT-017', fullEquivalent * 2); // Inserts
 
-    // Towels PAR 3
-    addLinen('TWL-001', sleeps * towelPar); // Bath towels
-    addLinen('TWL-002', sleeps * towelPar); // Washcloths
-    addLinen('TWL-003', sleeps * towelPar); // Hand towels
-    addLinen('TWL-004', bathrooms * towelPar); // Bath mats
-    addLinen('TWL-006', 2 * towelPar); // Kitchen towels
-    addLinen('TWL-007', 2 * towelPar); // Kitchen washcloths
-    addLinen('MSC-001', 2); // Laundry bags starter
+// TWIN
+addLinen('SHT-019', twin * sheetPar); // Twin fitted
+addLinen('SHT-020', twin * sheetPar * 2); // Triple-sheet flats
+addLinen('SHT-021', twin * 1 * sheetPar); // Pillowcases
+addLinen('SHT-022', twin * 2); // Inserts
 
+// TOWELS PAR 3
+addLinen('TWL-001', sleeps * towelPar); // Bath towels
+addLinen('TWL-002', sleeps * towelPar); // Washcloths
+addLinen('TWL-003', sleeps * towelPar); // Hand towels
+addLinen('TWL-004', bathrooms * towelPar); // Bath mats
+addLinen('TWL-006', 2 * towelPar); // Kitchen towels
+addLinen('TWL-007', 2 * towelPar); // Kitchen washcloths
+
+// Laundry bags
+addLinen('MSC-001', 2);
     const totalLinenOrderCost = linenOrder.reduce(
       (sum, row) => sum + Number(row.total_cost || 0),
       0
