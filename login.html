@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Admin Login | Spruce</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="admin-auth.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; background:#f6f4ef; color:#24382f;
+           display:flex; min-height:100vh; align-items:center; justify-content:center; margin:0; }
+    .box { width:100%; max-width:380px; background:white; padding:28px; border-radius:16px;
+           box-shadow:0 4px 14px rgba(0,0,0,.08); }
+    h1 { font-size:20px; margin:0 0 4px; }
+    p.sub { margin:0 0 20px; color:#6b7a72; font-size:14px; }
+    label { display:block; font-weight:bold; margin-bottom:6px; font-size:14px; }
+    input { width:100%; padding:11px; border:1px solid #ccc; border-radius:8px; box-sizing:border-box; }
+    button { margin-top:16px; width:100%; padding:12px; border:0; border-radius:10px;
+             background:#24382f; color:white; font-weight:bold; cursor:pointer; }
+    button:disabled { opacity:.55; cursor:default; }
+    .msg { margin-top:16px; font-size:14px; font-weight:bold; min-height:1em; }
+    .msg.err { color:#b3261e; }
+    .msg.ok  { color:#1e7d4f; }
+    .note { margin-top:18px; font-size:12px; color:#9aa7a0; }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <h1>Spruce Admin</h1>
+    <p class="sub">Sign in with your approved admin email. We'll send you a magic link.</p>
+
+    <form id="form">
+      <label for="email">Email</label>
+      <input id="email" type="email" required placeholder="you@example.com" autocomplete="email" />
+      <button id="submit" type="submit">Send magic link</button>
+    </form>
+
+    <div id="msg" class="msg" role="status"></div>
+    <div id="signedout" style="display:none">
+      <button id="signout" type="button">Sign out</button>
+    </div>
+
+    <p class="note">Access is restricted to an approved allowlist. Other emails will be blocked.</p>
+  </div>
+
+  <script>
+    (function () {
+      var A = window.SPRUCE_ADMIN_AUTH;
+      var msg = document.getElementById("msg");
+      var form = document.getElementById("form");
+      var submit = document.getElementById("submit");
+      var signedoutBox = document.getElementById("signedout");
+
+      var ADMIN_PAGES = [
+        "admin.html", "admin-properties.html", "admin-property.html",
+        "add-property.html", "add-owner.html"
+      ];
+
+      function setMsg(text, kind) {
+        msg.textContent = text || "";
+        msg.className = "msg" + (kind ? " " + kind : "");
+      }
+
+      // Only allow redirecting to a known relative admin page (prevents open redirects).
+      function safeNext() {
+        var raw = new URLSearchParams(location.search).get("next") || "";
+        try { raw = decodeURIComponent(raw); } catch (e) {}
+        var file = raw.split("?")[0].replace(/^\//, "");
+        if (ADMIN_PAGES.indexOf(file) !== -1) return raw.replace(/^\//, "");
+        return "admin.html";
+      }
+
+      if (!A || !window.supabase || !window.supabase.createClient) {
+        setMsg("Auth failed to load. Please refresh.", "err");
+        return;
+      }
+
+      var client = A.client();
+
+      // If we returned from a magic link, a session will be present now.
+      client.auth.getSession().then(function (res) {
+        var session = res && res.data ? res.data.session : null;
+        if (!session) return;
+        var email = session.user ? session.user.email : null;
+        if (A.isAllowed(email)) {
+          setMsg("Signed in. Redirecting...", "ok");
+          location.replace(safeNext());
+        } else {
+          // Valid Supabase user, but not an approved admin.
+          form.style.display = "none";
+          signedoutBox.style.display = "block";
+          setMsg("This email (" + email + ") is not an approved admin.", "err");
+        }
+      });
+
+      document.getElementById("signout").addEventListener("click", function () {
+        client.auth.signOut().then(function () { location.reload(); });
+      });
+
+      form.addEventListener("submit", function (e) {
+        e.preventDefault();
+        var email = document.getElementById("email").value.trim();
+        if (!email) return;
+
+        if (!A.isAllowed(email)) {
+          setMsg("That email is not on the admin allowlist.", "err");
+          return;
+        }
+
+        submit.disabled = true;
+        setMsg("Sending...", "");
+
+        var loginUrl = new URL("login.html", location.href);
+        var next = new URLSearchParams(location.search).get("next");
+        if (next) loginUrl.searchParams.set("next", next);
+
+        client.auth
+          .signInWithOtp({ email: email, options: { emailRedirectTo: loginUrl.href } })
+          .then(function (r) {
+            if (r.error) {
+              setMsg(r.error.message || "Could not send link.", "err");
+              submit.disabled = false;
+            } else {
+              setMsg("Check your inbox for a sign-in link.", "ok");
+            }
+          })
+          .catch(function () {
+            setMsg("Could not send link. Try again.", "err");
+            submit.disabled = false;
+          });
+      });
+    })();
+  </script>
+</body>
+</html>

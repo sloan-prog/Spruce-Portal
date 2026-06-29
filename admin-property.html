@@ -1,6 +1,12 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <!-- admin auth gate (added on branch add-admin-auth) -->
+  <style id="auth-gate-style">html{visibility:hidden!important}</style>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="admin-auth.js"></script>
+  <script src="auth-guard.js"></script>
+
   <title>Property Detail | Spruce Admin</title>
   <style>
     body { font-family: Arial; padding:30px; background:#f6f4ef; color:#24382f; }
