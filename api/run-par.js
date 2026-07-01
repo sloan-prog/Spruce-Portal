@@ -102,29 +102,81 @@ module.exports = async function handler(req, res) {
 
     const now = new Date().toISOString();
 
-    const rows = items.map(item => ({
-      property_id,
-      item_code: item.item_code,
-      target_par: item.target_par,
-      current_on_hand: item.target_par,
-      min_threshold: Math.ceil(item.target_par * 0.3),
-      last_updated: now
-    }));
+    // -----------------------------------------------------------------
+    // SET-ONCE BEHAVIOR (the fix):
+    //   - If a property_stock row does NOT exist yet (first run / onboarding):
+    //       create it and seed current_on_hand = target_par.
+    //   - If a row ALREADY exists (any later run):
+    //       update target_par + min_threshold ONLY.
+    //       NEVER touch current_on_hand — that is the real, live count
+    //       maintained by the closet-visit / closet-to-counter webhooks.
+    //
+    // This makes Run PAR safe to click repeatedly. It refreshes the
+    // *targets* but never resets the actual on-hand inventory.
+    // -----------------------------------------------------------------
+    const created = [];
+    const updated = [];
+    const errors = [];
 
-    const { data, error } = await supabase
-      .from('property_stock')
-      .upsert(rows, { onConflict: 'property_id,item_code' })
-      .select();
+    for (const item of items) {
+      const { data: existing, error: lookupErr } = await supabase
+        .from('property_stock')
+        .select('item_code')
+        .eq('property_id', property_id)
+        .eq('item_code', item.item_code)
+        .maybeSingle();
 
-    if (error) {
-      return res.status(400).json({ success: false, error: error.message });
+      if (lookupErr) {
+        errors.push({ item_code: item.item_code, error: lookupErr.message });
+        continue;
+      }
+
+      if (existing) {
+        // Row exists -> update target + threshold only. Leave current_on_hand alone.
+        const { error: updErr } = await supabase
+          .from('property_stock')
+          .update({
+            target_par: item.target_par,
+            min_threshold: Math.ceil(item.target_par * 0.3),
+            last_updated: now
+          })
+          .eq('property_id', property_id)
+          .eq('item_code', item.item_code);
+
+        if (updErr) {
+          errors.push({ item_code: item.item_code, error: updErr.message });
+        } else {
+          updated.push(item.item_code);
+        }
+      } else {
+        // First time -> create row and seed current_on_hand to the target.
+        const { error: insErr } = await supabase
+          .from('property_stock')
+          .insert({
+            property_id,
+            item_code: item.item_code,
+            target_par: item.target_par,
+            current_on_hand: item.target_par,
+            min_threshold: Math.ceil(item.target_par * 0.3),
+            last_updated: now
+          });
+
+        if (insErr) {
+          errors.push({ item_code: item.item_code, error: insErr.message });
+        } else {
+          created.push(item.item_code);
+        }
+      }
     }
 
     return res.status(200).json({
-      success: true,
+      success: errors.length === 0,
       property_id,
-      count: data.length,
-      rows: data
+      created_count: created.length,   // new rows seeded (first-time setup)
+      updated_count: updated.length,   // existing targets refreshed, live counts untouched
+      created,
+      updated,
+      errors
     });
 
   } catch (err) {

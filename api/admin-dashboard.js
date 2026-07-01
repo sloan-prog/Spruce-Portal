@@ -13,13 +13,23 @@ export default async function handler(req, res) {
   const { count: cleansToday } = await supabase
     .from('cleans_normalized')
     .select('*', { count: 'exact', head: true })
-    .eq('clean_date', today)
+    .eq('clean_date', today);
+
+  // Cleans This Week
+  const startOfWeek = new Date();
+  startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay());
+  const start = startOfWeek.toISOString().split('T')[0];
+
+  const { count: cleansWeek } = await supabase
+    .from('cleans_normalized')
+    .select('*', { count: 'exact', head: true })
+    .gte('clean_date', start);
 
   // Urgent Issues
   const { count: urgentIssues } = await supabase
     .from('urgent_issues')
     .select('*', { count: 'exact', head: true })
-    .not('status', 'is', null)
+    .not('status', 'is', null);
 
   // Callouts
   const { count: callouts } = await supabase
@@ -45,18 +55,11 @@ export default async function handler(req, res) {
   const { count: laundry } = await supabase
     .from('laundry_jobs')
     .select('*', { count: 'exact', head: true })
-    .not('pickup_status', 'is', null)
+    .not('pickup_status', 'is', null);
 
   res.status(200).json({
     cleansToday: cleansToday || 0,
-    const startOfWeek = new Date();
-startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay());
-const start = startOfWeek.toISOString().split('T')[0];
-
-const { count: cleansWeek } = await supabase
-  .from('cleans_normalized')
-  .select('*', { count: 'exact', head: true })
-  .gte('clean_date', start);
+    cleansWeek: cleansWeek || 0,
     urgentIssues: urgentIssues || 0,
     callouts: callouts || 0,
     revenueToday,
