@@ -74,6 +74,7 @@
 
     <label>Cleaning Fee</label>
     <input name="cleaning_fee" type="number" step="0.01">
+    <button type="button" id="calcFeeBtn">Calculate Hospitality Fee</button>
 
     <label>Coffee Enabled</label>
     <select name="coffee_enabled">
@@ -142,6 +143,36 @@ document.getElementById('propertyForm').addEventListener('submit', async (e) => 
 
   document.getElementById('msg').innerText =
     data.success ? 'Property added successfully.' : 'Error: ' + data.error;
+});
+
+document.getElementById('calcFeeBtn').addEventListener('click', async () => {
+  const msg = document.getElementById('msg');
+  const formData = new FormData(document.getElementById('propertyForm'));
+  const payload = Object.fromEntries(formData.entries());
+
+  msg.innerText = 'Calculating hospitality fee...';
+
+  try {
+    const res = await fetch('/api/calculate-property-pricing', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    const data = await res.json();
+    const fee = data && data.outputs
+      ? data.outputs.recommended_cleaning_fee
+      : data.recommended_cleaning_fee;
+
+    if (data.success && fee != null) {
+      document.querySelector('input[name="cleaning_fee"]').value = fee;
+      msg.innerText = 'Recommended hospitality fee: ' + fee;
+    } else {
+      msg.innerText = 'Error: ' + (data.error || 'Could not calculate fee');
+    }
+  } catch (err) {
+    msg.innerText = 'Error calculating fee: ' + err.message;
+  }
 });
 </script>
 
