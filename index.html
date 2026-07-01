@@ -939,7 +939,7 @@
             Want linens, luxury amenities, and bundled enhancements?
           </div>
           <button class="btn primary big" onclick="requestPlanUpgrade('${property.propertyId}', '${property.planType}')">
-            Spruce UP to Signature
+            Spruce UP to The Signature
           </button>
         </div>
       ` : ``;
@@ -1027,7 +1027,7 @@
     }
 
     async function requestUpgradeToSignature(propertyId){
-      if (!confirm("Upgrade this property to the Signature plan? This request will be reviewed before activation.")) {
+      if (!confirm("Upgrade this property to The Signature plan? This request will be reviewed before activation.")) {
         return;
       }
 
@@ -1054,7 +1054,7 @@
     }
 
     async function requestPlanUpgrade(propertyId, fromPlan){
-      if (!confirm("Request upgrade to Signature? This will be reviewed and scheduled before activation.")) return;
+      if (!confirm("Request upgrade to The Signature? This will be reviewed and scheduled before activation.")) return;
 
       try{
         const res = await fetch(`/api/portal?path=plan_change&t=${encodeURIComponent(token)}`, {
