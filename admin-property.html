@@ -229,7 +229,7 @@ async function loadPropertyDetail() {
 
   document.getElementById('propertyName').innerText = p.property_name || propertyId;
   document.getElementById('propertyId').innerText = p.property_id || '';
-  document.getElementById('planType').innerText = p.plan_type || '-';
+  document.getElementById('planType').innerText = ({ SIGNATURE: 'The Signature', SIMPLY: 'The Edit' })[p.plan_type] || p.plan_type || '-';
   document.getElementById('cleaningFee').innerText = money(p.cleaning_fee);
   document.getElementById('building').innerText = p.building || '';
   document.getElementById('unit').innerText = p.unit_number || '';

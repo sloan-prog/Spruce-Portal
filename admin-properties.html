@@ -49,7 +49,7 @@ async function loadProperties() {
       <td>${p.property_name}</td>
       <td>${p.owners?.owner_name || ''}</td>
       <td>${p.building || ''}</td>
-      <td>${p.plan_type}</td>
+      <td>${({ SIGNATURE: 'The Signature', SIMPLY: 'The Edit' })[p.plan_type] || p.plan_type}</td>
     `;
 
     row.onclick = () => {
