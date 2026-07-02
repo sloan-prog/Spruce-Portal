@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <!-- admin auth gate (matches the other admin pages) -->
+  <style id="auth-gate-style">html{visibility:hidden!important}</style>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="admin-auth.js"></script>
+  <script src="auth-guard.js"></script>
+
+  <title>Linen Order Calculator | Spruce Admin</title>
+  <style>
+    body { font-family: Arial; background:#f6f4ef; padding:30px; }
+    .box { max-width:760px; background:white; padding:25px; border-radius:16px; box-shadow:0 4px 14px rgba(0,0,0,.08); }
+    label { display:block; margin-top:14px; font-weight:bold; }
+    input, select { width:100%; padding:10px; margin-top:5px; border:1px solid #ccc; border-radius:8px; }
+    button { margin-top:22px; padding:12px 18px; border:0; border-radius:10px; background:#24382f; color:white; font-weight:bold; cursor:pointer; }
+    .msg { margin-top:18px; font-weight:bold; }
+    table { width:100%; margin-top:18px; background:white; border-collapse: collapse; }
+    th, td { padding:10px; border-bottom:1px solid #eee; text-align:left; }
+    th { font-size:13px; text-transform:uppercase; color:#6b7a72; }
+    td.num, th.num { text-align:right; }
+    .totals { margin-top:20px; border-top:2px solid #24382f; padding-top:14px; }
+    .totals .line { display:flex; justify-content:space-between; margin-top:8px; font-weight:bold; }
+    .totals .grand { font-size:18px; }
+    .totals .muted { color:#6b7a72; font-weight:normal; }
+  </style>
+</head>
+<body>
+
+<div class="box">
+  <h1>Linen Order Calculator</h1>
+
+  <form id="linenForm">
+    <label>King beds</label>
+    <input name="king" type="number" min="0" step="1" value="0">
+
+    <label>Queen beds</label>
+    <input name="queen" type="number" min="0" step="1" value="0">
+
+    <label>Full beds</label>
+    <input name="full_beds" type="number" min="0" step="1" value="0">
+
+    <label>Twin beds</label>
+    <input name="twin" type="number" min="0" step="1" value="0">
+
+    <label>Sofa beds</label>
+    <input name="sofa" type="number" min="0" step="1" value="0">
+
+    <label>Bathrooms</label>
+    <input name="bathrooms" type="number" min="0" step="0.5" value="0">
+
+    <label>Sleeps</label>
+    <input name="sleeps" type="number" min="0" step="1" value="0">
+
+    <label>Bedrooms</label>
+    <input name="bedrooms" type="number" min="0" step="1" value="0">
+
+    <button type="submit">Calculate Linen Order</button>
+  </form>
+
+  <div class="msg" id="msg"></div>
+
+  <div id="results" style="display:none">
+    <table id="linenTable">
+      <thead>
+        <tr>
+          <th>Done</th>
+          <th>Item Code</th>
+          <th>Item Name</th>
+          <th class="num">Qty</th>
+          <th class="num">Unit Cost</th>
+          <th class="num">Line Total</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+
+    <div class="totals">
+      <div class="line grand"><span>Grand total linen order cost</span><span id="grandTotal"></span></div>
+      <div class="line"><span>Linen order total (spend up front)</span><span id="orderTotal"></span></div>
+      <div class="line"><span>Linen fee charged (collected)</span><span id="feeCharged"></span></div>
+      <div class="line"><span>Amount to recoup (remaining)</span><span id="toRecoup"></span></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function money(v) {
+    const n = Number(v || 0);
+    return '$' + n.toFixed(2);
+  }
+
+  document.getElementById('linenForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const msg = document.getElementById('msg');
+    const results = document.getElementById('results');
+
+    const formData = new FormData(e.target);
+    const payload = Object.fromEntries(formData.entries());
+
+    msg.innerText = 'Calculating linen order...';
+    results.style.display = 'none';
+
+    try {
+      const res = await fetch('/api/calculate-linen-order', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      const data = await res.json();
+
+      if (!data.success) {
+        msg.innerText = 'Error: ' + (data.error || 'Could not calculate linen order');
+        return;
+      }
+
+      const tbody = document.querySelector('#linenTable tbody');
+      tbody.innerHTML = '';
+
+      (data.items || []).forEach(item => {
+        const tr = document.createElement('tr');
+        tr.innerHTML =
+          '<td><input type="checkbox"></td>' +
+          '<td>' + item.item_code + '</td>' +
+          '<td>' + (item.item_name || '') + '</td>' +
+          '<td class="num">' + item.quantity + '</td>' +
+          '<td class="num">' + money(item.unit_cost) + '</td>' +
+          '<td class="num">' + money(item.line_total) + '</td>';
+        tbody.appendChild(tr);
+      });
+
+      document.getElementById('grandTotal').innerText = money(data.grand_total);
+      document.getElementById('orderTotal').innerText = money(data.linen_order_total);
+      document.getElementById('feeCharged').innerText = money(data.linen_fee_charged);
+      document.getElementById('toRecoup').innerText = money(data.amount_to_recoup);
+
+      msg.innerText = (data.items && data.items.length)
+        ? ''
+        : 'No linen items for the entered specs.';
+      results.style.display = 'block';
+    } catch (err) {
+      msg.innerText = 'Error calculating linen order: ' + err.message;
+    }
+  });
+</script>
+
+</body>
+</html>
