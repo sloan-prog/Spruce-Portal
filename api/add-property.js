@@ -44,9 +44,11 @@ export default async function handler(req, res) {
       updated_at: new Date().toISOString()
     };
 
+    // Upsert on property_id so editing an existing property updates its row
+    // instead of inserting a duplicate. New properties are still inserted.
     const { data, error } = await supabase
       .from('properties')
-      .insert([property])
+      .upsert(property, { onConflict: 'property_id' })
       .select();
 
     if (error) {
