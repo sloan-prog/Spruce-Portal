@@ -17,6 +17,7 @@ export default async function handler(req, res) {
         owner_id,
         owners ( owner_name )
       `)
+      .neq('status', 'INACTIVE')
       .order('property_name', { ascending: true });
 
     if (error) {
