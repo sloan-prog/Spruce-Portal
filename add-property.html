@@ -15,6 +15,12 @@
     input, select { width:100%; padding:10px; margin-top:5px; border:1px solid #ccc; border-radius:8px; }
     button { margin-top:22px; padding:12px 18px; border:0; border-radius:10px; background:#24382f; color:white; font-weight:bold; cursor:pointer; }
     .msg { margin-top:18px; font-weight:bold; }
+    .breakdown { margin-top:16px; }
+    .breakdown h3 { margin:0 0 8px; }
+    .breakdown table { width:100%; border-collapse:collapse; }
+    .breakdown td { padding:7px 0; border-bottom:1px solid #eee; }
+    .breakdown td.amt { text-align:right; font-variant-numeric:tabular-nums; }
+    .breakdown tr.total td { font-weight:bold; border-top:2px solid #24382f; border-bottom:0; font-size:16px; }
   </style>
 </head>
 <body>
@@ -97,6 +103,7 @@
   </form>
 
   <div class="msg" id="msg"></div>
+  <div id="feeBreakdown" class="breakdown"></div>
 </div>
 
 <script>
@@ -145,12 +152,43 @@ document.getElementById('propertyForm').addEventListener('submit', async (e) => 
     data.success ? 'Property added successfully.' : 'Error: ' + data.error;
 });
 
+function feeMoney(v) {
+  return '$' + Number(v || 0).toFixed(2);
+}
+
+// Renders the engine's itemized outputs as a readable list. Display only.
+function renderFeeBreakdown(o) {
+  const el = document.getElementById('feeBreakdown');
+  const hours = Number(o.estimated_clean_hours || 0);
+  const laborCost = Number(o.labor_cost || 0);
+  const rate = hours ? laborCost / hours : 0;
+
+  const rows = [
+    ['Labor (' + hours + ' hrs \u00d7 ' + feeMoney(rate) + '/hr)', feeMoney(laborCost)],
+    ['Consumables', feeMoney(o.consumables_cost)],
+    ['Coffee', feeMoney(o.coffee_cost)],
+    ['Laundry (' + Number(o.max_laundry_weight_lbs || 0) + ' lbs)', feeMoney(o.laundry_cost)],
+    ['Linen recoup per clean', feeMoney(o.linen_recoup_per_clean)],
+    ['Base cost', feeMoney(o.base_cost)],
+    ['Markup', Number(o.markup_pct || 0) + '%']
+  ];
+
+  let html = '<h3>Hospitality Fee Breakdown</h3><table>';
+  rows.forEach(function (r) {
+    html += '<tr><td>' + r[0] + '</td><td class="amt">' + r[1] + '</td></tr>';
+  });
+  html += '<tr class="total"><td>Recommended fee</td><td class="amt">' +
+    feeMoney(o.recommended_cleaning_fee) + '</td></tr></table>';
+  el.innerHTML = html;
+}
+
 document.getElementById('calcFeeBtn').addEventListener('click', async () => {
   const msg = document.getElementById('msg');
   const formData = new FormData(document.getElementById('propertyForm'));
   const payload = Object.fromEntries(formData.entries());
 
   msg.innerText = 'Calculating hospitality fee...';
+  document.getElementById('feeBreakdown').innerHTML = '';
 
   try {
     const res = await fetch('/api/calculate-property-pricing', {
@@ -165,8 +203,10 @@ document.getElementById('calcFeeBtn').addEventListener('click', async () => {
       : data.recommended_cleaning_fee;
 
     if (data.success && fee != null) {
+      const o = data.outputs || data;
       document.querySelector('input[name="cleaning_fee"]').value = fee;
-      msg.innerText = 'Recommended hospitality fee: ' + fee;
+      msg.innerText = '';
+      renderFeeBreakdown(o);
     } else {
       msg.innerText = 'Error: ' + (data.error || 'Could not calculate fee');
     }
