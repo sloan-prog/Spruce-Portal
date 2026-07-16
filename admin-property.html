@@ -35,6 +35,7 @@
   <label style="display:flex;align-items:center;gap:6px;font-weight:bold;">
     <input type="checkbox" id="inactiveToggle" onchange="toggleInactive(this)"> Inactive
   </label>
+  <button type="button" onclick="calcAndSaveLinen()">Calculate &amp; Save Linen Order</button>
 </div>
 
 <div class="top">
@@ -327,6 +328,57 @@ async function loadPropertyDetail() {
       <td>${f.margin ? Number(f.margin).toFixed(2) + '%' : ''}</td>
     </tr>
   `).join('') : emptyRow(5, 'No financial records.');
+}
+
+async function calcAndSaveLinen() {
+  const propertyId = getPropertyIdFromUrl();
+  if (!propertyId) { alert('No property ID found in URL.'); return; }
+  if (!currentProperty) { alert('Property is still loading. Try again in a moment.'); return; }
+
+  const p = currentProperty;
+  const specs = {
+    king: p.king || 0,
+    queen: p.queen || 0,
+    full_beds: p.full_beds || 0,
+    twin: p.twin || 0,
+    sofa: p.sofa || 0,
+    bathrooms: p.bathrooms || 0,
+    sleeps: p.sleeps || 0,
+    bedrooms: p.bedrooms || 0
+  };
+
+  try {
+    // Reuse the existing linen calculator (unmodified).
+    const calcRes = await fetch('/api/calculate-linen-order', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(specs)
+    });
+    const calc = await calcRes.json();
+    if (!calc.success) { alert('Calculation error: ' + (calc.error || 'unknown')); return; }
+
+    // Save (upsert) the result into property_linen_inventory, keyed by property_id.
+    const saveRes = await fetch('/api/save-linen-order', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        property_id: propertyId,
+        items: calc.items,
+        total_linen_cost: calc.linen_order_total,
+        linen_fee_charged: calc.linen_fee_charged,
+        net_linen_to_recoup: calc.amount_to_recoup
+      })
+    });
+    const save = await saveRes.json();
+    if (!save.success) { alert('Save error: ' + (save.error || 'unknown')); return; }
+
+    alert('Linen order saved for ' + propertyId +
+      '\\nTotal linen cost: ' + money(calc.linen_order_total) +
+      '\\nLinen fee charged: ' + money(calc.linen_fee_charged) +
+      '\\nNet to recoup: ' + money(calc.amount_to_recoup));
+  } catch (err) {
+    alert('Error: ' + err.message);
+  }
 }
 
 loadPropertyDetail();
