@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <!-- admin auth gate (matches the other admin pages) -->
+  <style id="auth-gate-style">html{visibility:hidden!important}</style>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="admin-auth.js"></script>
+  <script src="auth-guard.js"></script>
+
+  <title>Laundry | Spruce Admin</title>
+  <style>
+    body { font-family: Arial; padding:30px; background:#f6f4ef; }
+    table { width:100%; background:white; border-collapse: collapse; }
+    th, td { padding:12px; border-bottom:1px solid #eee; }
+    tr:hover { background:#f2f2f2; }
+    th { text-align:left; cursor:pointer; user-select:none; white-space:nowrap; }
+    th .arrow { color:#999; font-size:12px; }
+    td.num, th.num { text-align:right; }
+    tfoot td { font-weight:bold; border-top:2px solid #24382f; border-bottom:0; }
+    .muted { color:#777; }
+  </style>
+</head>
+<body>
+<p>
+  <a href="/admin.html"><button>Dashboard</button></a>
+  <a href="/admin-properties.html"><button>Properties</button></a>
+</p>
+<h1>Laundry</h1>
+
+<table id="table">
+  <thead><tr id="head"></tr></thead>
+  <tbody></tbody>
+  <tfoot></tfoot>
+</table>
+
+<script>
+const COLUMNS = [
+  { key: 'property_name',         label: 'Property',         type: 'str' },
+  { key: 'requested_pickup_date', label: 'Requested Pickup', type: 'date' },
+  { key: 'status',                label: 'Status',           type: 'str' },
+  { key: 'bag_count',             label: 'Bags',             type: 'num' },
+  { key: 'weight_lbs',            label: 'Weight (lbs)',     type: 'num' },
+  { key: 'cost',                  label: 'Cost',             type: 'num', money: true },
+  { key: 'vendor',                label: 'Vendor',           type: 'str' }
+];
+
+let jobs = [];
+let totalCost = 0;
+let sortKey = 'requested_pickup_date';
+let sortDir = 'desc';
+
+function money(v) { return '$' + Number(v || 0).toFixed(2); }
+function dateOnly(v) { return v ? String(v).split('T')[0] : ''; }
+
+function cellText(col, row) {
+  const v = row[col.key];
+  if (col.type === 'date') return dateOnly(v);
+  if (col.money) return money(v);
+  return (v == null || v === '') ? '' : v;
+}
+
+function compare(a, b, col) {
+  const av = a[col.key], bv = b[col.key];
+  if (col.type === 'num') return Number(av || 0) - Number(bv || 0);
+  if (col.type === 'date') return new Date(av || 0) - new Date(bv || 0);
+  return String(av == null ? '' : av).localeCompare(String(bv == null ? '' : bv));
+}
+
+function renderHead() {
+  document.getElementById('head').innerHTML = COLUMNS.map(col => {
+    const arrow = sortKey === col.key ? (sortDir === 'asc' ? ' ▲' : ' ▼') : '';
+    const cls = col.type === 'num' ? ' class="num"' : '';
+    return '<th' + cls + ' onclick="sortBy(\'' + col.key + '\')">' + col.label +
+           '<span class="arrow">' + arrow + '</span></th>';
+  }).join('');
+}
+
+function renderBody() {
+  const rows = jobs.slice();
+  const col = COLUMNS.find(c => c.key === sortKey);
+  if (col) {
+    rows.sort((a, b) => compare(a, b, col) * (sortDir === 'asc' ? 1 : -1));
+  }
+  const tbody = document.querySelector('#table tbody');
+  if (!rows.length) {
+    tbody.innerHTML = '<tr><td colspan="' + COLUMNS.length + '" class="muted">No laundry jobs.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = rows.map(row =>
+    '<tr>' + COLUMNS.map(c =>
+      '<td' + (c.type === 'num' ? ' class="num"' : '') + '>' + cellText(c, row) + '</td>'
+    ).join('') + '</tr>'
+  ).join('');
+}
+
+function renderFoot() {
+  // Total cost aligned under the Cost column.
+  const cells = COLUMNS.map((c, i) => {
+    if (c.key === 'cost') return '<td class="num">' + money(totalCost) + '</td>';
+    if (i === 0) return '<td>Total cost</td>';
+    return '<td></td>';
+  }).join('');
+  document.querySelector('#table tfoot').innerHTML = '<tr>' + cells + '</tr>';
+}
+
+function sortBy(key) {
+  if (sortKey === key) {
+    sortDir = (sortDir === 'asc') ? 'desc' : 'asc';
+  } else {
+    sortKey = key;
+    sortDir = 'asc';
+  }
+  renderHead();
+  renderBody();
+}
+
+async function loadLaundry() {
+  renderHead();
+  try {
+    const res = await fetch('/api/get-laundry');
+    const data = await res.json();
+    if (!data.success) {
+      document.querySelector('#table tbody').innerHTML =
+        '<tr><td colspan="' + COLUMNS.length + '" class="muted">Could not load laundry: ' + (data.error || 'unknown') + '</td></tr>';
+      return;
+    }
+    jobs = data.jobs || [];
+    totalCost = (data.total_cost != null)
+      ? data.total_cost
+      : jobs.reduce((s, r) => s + Number(r.cost || 0), 0);
+    renderBody();
+    renderFoot();
+  } catch (err) {
+    document.querySelector('#table tbody').innerHTML =
+      '<tr><td colspan="' + COLUMNS.length + '" class="muted">Error: ' + err.message + '</td></tr>';
+  }
+}
+
+loadLaundry();
+</script>
+
+</body>
+</html>
