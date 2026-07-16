@@ -32,6 +32,9 @@
   <a href="/admin-properties.html"><button type="button">Back to Properties</button></a>
   <a href="/add-property.html"><button type="button">Edit Property</button></a>
   <button type="button" onclick="runPAR()">Run PAR</button>
+  <label style="display:flex;align-items:center;gap:6px;font-weight:bold;">
+    <input type="checkbox" id="inactiveToggle" onchange="toggleInactive(this)"> Inactive
+  </label>
   <button type="button" onclick="calcAndSaveLinen()">Calculate &amp; Save Linen Order</button>
 </div>
 
@@ -146,6 +149,39 @@ function getPropertyIdFromUrl() {
   return params.get('id');
 }
 
+async function toggleInactive(cb) {
+  const propertyId = getPropertyIdFromUrl();
+  if (!propertyId) { alert('No property ID found in URL.'); cb.checked = !cb.checked; return; }
+
+  const status = cb.checked ? 'INACTIVE' : 'ACTIVE';
+  cb.disabled = true;
+
+  try {
+    const res = await fetch('/api/set-property-status', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ property_id: propertyId, status: status })
+    });
+    const data = await res.json();
+
+    if (!data.success) {
+      alert('Could not update status: ' + (data.error || 'unknown'));
+      cb.checked = !cb.checked;
+      return;
+    }
+
+    if (currentProperty) currentProperty.status = status;
+    alert(status === 'INACTIVE'
+      ? 'Property marked inactive. It will be hidden from the properties list.'
+      : 'Property reactivated.');
+  } catch (err) {
+    alert('Error: ' + err.message);
+    cb.checked = !cb.checked;
+  } finally {
+    cb.disabled = false;
+  }
+}
+
 async function runPAR() {
   const propertyId = getPropertyIdFromUrl();
 
@@ -230,6 +266,8 @@ async function loadPropertyDetail() {
 
   const p = data.property;
   currentProperty = p;
+  const inactiveToggle = document.getElementById('inactiveToggle');
+  if (inactiveToggle) inactiveToggle.checked = (p.status === 'INACTIVE');
 
   document.getElementById('propertyName').innerText = p.property_name || propertyId;
   document.getElementById('propertyId').innerText = p.property_id || '';
