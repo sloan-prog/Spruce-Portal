@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vellum · Owner Portal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --oxblood:#4A0E0E;
+    --oxblood-deep:#3A0A0A;
+    --cream:#F7F3EC;
+    --vellum:#FBF8F2;
+    --charcoal:#2B2B2B;
+    --gold:#C6A664;
+    --gold-deep:#9C7F45;
+    --rule:#E0D6C4;
+    --muted:#8C8272;
+    --green:#3D5A44;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:'EB Garamond',Georgia,serif;
+    color:var(--charcoal);
+    background:var(--cream);
+    line-height:1.6;
+    font-size:16.5px;
+    -webkit-font-smoothing:antialiased;
+    text-rendering:optimizeLegibility;
+  }
+  h1,h2,h3{font-family:'Cormorant Garamond',Georgia,serif;font-weight:400;margin:0;}
+  button{font-family:'EB Garamond',serif;cursor:pointer;}
+  .hidden{display:none!important;}
+  :focus-visible{outline:2px solid var(--gold);outline-offset:3px;}
+
+  /* ---------- paper tooth: the grain you feel before you notice ---------- */
+  .grain::before{
+    content:"";position:absolute;inset:0;pointer-events:none;z-index:0;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+    opacity:.055;mix-blend-mode:multiply;
+  }
+
+  /* ---------- the wax seal ---------- */
+  .seal{
+    width:58px;height:58px;border-radius:50%;
+    background:radial-gradient(circle at 34% 30%, #6E1A18 0%, var(--oxblood) 42%, var(--oxblood-deep) 100%);
+    display:flex;align-items:center;justify-content:center;
+    margin:0 auto;position:relative;
+    box-shadow:0 1px 2px rgba(58,10,10,.34), inset 0 -1px 3px rgba(0,0,0,.3), inset 0 1px 2px rgba(255,255,255,.14);
+  }
+  .seal::after{
+    content:"";position:absolute;inset:5px;border-radius:50%;
+    border:1px solid rgba(247,243,236,.22);
+  }
+  .seal span{
+    font-family:'Cormorant Garamond',serif;color:#F2E7DC;
+    font-size:27px;font-weight:500;line-height:1;padding-bottom:3px;
+    letter-spacing:.02em;
+  }
+
+  .wordmark{
+    font-family:'Cormorant Garamond',serif;
+    letter-spacing:.3em;color:var(--oxblood);
+    font-weight:400;padding-left:.3em;
+  }
+  .label{
+    font-family:'EB Garamond',serif;text-transform:uppercase;
+    letter-spacing:.24em;font-size:10px;color:var(--gold-deep);font-weight:500;
+  }
+
+  /* ================= THRESHOLD (login) ================= */
+  .threshold{
+    min-height:100vh;min-height:100dvh;
+    display:flex;align-items:center;justify-content:center;
+    padding:28px;position:relative;overflow:hidden;
+    background:#241a16 url('/portal-hero.jpg') center 42% / cover no-repeat;
+  }
+  .threshold::after{
+    content:"";position:absolute;inset:0;
+    background:linear-gradient(180deg, rgba(36,26,22,.30) 0%, rgba(36,26,22,.14) 45%, rgba(36,26,22,.42) 100%);
+  }
+  /* the sheet of vellum laid over the room */
+  .sheet{
+    position:relative;z-index:2;
+    width:100%;max-width:412px;
+    background:var(--vellum);
+    padding:46px 42px 38px;
+    text-align:center;
+    box-shadow:0 22px 60px -12px rgba(30,18,14,.5), 0 2px 8px rgba(30,18,14,.18);
+    animation:settle .9s cubic-bezier(.2,.7,.25,1) both;
+  }
+  @keyframes settle{
+    from{opacity:0;transform:translateY(14px) rotate(-.35deg);}
+    to{opacity:1;transform:none;}
+  }
+  @media (prefers-reduced-motion:reduce){ .sheet{animation:none;} }
+
+  .sheet .wordmark{font-size:34px;display:block;margin:20px 0 0;}
+  .sheet .tag{
+    font-style:italic;color:var(--muted);font-size:15px;
+    margin:2px 0 30px;
+  }
+  .rule-gold{
+    width:34px;height:1px;background:var(--gold);
+    margin:16px auto 0;opacity:.75;
+  }
+
+  .field{text-align:left;margin-bottom:18px;position:relative;z-index:1;}
+  .field label{display:block;margin-bottom:7px;}
+  input[type=email],input[type=text]{
+    width:100%;padding:12px 2px;
+    border:none;border-bottom:1px solid var(--rule);
+    background:transparent;
+    font-family:'EB Garamond',serif;font-size:17px;color:var(--charcoal);
+    outline:none;transition:border-color .2s;
+  }
+  input::placeholder{color:#BDB2A0;}
+  input[type=email]:focus,input[type=text]:focus{border-bottom-color:var(--gold);}
+  .otp{
+    letter-spacing:.62em;text-align:center;
+    font-family:'Cormorant Garamond',serif;font-size:27px;
+    padding-left:.62em;
+  }
+
+  .btn{
+    display:block;width:100%;padding:13px;
+    background:var(--oxblood);color:var(--cream);border:none;
+    font-size:14px;letter-spacing:.16em;text-transform:uppercase;
+    position:relative;z-index:1;transition:background .2s;
+  }
+  .btn:hover{background:var(--oxblood-deep);}
+  .btn:disabled{opacity:.45;cursor:default;}
+  .btn-quiet{
+    background:none;border:none;color:var(--muted);
+    font-size:13.5px;margin-top:16px;font-style:italic;
+    text-decoration:underline;text-underline-offset:3px;
+  }
+  .msg{font-size:13.5px;margin-top:15px;min-height:19px;position:relative;z-index:1;}
+  .msg.err{color:var(--oxblood);}
+  .msg.ok{color:var(--green);}
+
+  /* ================= APP ================= */
+  #app{position:relative;min-height:100vh;}
+  header.bar{
+    background:var(--vellum);border-bottom:1px solid var(--rule);
+    padding:16px 26px;display:flex;align-items:center;justify-content:space-between;
+    position:sticky;top:0;z-index:20;
+  }
+  header.bar .wordmark{font-size:21px;}
+  .who{font-size:14px;color:var(--muted);font-style:italic;}
+  .who b{color:var(--charcoal);font-weight:500;font-style:normal;}
+  .signout{
+    background:none;border:1px solid var(--rule);padding:7px 15px;
+    font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);
+    transition:border-color .2s,color .2s;
+  }
+  .signout:hover{border-color:var(--gold);color:var(--charcoal);}
+
+  main{max-width:880px;margin:0 auto;padding:44px 26px 90px;position:relative;z-index:1;}
+  section.block{margin-top:52px;}
+  section.block:first-of-type{margin-top:8px;}
+  .sec-title{
+    display:flex;align-items:baseline;justify-content:space-between;
+    border-bottom:1px solid var(--oxblood);padding-bottom:7px;margin-bottom:22px;
+  }
+  .sec-title h2{font-size:27px;color:var(--oxblood);letter-spacing:.01em;}
+
+  /* ---------- property leaves ---------- */
+  .leaves{display:grid;grid-template-columns:repeat(auto-fill,minmax(268px,1fr));gap:20px;}
+  .leaf{
+    background:var(--vellum);border:1px solid var(--rule);
+    padding:20px 22px 18px;position:relative;
+    transition:border-color .25s;
+  }
+  .leaf:hover{border-color:var(--gold);}
+  .leaf h3{font-size:22px;color:var(--charcoal);line-height:1.25;padding-right:60px;}
+  /* the plan, pressed into the leaf like an actual seal */
+  .leaf .seal-mark{
+    position:absolute;top:15px;right:16px;
+    width:54px;height:54px;
+    transform:rotate(-7deg);
+    filter:drop-shadow(0 2px 4px rgba(58,10,10,.26));
+    pointer-events:none;
+  }
+  .leaf .place{font-size:13.5px;color:var(--muted);font-style:italic;margin-top:2px;}
+  .leaf .plan{margin-top:14px;padding-top:12px;border-top:1px solid var(--rule);}
+  .leaf .plan .status{font-size:12.5px;color:var(--muted);margin-left:8px;}
+
+  /* the six S's — typographic, not pills */
+  .services{margin-top:13px;display:flex;flex-wrap:wrap;gap:5px 0;}
+  .svc{
+    font-size:10.5px;letter-spacing:.17em;text-transform:uppercase;
+    color:#C3B8A6;padding-right:9px;margin-right:9px;
+    border-right:1px solid var(--rule);line-height:1.5;
+  }
+  .svc:last-child{border-right:none;margin-right:0;padding-right:0;}
+  .svc.on{color:var(--oxblood);}
+  .svc.on::before{
+    content:"";display:inline-block;width:3px;height:3px;border-radius:50%;
+    background:var(--gold);vertical-align:middle;margin-right:5px;margin-top:-2px;
+  }
+
+  /* ---------- the ledger ---------- */
+  .ledger{width:100%;border-collapse:collapse;}
+  .ledger thead th{
+    font-family:'EB Garamond',serif;text-align:left;
+    text-transform:uppercase;letter-spacing:.2em;font-size:9.5px;
+    color:var(--gold-deep);font-weight:500;
+    padding:0 0 9px;border-bottom:1px solid var(--rule);
+  }
+  .ledger thead th.amt{text-align:right;}
+  .ledger td{
+    padding:13px 0;border-bottom:1px solid var(--rule);
+    vertical-align:baseline;font-size:15.5px;
+  }
+  .ledger td.date{color:var(--muted);font-size:14px;white-space:nowrap;width:1%;padding-right:22px;}
+  .ledger td.amt{
+    text-align:right;font-family:'Cormorant Garamond',serif;
+    font-size:21px;color:var(--oxblood);
+    font-variant-numeric:tabular-nums;white-space:nowrap;
+  }
+  .ledger td.state{
+    text-align:right;width:1%;padding-left:20px;
+    font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);
+    white-space:nowrap;
+  }
+
+  /* ---------- empty states: an invitation, not an apology ---------- */
+  .empty{
+    border:1px solid var(--rule);background:var(--vellum);
+    padding:30px 26px;text-align:center;
+  }
+  .empty .line{font-family:'Cormorant Garamond',serif;font-size:20px;color:var(--charcoal);}
+  .empty .sub{font-size:14px;color:var(--muted);font-style:italic;margin-top:5px;}
+
+  /* ---------- request ---------- */
+  .request{background:var(--vellum);border:1px solid var(--rule);padding:26px 28px;}
+  .form-row{display:grid;grid-template-columns:1fr 1fr;gap:22px;margin-bottom:20px;}
+  select,textarea{
+    width:100%;padding:10px 2px;
+    border:none;border-bottom:1px solid var(--rule);background:transparent;
+    font-family:'EB Garamond',serif;font-size:16px;color:var(--charcoal);
+    outline:none;transition:border-color .2s;
+  }
+  select:focus,textarea:focus{border-bottom-color:var(--gold);}
+  textarea{min-height:52px;resize:vertical;line-height:1.6;}
+  .form-actions{display:flex;align-items:center;gap:20px;flex-wrap:wrap;}
+  .btn-inline{width:auto;padding:11px 30px;}
+  .form-actions .msg{margin-top:0;}
+  @media(max-width:600px){.form-row{grid-template-columns:1fr;gap:18px;}}
+
+  .notice{
+    background:var(--vellum);border:1px solid var(--rule);
+    border-left:2px solid var(--gold);padding:24px 26px;
+  }
+  .notice .line{font-family:'Cormorant Garamond',serif;font-size:21px;}
+  .notice .sub{font-size:14.5px;color:var(--muted);margin-top:6px;}
+
+  footer{
+    text-align:center;color:var(--muted);font-size:10px;
+    letter-spacing:.26em;text-transform:uppercase;padding:56px 0 16px;
+  }
+</style>
+</head>
+<body>
+
+<!-- CONFIG — both values are safe in the browser; RLS protects the data. -->
+<script>
+  window.VELLUM = {
+    SUPABASE_URL: "https://meushwuvdmxymrvoizsl.supabase.co",
+    SUPABASE_ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1ldXNod3V2ZG14eW1ydm9penNsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY3MDQ5NzYsImV4cCI6MjA5MjI4MDk3Nn0.XXaV7gmHQJJBM-cPl7DcaHCuNQFRj0VgHZ5b7YrqrFo"   // Supabase -> Settings -> API -> "anon public"
+  };
+</script>
+
+<!-- ===================== THRESHOLD: email ===================== -->
+<div id="screen-email" class="threshold">
+  <div class="sheet grain">
+    <div class="seal"><span>V</span></div>
+    <span class="wordmark">VELLUM</span>
+    <div class="rule-gold"></div>
+    <p class="tag">Owner Portal</p>
+    <div class="field">
+      <label class="label" for="email">Your email</label>
+      <input id="email" type="email" autocomplete="email" placeholder="you@example.com">
+    </div>
+    <button id="send-code" class="btn">Send my code</button>
+    <div id="email-msg" class="msg"></div>
+  </div>
+</div>
+
+<!-- ===================== THRESHOLD: code ===================== -->
+<div id="screen-code" class="threshold hidden">
+  <div class="sheet grain">
+    <div class="seal"><span>V</span></div>
+    <span class="wordmark">VELLUM</span>
+    <div class="rule-gold"></div>
+    <p class="tag">We sent a six-digit code to your inbox</p>
+    <div class="field">
+      <label class="label" for="code">Code</label>
+      <input id="code" type="text" inputmode="numeric" maxlength="6" class="otp" autocomplete="one-time-code">
+    </div>
+    <button id="verify-code" class="btn">Enter</button>
+    <button id="back-to-email" class="btn-quiet">Use a different email</button>
+    <div id="code-msg" class="msg"></div>
+  </div>
+</div>
+
+<!-- ===================== APP ===================== -->
+<div id="app" class="hidden grain">
+  <header class="bar">
+    <span class="wordmark">VELLUM</span>
+    <div style="display:flex;align-items:center;gap:20px;">
+      <span class="who">Signed in as <b id="who-name">&hellip;</b></span>
+      <button id="signout" class="signout">Sign out</button>
+    </div>
+  </header>
+
+  <main>
+    <div id="unlinked" class="notice hidden">
+      <div class="line">This email isn't linked to an owner account yet.</div>
+      <div class="sub">Reach out and we'll connect it — it usually takes a moment.</div>
+    </div>
+
+    <div id="dash" class="hidden">
+      <section class="block">
+        <div class="sec-title">
+          <h2>Your Properties</h2>
+          <span class="label" id="prop-count"></span>
+        </div>
+        <div id="properties" class="leaves"></div>
+      </section>
+
+      <section class="block">
+        <div class="sec-title"><h2>Statement</h2></div>
+        <div id="invoices"></div>
+      </section>
+
+      <section class="block">
+        <div class="sec-title"><h2>Request a Change</h2></div>
+        <div class="request">
+          <div class="form-row">
+            <div>
+              <label class="label" for="req-property">Property</label>
+              <select id="req-property"></select>
+            </div>
+            <div>
+              <label class="label" for="req-plan">Move to</label>
+              <select id="req-plan">
+                <option value="SIMPLY">The Edit</option>
+                <option value="SIGNATURE">The Signature</option>
+                <option value="CERTIFIED">Vellum Certified</option>
+              </select>
+            </div>
+          </div>
+          <div class="field" style="margin-bottom:22px;">
+            <label class="label" for="req-notes">Anything we should know</label>
+            <textarea id="req-notes" placeholder="Optional"></textarea>
+          </div>
+          <div class="form-actions">
+            <button id="req-submit" class="btn btn-inline">Send request</button>
+            <span id="req-msg" class="msg"></span>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <footer>Vellum &middot; Hospitality Infrastructure</footer>
+  </main>
+</div>
+
+<script type="module">
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+const { SUPABASE_URL, SUPABASE_ANON_KEY } = window.VELLUM;
+const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const $ = id => document.getElementById(id), show = id => $(id).classList.remove('hidden'), hide = id => $(id).classList.add('hidden');
+let ownerRow = null;
+const toEmail=()=>{show('screen-email');hide('screen-code');hide('app');},
+      toCode =()=>{hide('screen-email');show('screen-code');hide('app');$('code').focus();},
+      toApp  =()=>{hide('screen-email');hide('screen-code');show('app');};
+
+$('send-code').onclick = async () => {
+  const email=$('email').value.trim(), msg=$('email-msg'); msg.className='msg'; msg.textContent='';
+  if(!email){msg.className='msg err';msg.textContent='Enter your email to continue.';return;}
+  $('send-code').disabled=true;
+  const {error}=await sb.auth.signInWithOtp({email,options:{shouldCreateUser:true}});
+  $('send-code').disabled=false;
+  if(error){msg.className='msg err';msg.textContent=error.message;return;}
+  window._email=email; toCode();
+};
+$('code').addEventListener('keydown', e => { if(e.key==='Enter') $('verify-code').click(); });
+$('email').addEventListener('keydown', e => { if(e.key==='Enter') $('send-code').click(); });
+
+$('verify-code').onclick = async () => {
+  const token=$('code').value.trim(), msg=$('code-msg'); msg.className='msg'; msg.textContent='';
+  if(token.length<6){msg.className='msg err';msg.textContent='That code is six digits.';return;}
+  $('verify-code').disabled=true;
+  const {error}=await sb.auth.verifyOtp({email:window._email,token,type:'email'});
+  $('verify-code').disabled=false;
+  if(error){msg.className='msg err';msg.textContent=error.message;return;}
+  await boot();
+};
+$('back-to-email').onclick=toEmail;
+$('signout').onclick=async()=>{await sb.auth.signOut();location.reload();};
+
+async function boot(){
+  const {data:{session}}=await sb.auth.getSession(); if(!session){toEmail();return;} toApp();
+  const {data:owner}=await sb.from('owners').select('owner_id, owner_name, owner_email, owner_status').maybeSingle();
+  if(!owner){show('unlinked');hide('dash');$('who-name').textContent=session.user.email;return;}
+  ownerRow=owner; $('who-name').textContent=owner.owner_name||owner.owner_email||session.user.email; show('dash');
+  await Promise.all([loadProperties(),loadInvoices()]);
+}
+
+async function loadProperties(){
+  const {data:props}=await sb.from('properties')
+    .select('property_id, property_name, property_city, plan_type, status, bedrooms, bathrooms')
+    .order('property_name',{nullsFirst:false});
+  const {data:addons}=await sb.from('property_addons').select('*');
+  const addonBy={}; (addons||[]).forEach(a=>addonBy[a.property_id]=a);
+  const wrap=$('properties'), sel=$('req-property');
+  wrap.innerHTML=''; sel.innerHTML='';
+  $('prop-count').textContent = props?.length ? `${props.length} in care` : '';
+
+  if(!props||!props.length){
+    wrap.innerHTML='<div class="empty" style="grid-column:1/-1"><div class="line">No properties on file yet.</div><div class="sub">Once your first property is onboarded, it will appear here.</div></div>';
+    return;
+  }
+  const SERVICES=[['scents_enabled','Scents'],['sprigs_enabled','Sprigs'],['scapes_enabled','Scapes'],
+                  ['salutations_enabled','Salutations'],['spresso_enabled','Spresso'],['shopped_enabled','Shopped']];
+  const PLAN={SIMPLY:'The Edit',SIGNATURE:'The Signature',CERTIFIED:'Vellum Certified'};
+  // Placeholder seals. CERTIFIED has none yet -> falls back to the typographic label.
+  const SEAL={SIMPLY:'/seal-edit.png',SIGNATURE:'/seal-signature.png'};
+  const truthy=v=>v!=null&&!['','no','false','off','0'].includes(String(v).toLowerCase());
+  const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+  props.forEach(p=>{
+    const a=addonBy[p.property_id]||{};
+    const svc=SERVICES.map(([k,l])=>`<span class="svc ${truthy(a[k])?'on':''}">${l}</span>`).join('');
+    const beds=p.bedrooms!=null?`${p.bedrooms} bed`:'', baths=p.bathrooms!=null?`${p.bathrooms} bath`:'';
+    const place=[esc(p.property_city),[beds,baths].filter(Boolean).join(', ')].filter(Boolean).join(' &middot; ');
+    const planName = PLAN[p.plan_type]||p.plan_type||'';
+    const sealSrc  = SEAL[p.plan_type];
+    wrap.insertAdjacentHTML('beforeend',`
+      <article class="leaf">
+        ${sealSrc?`<img class="seal-mark" src="${sealSrc}" alt="${esc(planName)}">`:''}
+        <h3>${esc(p.property_name||p.property_id)}</h3>
+        ${place?`<div class="place">${place}</div>`:''}
+        <div class="services">${svc}</div>
+        <div class="plan">
+          <span class="label">${esc(planName||'—')}</span>
+          <span class="status">${esc(p.status||'')}</span>
+        </div>
+      </article>`);
+    const o=document.createElement('option');
+    o.value=p.property_id; o.textContent=p.property_name||p.property_id; o.dataset.plan=p.plan_type||'';
+    sel.appendChild(o);
+  });
+}
+
+async function loadInvoices(){
+  const {data:rows}=await sb.from('invoicing_history').select('*').limit(50);
+  const box=$('invoices');
+  if(!rows||!rows.length){
+    box.innerHTML='<div class="empty"><div class="line">Nothing billed yet.</div><div class="sub">Your statement will build here as turns are completed.</div></div>';
+    return;
+  }
+  const pick=(r,keys)=>{for(const k of keys)if(r[k]!=null&&r[k]!=='')return r[k];return'';};
+  const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const money=v=>{const n=Number(String(v).replace(/[^0-9.\-]/g,''));
+    return isNaN(n)?esc(v):n.toLocaleString('en-US',{style:'currency',currency:'USD',minimumFractionDigits:0,maximumFractionDigits:0});};
+  const date=v=>{const d=new Date(v);return isNaN(d)?esc(v):d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});};
+
+  box.innerHTML=`<table class="ledger">
+    <thead><tr><th>Date</th><th>Property</th><th class="amt">Amount</th><th></th></tr></thead>
+    <tbody>${rows.map(r=>`<tr>
+      <td class="date">${date(pick(r,['event_date','invoice_date','created_at','month']))}</td>
+      <td>${esc(pick(r,['property_name','property_id']))}</td>
+      <td class="amt">${money(pick(r,['total','amount','total_revenue','invoice_total']))}</td>
+      <td class="state">${esc(pick(r,['status','invoice_status']))}</td>
+    </tr>`).join('')}</tbody></table>`;
+}
+
+$('req-submit').onclick = async () => {
+  const msg=$('req-msg'); msg.className='msg'; msg.textContent='';
+  const sel=$('req-property'), opt=sel.options[sel.selectedIndex];
+  if(!opt){msg.className='msg err';msg.textContent='No property to change yet.';return;}
+  $('req-submit').disabled=true;
+  const {error}=await sb.from('plan_change_requests').insert({
+    request_id:'PCR-'+Date.now(), owner_id:ownerRow.owner_id, owner_email:ownerRow.owner_email,
+    property_id:opt.value, from_plan:opt.dataset.plan||null, to_plan:$('req-plan').value,
+    notes:$('req-notes').value||null, status:'NEW', requested_by:'owner_portal',
+    requested_at:new Date().toISOString()
+  });
+  $('req-submit').disabled=false;
+  if(error){msg.className='msg err';msg.textContent=error.message;return;}
+  msg.className='msg ok'; msg.textContent='Sent. We\u2019ll follow up shortly.'; $('req-notes').value='';
+};
+
+(async()=>{const {data:{session}}=await sb.auth.getSession(); if(session)await boot(); else toEmail();})();
+</script>
+</body>
+</html>
