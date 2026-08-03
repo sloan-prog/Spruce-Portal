@@ -104,7 +104,7 @@ module.exports = async function handler(req, res) {
       clean_id:        asText(pick(map, ['cleanId', 'cleanID'])) || null,
       cleaner_name:    asText(pick(map, ['cleaner', 'cleanerName', 'yourName'])) || null,
       plan_type:       asText(pick(map, ['planType'])) || null,
-      bag_count:       asInt(pick(map, ['numberOfBags', 'bags', 'bagCount'])),
+      bag_count:       asInt(pick(map, ['numberOf', 'numberOfBags', 'bags', 'bagCount'])),
       queen_sheets:    asInt(pick(map, ['queenSheets'])),
       king_sheets:     asInt(pick(map, ['kingSheets'])),
       full_sheets:     asInt(pick(map, ['fullSheets'])),
