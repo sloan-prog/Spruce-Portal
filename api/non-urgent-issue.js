@@ -115,7 +115,7 @@ module.exports = async function handler(req, res) {
 
     // The form carries an Urgency field that has no column of its own;
     // fold it into the description rather than dropping it.
-    const description = asText(pick(map, ['descriptionOfIssue', 'description', 'details']));
+    const description = asText(pick(map, ['descriptionOf', 'descriptionOfIssue', 'description', 'details']));
     const urgency     = asText(pick(map, ['urgency', 'priority']));
 
     const row = {
