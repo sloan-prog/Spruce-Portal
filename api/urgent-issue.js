@@ -128,18 +128,18 @@ module.exports = async function handler(req, res) {
 
     const map    = buildMap(raw);
     const photos = asFiles(pick(map, ['photoUpload', 'photo', 'fileUpload', 'upload']));
-    const name   = asName(pick(map, ['cleanerOrInspectorName', 'cleanerName', 'inspectorName', 'name']));
+    const name   = asName(pick(map, ['cleanerOr', 'cleaner', 'cleanerName', 'name']));
 
     const row = {
       submission_id:      String(fields.submissionID || ''),
       submission_date:    new Date().toISOString(),
-      property_type:      asText(pick(map, ['isThisProperty', 'propertyType', 'buildingOrHouse', 'separateHouse'])) || null,
-      building:           asText(pick(map, ['propertyBuilding', 'building'])) || null,
-      unit_number:        asText(pick(map, ['propertyUnitNumber', 'unitNumber', 'unit'])) || null,
+      property_type:      asText(pick(map, ['isThis', 'propertyType', 'buildingOrHouse'])) || null,
+      building:           asText(pick(map, ['building', 'propertyBuilding'])) || null,
+      unit_number:        asText(pick(map, ['unitNumber', 'propertyUnitNumber', 'unit'])) || null,
       property_address:   asText(pick(map, ['propertyAddress', 'address'])) || null,
       property_city:      asText(pick(map, ['propertyCity', 'city'])) || null,
       issue_type:         asText(pick(map, ['issueType', 'typeOfIssue', 'issue'])) || null,
-      description:        asText(pick(map, ['descriptionOfIssue', 'description', 'details'])) || null,
+      description:        asText(pick(map, ['descriptionOf', 'description', 'details'])) || null,
       photo_1:            photos[0] || null,
       photo_2:            photos[1] || null,
       photo_3:            photos[2] || null,
@@ -147,7 +147,7 @@ module.exports = async function handler(req, res) {
       issue_date:         toISO(pick(map, ['date', 'issueDate'])),
       cleaner_first:      name.first || null,
       cleaner_last:       name.last || null,
-      can_complete_clean: asText(pick(map, ['canYouComplete', 'canCompleteClean', 'completeClean', 'reportIssue'])) || null,
+      can_complete_clean: asText(pick(map, ['canYouComplete', 'canComplete', 'completeClean', 'reportIssue'])) || null,
       submission_url:     asText(pick(map, ['submissionUrl'])) || null,
       property_id:        asText(pick(map, ['propertyId', 'propertyID'])) || null,
       clean_id:           asText(pick(map, ['cleanId', 'cleanID'])) || null,
