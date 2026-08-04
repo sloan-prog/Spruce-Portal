@@ -1,146 +1,344 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <!-- admin auth gate (matches the other admin pages) -->
-  <style id="auth-gate-style">html{visibility:hidden!important}</style>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="admin-auth.js"></script>
-  <script src="auth-guard.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vellum · Laundry</title>
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/png" href="/favicon-32.png" sizes="32x32">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --oxblood:#4A1A1F; --oxblood-deep:#3A1216;
+    --cream:#FDFBF7; --paper:#F6F1E8; --paper-line:#E8DFD0;
+    --charcoal:#2B2724; --ink:#463F39;
+    --gold:#C6A664; --gold-deep:#A8873F;
+    --muted:#8C8272;
+    --ok:#4F6B52; --warn:#B07A2E; --out:#5A6A86;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:'EB Garamond',Georgia,serif;
+    background:
+      radial-gradient(circle at 20% -10%, #fff 0%, transparent 55%),
+      var(--paper);
+    color:var(--ink); line-height:1.5; padding:32px 22px 80px;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1080px;margin:0 auto}
 
-  <title>Laundry | Spruce Admin</title>
-  <link rel="icon" href="/favicon.ico" sizes="any">
-  <link rel="icon" type="image/png" href="/favicon-32.png" sizes="32x32">
-  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-  <style>
-    body { font-family: Arial; padding:30px; background:#f6f4ef; }
-    table { width:100%; background:white; border-collapse: collapse; }
-    th, td { padding:12px; border-bottom:1px solid #eee; }
-    tr:hover { background:#f2f2f2; }
-    th { text-align:left; cursor:pointer; user-select:none; white-space:nowrap; }
-    th .arrow { color:#999; font-size:12px; }
-    td.num, th.num { text-align:right; }
-    tfoot td { font-weight:bold; border-top:2px solid #24382f; border-bottom:0; }
-    .muted { color:#777; }
-  </style>
+  /* Header */
+  header{
+    display:flex;align-items:flex-end;justify-content:space-between;
+    gap:18px;flex-wrap:wrap;
+    border-bottom:1px solid var(--paper-line);
+    padding-bottom:20px;margin-bottom:6px;
+  }
+  .brand{display:flex;flex-direction:column;gap:2px}
+  .wordmark{
+    font-family:'Cormorant Garamond',serif;
+    font-size:26px;font-weight:600;letter-spacing:.30em;
+    color:var(--oxblood);padding-left:.30em;line-height:1;
+  }
+  .eyebrow{
+    font-size:11px;letter-spacing:.24em;text-transform:uppercase;
+    color:var(--muted);
+  }
+  h1{
+    font-family:'Cormorant Garamond',serif;
+    font-weight:500;font-size:34px;color:var(--charcoal);
+    letter-spacing:.01em;line-height:1;
+  }
+  .h1-row{display:flex;flex-direction:column;gap:8px;margin:26px 0 22px}
+  .sub{color:var(--muted);font-size:15px;font-style:italic}
+
+  /* Summary strip */
+  .summary{
+    display:flex;gap:0;flex-wrap:wrap;
+    border:1px solid var(--paper-line);border-radius:3px;
+    background:var(--cream);overflow:hidden;margin-bottom:30px;
+  }
+  .stat{
+    flex:1 1 0;min-width:120px;padding:16px 20px;
+    border-right:1px solid var(--paper-line);
+  }
+  .stat:last-child{border-right:0}
+  .stat .n{
+    font-family:'Cormorant Garamond',serif;font-size:30px;
+    color:var(--oxblood);font-weight:600;line-height:1;
+  }
+  .stat .l{
+    font-size:11px;letter-spacing:.16em;text-transform:uppercase;
+    color:var(--muted);margin-top:6px;
+  }
+
+  /* Job card */
+  .jobs{display:flex;flex-direction:column;gap:14px}
+  .job{
+    background:var(--cream);
+    border:1px solid var(--paper-line);border-radius:3px;
+    padding:18px 20px;
+    display:grid;grid-template-columns:1fr auto;gap:16px;align-items:center;
+    transition:border-color .2s,box-shadow .2s;
+  }
+  .job:hover{border-color:var(--gold);box-shadow:0 2px 14px rgba(74,26,31,.05)}
+  .job-main{min-width:0}
+  .job-prop{
+    font-family:'Cormorant Garamond',serif;font-size:21px;
+    color:var(--charcoal);font-weight:600;line-height:1.1;
+  }
+  .job-meta{
+    font-size:13.5px;color:var(--muted);margin-top:4px;
+    display:flex;gap:14px;flex-wrap:wrap;
+  }
+  .job-meta b{color:var(--ink);font-weight:500}
+
+  /* Status pipeline */
+  .pipe{display:flex;align-items:center;gap:0;margin-top:14px}
+  .step{
+    display:flex;align-items:center;gap:7px;
+    font-size:11.5px;letter-spacing:.10em;text-transform:uppercase;
+    color:var(--muted);
+  }
+  .dot{
+    width:11px;height:11px;border-radius:50%;
+    border:1.5px solid var(--paper-line);background:var(--cream);
+    flex-shrink:0;
+  }
+  .step.done .dot{background:var(--gold);border-color:var(--gold-deep)}
+  .step.done{color:var(--ink)}
+  .step.current .dot{background:var(--oxblood);border-color:var(--oxblood-deep);
+    box-shadow:0 0 0 3px rgba(74,26,31,.12)}
+  .step.current{color:var(--oxblood);font-weight:600}
+  .rail{width:34px;height:1.5px;background:var(--paper-line);margin:0 4px}
+  .rail.done{background:var(--gold)}
+
+  /* Action button */
+  .actions{display:flex;flex-direction:column;gap:8px;align-items:flex-end}
+  .badge{
+    font-size:11px;letter-spacing:.14em;text-transform:uppercase;
+    padding:5px 12px;border-radius:2px;white-space:nowrap;font-weight:500;
+  }
+  .badge.ready{background:rgba(176,122,46,.12);color:var(--warn)}
+  .badge.out{background:rgba(90,106,134,.12);color:var(--out)}
+  .badge.back{background:rgba(79,107,82,.13);color:var(--ok)}
+  .badge.done{background:rgba(74,26,31,.10);color:var(--oxblood)}
+  .badge.canceled{background:#eee;color:#999}
+  .advance{
+    font-family:'EB Garamond',serif;
+    background:var(--oxblood);color:var(--cream);
+    border:none;border-radius:2px;cursor:pointer;
+    font-size:13px;letter-spacing:.04em;padding:9px 16px;
+    transition:background .2s;white-space:nowrap;
+  }
+  .advance:hover{background:var(--oxblood-deep)}
+  .advance:disabled{background:var(--paper-line);color:var(--muted);cursor:default}
+  .advance.ghost{
+    background:transparent;color:var(--muted);
+    border:1px solid var(--paper-line);
+  }
+  .advance.ghost:hover{color:var(--oxblood);border-color:var(--gold)}
+
+  /* States */
+  .state{
+    text-align:center;padding:70px 20px;color:var(--muted);
+    border:1px dashed var(--paper-line);border-radius:3px;background:var(--cream);
+  }
+  .state .big{
+    font-family:'Cormorant Garamond',serif;font-size:24px;
+    color:var(--charcoal);margin-bottom:8px;
+  }
+  .filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:22px}
+  .filter{
+    font-family:'EB Garamond',serif;font-size:13px;
+    padding:7px 15px;border-radius:2px;cursor:pointer;
+    border:1px solid var(--paper-line);background:var(--cream);color:var(--muted);
+    letter-spacing:.03em;transition:all .18s;
+  }
+  .filter:hover{border-color:var(--gold)}
+  .filter.on{background:var(--oxblood);color:var(--cream);border-color:var(--oxblood)}
+  .toast{
+    position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+    background:var(--charcoal);color:var(--cream);
+    padding:12px 22px;border-radius:3px;font-size:14px;
+    opacity:0;pointer-events:none;transition:opacity .25s;z-index:50;
+    box-shadow:0 6px 24px rgba(0,0,0,.18);
+  }
+  .toast.show{opacity:1}
+  @media(max-width:640px){
+    .job{grid-template-columns:1fr}
+    .actions{align-items:flex-start;flex-direction:row;flex-wrap:wrap}
+    .pipe{flex-wrap:wrap;gap:6px}.rail{width:20px}
+  }
+</style>
 </head>
 <body>
-<p>
-  <a href="/admin.html"><button>Dashboard</button></a>
-  <a href="/admin-properties.html"><button>Properties</button></a>
-</p>
-<h1>Laundry</h1>
+<div class="wrap">
+  <header>
+    <div class="brand">
+      <div class="wordmark">VELLUM</div>
+      <div class="eyebrow">Operations</div>
+    </div>
+    <a href="/admin.html" class="filter">← Dashboard</a>
+  </header>
 
-<table id="table">
-  <thead><tr id="head"></tr></thead>
-  <tbody></tbody>
-  <tfoot></tfoot>
-</table>
+  <div class="h1-row">
+    <h1>Laundry</h1>
+    <div class="sub">Every set, where it is, and what's due back.</div>
+  </div>
+
+  <div class="summary" id="summary"></div>
+  <div class="filters" id="filters"></div>
+  <div id="content"><div class="state"><div class="big">Loading…</div>Reading laundry jobs.</div></div>
+</div>
+<div class="toast" id="toast"></div>
 
 <script>
-const COLUMNS = [
-  { key: 'property_name',         label: 'Property',         type: 'str' },
-  { key: 'requested_pickup_date', label: 'Requested Pickup', type: 'date' },
-  { key: 'status',                label: 'Status',           type: 'str' },
-  { key: 'bag_count',             label: 'Bags',             type: 'num' },
-  { key: 'weight_lbs',            label: 'Weight (lbs)',     type: 'num' },
-  { key: 'cost',                  label: 'Cost',             type: 'num', money: true },
-  { key: 'vendor',                label: 'Vendor',           type: 'str' }
+const STAGES = [
+  { key:'PENDING',   label:'Ready for Pickup', badge:'ready', order:0 },
+  { key:'PICKED_UP', label:'Picked Up',        badge:'out',   order:1 },
+  { key:'DELIVERED', label:'Returned to Stock',badge:'back',  order:2 },
 ];
+// SCHEDULED is treated as "Ready" too; COMPLETE/CANCELED are terminal.
+const STAGE_BY_KEY = k =>
+  k==='SCHEDULED' ? STAGES[0] :
+  STAGES.find(s=>s.key===k) ||
+  (k==='COMPLETE' ? {key:'COMPLETE',label:'Reconciled',badge:'done',order:3} :
+   k==='CANCELED' ? {key:'CANCELED',label:'Canceled',badge:'canceled',order:-1} :
+   STAGES[0]);
 
-let jobs = [];
-let totalCost = 0;
-let sortKey = 'requested_pickup_date';
-let sortDir = 'desc';
+const NEXT = { PENDING:'PICKED_UP', SCHEDULED:'PICKED_UP', PICKED_UP:'DELIVERED', DELIVERED:'COMPLETE' };
+const NEXT_LABEL = { PENDING:'Mark Picked Up', SCHEDULED:'Mark Picked Up',
+                     PICKED_UP:'Mark Returned', DELIVERED:'Mark Reconciled' };
 
-function money(v) { return '$' + Number(v || 0).toFixed(2); }
-function dateOnly(v) { return v ? String(v).split('T')[0] : ''; }
+let ALL = [];
+let FILTER = 'all';
 
-function cellText(col, row) {
-  const v = row[col.key];
-  if (col.type === 'date') return dateOnly(v);
-  if (col.money) return money(v);
-  return (v == null || v === '') ? '' : v;
+function toast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2200);
 }
 
-function compare(a, b, col) {
-  const av = a[col.key], bv = b[col.key];
-  if (col.type === 'num') return Number(av || 0) - Number(bv || 0);
-  if (col.type === 'date') return new Date(av || 0) - new Date(bv || 0);
-  return String(av == null ? '' : av).localeCompare(String(bv == null ? '' : bv));
+function daysOut(dateStr){
+  if(!dateStr) return null;
+  const d=new Date(dateStr); const now=new Date();
+  return Math.floor((now-d)/(1000*60*60*24));
 }
 
-function renderHead() {
-  document.getElementById('head').innerHTML = COLUMNS.map(col => {
-    const arrow = sortKey === col.key ? (sortDir === 'asc' ? ' ▲' : ' ▼') : '';
-    const cls = col.type === 'num' ? ' class="num"' : '';
-    return '<th' + cls + ' onclick="sortBy(\'' + col.key + '\')">' + col.label +
-           '<span class="arrow">' + arrow + '</span></th>';
-  }).join('');
-}
-
-function renderBody() {
-  const rows = jobs.slice();
-  const col = COLUMNS.find(c => c.key === sortKey);
-  if (col) {
-    rows.sort((a, b) => compare(a, b, col) * (sortDir === 'asc' ? 1 : -1));
+async function load(){
+  try{
+    const r=await fetch('/api/get-laundry');
+    const j=await r.json();
+    if(!j.success) throw new Error(j.error||'Failed to load');
+    ALL=(j.jobs||[]);
+    render();
+  }catch(e){
+    document.getElementById('content').innerHTML=
+      `<div class="state"><div class="big">Couldn't load laundry</div>${e.message}. Refresh to try again.</div>`;
   }
-  const tbody = document.querySelector('#table tbody');
-  if (!rows.length) {
-    tbody.innerHTML = '<tr><td colspan="' + COLUMNS.length + '" class="muted">No laundry jobs.</td></tr>';
+}
+
+function summarize(){
+  const c={ready:0,out:0,back:0};
+  ALL.forEach(j=>{
+    const s=STAGE_BY_KEY(j.status);
+    if(s.badge==='ready')c.ready++;
+    else if(s.badge==='out')c.out++;
+    else if(s.badge==='back')c.back++;
+  });
+  document.getElementById('summary').innerHTML=`
+    <div class="stat"><div class="n">${c.ready}</div><div class="l">Ready for Pickup</div></div>
+    <div class="stat"><div class="n">${c.out}</div><div class="l">Out at Vendor</div></div>
+    <div class="stat"><div class="n">${c.back}</div><div class="l">Returned</div></div>
+    <div class="stat"><div class="n">${ALL.length}</div><div class="l">Total Jobs</div></div>`;
+}
+
+function renderFilters(){
+  const opts=[['all','All'],['ready','Ready'],['out','Out'],['back','Returned']];
+  document.getElementById('filters').innerHTML=opts.map(([k,l])=>
+    `<div class="filter ${FILTER===k?'on':''}" data-f="${k}">${l}</div>`).join('');
+  document.querySelectorAll('.filter[data-f]').forEach(el=>
+    el.onclick=()=>{FILTER=el.dataset.f;render();});
+}
+
+function pipe(status){
+  const cur=STAGE_BY_KEY(status);
+  return `<div class="pipe">`+STAGES.map((s,i)=>{
+    let cls='step';
+    if(cur.order>s.order)cls+=' done';
+    else if(cur.order===s.order)cls+=' current';
+    const rail=i<STAGES.length-1?`<div class="rail ${cur.order>s.order?'done':''}"></div>`:'';
+    return `<div class="${cls}"><span class="dot"></span>${s.label}</div>${rail}`;
+  }).join('')+`</div>`;
+}
+
+function render(){
+  summarize(); renderFilters();
+  let rows=ALL;
+  if(FILTER!=='all') rows=ALL.filter(j=>STAGE_BY_KEY(j.status).badge===FILTER);
+
+  if(!rows.length){
+    document.getElementById('content').innerHTML=
+      `<div class="state"><div class="big">Nothing here</div>No laundry jobs in this view.</div>`;
     return;
   }
-  tbody.innerHTML = rows.map(row =>
-    '<tr>' + COLUMNS.map(c =>
-      '<td' + (c.type === 'num' ? ' class="num"' : '') + '>' + cellText(c, row) + '</td>'
-    ).join('') + '</tr>'
-  ).join('');
+
+  document.getElementById('content').innerHTML=`<div class="jobs">`+rows.map(j=>{
+    const stage=STAGE_BY_KEY(j.status);
+    const next=NEXT[j.status];
+    const d=daysOut(j.requested_pickup_date);
+    const overdue = stage.badge==='out' && d!=null && d>2;
+    return `
+    <div class="job">
+      <div class="job-main">
+        <div class="job-prop">${j.property_name||j.property_id||'Unknown property'}</div>
+        <div class="job-meta">
+          ${j.requested_pickup_date?`<span>Out: <b>${j.requested_pickup_date}</b></span>`:''}
+          ${j.bag_count!=null?`<span><b>${j.bag_count}</b> bag${j.bag_count===1?'':'s'}</span>`:''}
+          ${overdue?`<span style="color:var(--warn)"><b>${d} days out</b></span>`:''}
+          ${j.cost?`<span>$${Number(j.cost).toFixed(2)}</span>`:''}
+        </div>
+        ${pipe(j.status)}
+      </div>
+      <div class="actions">
+        <span class="badge ${stage.badge}">${stage.label}</span>
+        ${next
+          ? `<button class="advance" data-id="${j.laundry_job_id||j.property_id}" data-next="${next}">${NEXT_LABEL[j.status]}</button>`
+          : `<button class="advance" disabled>Complete</button>`}
+      </div>
+    </div>`;
+  }).join('')+`</div>`;
+
+  document.querySelectorAll('.advance[data-next]').forEach(btn=>{
+    btn.onclick=()=>advance(btn.dataset.id, btn.dataset.next, btn);
+  });
 }
 
-function renderFoot() {
-  // Total cost aligned under the Cost column.
-  const cells = COLUMNS.map((c, i) => {
-    if (c.key === 'cost') return '<td class="num">' + money(totalCost) + '</td>';
-    if (i === 0) return '<td>Total cost</td>';
-    return '<td></td>';
-  }).join('');
-  document.querySelector('#table tfoot').innerHTML = '<tr>' + cells + '</tr>';
-}
-
-function sortBy(key) {
-  if (sortKey === key) {
-    sortDir = (sortDir === 'asc') ? 'desc' : 'asc';
-  } else {
-    sortKey = key;
-    sortDir = 'asc';
+async function advance(id, next, btn){
+  btn.disabled=true; btn.textContent='Saving…';
+  try{
+    const r=await fetch('/api/update-laundry-status',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({laundry_job_id:id,status:next})
+    });
+    const j=await r.json();
+    if(!j.success) throw new Error(j.error||'Update failed');
+    // update local copy and re-render
+    const row=ALL.find(x=>(x.laundry_job_id||x.property_id)===id);
+    if(row) row.status=next;
+    toast('Status updated.');
+    render();
+  }catch(e){
+    toast(e.message);
+    btn.disabled=false; btn.textContent='Retry';
   }
-  renderHead();
-  renderBody();
 }
 
-async function loadLaundry() {
-  renderHead();
-  try {
-    const res = await fetch('/api/get-laundry');
-    const data = await res.json();
-    if (!data.success) {
-      document.querySelector('#table tbody').innerHTML =
-        '<tr><td colspan="' + COLUMNS.length + '" class="muted">Could not load laundry: ' + (data.error || 'unknown') + '</td></tr>';
-      return;
-    }
-    jobs = data.jobs || [];
-    totalCost = (data.total_cost != null)
-      ? data.total_cost
-      : jobs.reduce((s, r) => s + Number(r.cost || 0), 0);
-    renderBody();
-    renderFoot();
-  } catch (err) {
-    document.querySelector('#table tbody').innerHTML =
-      '<tr><td colspan="' + COLUMNS.length + '" class="muted">Error: ' + err.message + '</td></tr>';
-  }
-}
-
-loadLaundry();
+load();
 </script>
-
 </body>
 </html>
