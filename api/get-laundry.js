@@ -27,6 +27,7 @@ export default async function handler(req, res) {
     (props || []).forEach(p => { nameById[p.property_id] = p.property_name; });
 
     const rows = (jobs || []).map(j => ({
+      laundry_job_id: j.laundry_job_id || null,
       property_id: j.property_id || null,
       property_name: nameById[j.property_id] || j.property_id || '',
       requested_pickup_date: j.requested_pickup_date || null,
