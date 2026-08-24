@@ -434,7 +434,7 @@ async function loadProperties(){
                   ['salutations_enabled','Salutations'],['spresso_enabled','Spresso'],['shopped_enabled','Shopped']];
   const PLAN={SIMPLY:'The Edit',SIGNATURE:'The Signature',CERTIFIED:'Vellum Certified'};
   // Placeholder seals. CERTIFIED has none yet -> falls back to the typographic label.
-  const SEAL={SIMPLY:'/seal-edit.png',SIGNATURE:'/seal-signature.png'};
+  const SEAL={SIMPLY:'/seal-edit.png',SIGNATURE:'/seal-signature.png',CERTIFIED:'/seal-certified.png'};
   const truthy=v=>v!=null&&!['','no','false','off','0'].includes(String(v).toLowerCase());
   const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 
