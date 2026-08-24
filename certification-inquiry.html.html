@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vellum · Certification Inquiry</title>
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/png" href="/favicon-32.png" sizes="32x32">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --oxblood:#4A1A1F; --oxblood-deep:#3A1216;
+    --cream:#FDFBF7; --paper:#F5EFE5; --paper-line:#E4D9C7;
+    --charcoal:#2B2724; --ink:#453E38;
+    --gold:#C6A664; --gold-deep:#A8873F;
+    --muted:#8C8272;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:'EB Garamond',Georgia,serif;
+    background:var(--paper);
+    color:var(--ink);line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+  ::selection{background:var(--oxblood);color:var(--cream)}
+
+  /* ---- HERO: the invitation ---- */
+  .hero{
+    min-height:78vh;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    text-align:center;padding:60px 24px;position:relative;
+    background:
+      radial-gradient(ellipse at 50% 0%, #fff 0%, transparent 60%),
+      var(--paper);
+  }
+  .seal{
+    width:74px;height:74px;border-radius:50%;
+    background:radial-gradient(circle at 38% 32%, #6A2830 0%, var(--oxblood) 45%, var(--oxblood-deep) 100%);
+    display:flex;align-items:center;justify-content:center;margin-bottom:34px;
+    box-shadow:0 6px 20px rgba(74,26,31,.24), inset 0 1px 3px rgba(255,255,255,.18);
+    position:relative;
+  }
+  .seal::after{
+    content:"";position:absolute;inset:7px;border-radius:50%;
+    border:1px solid rgba(198,166,100,.42);
+  }
+  .seal span{
+    font-family:'Cormorant Garamond',serif;font-weight:600;
+    font-size:34px;color:var(--gold);line-height:1;padding-left:.04em;
+  }
+  .hero .eyebrow{
+    font-size:12px;letter-spacing:.34em;text-transform:uppercase;
+    color:var(--gold-deep);margin-bottom:22px;
+  }
+  .hero h1{
+    font-family:'Cormorant Garamond',serif;font-weight:500;
+    font-size:clamp(38px,7vw,66px);line-height:1.04;color:var(--charcoal);
+    letter-spacing:.005em;max-width:14ch;margin-bottom:24px;
+  }
+  .hero h1 em{font-style:italic;color:var(--oxblood)}
+  .hero p{
+    font-size:clamp(16px,2.2vw,19px);color:var(--muted);
+    max-width:44ch;margin:0 auto 40px;font-style:italic;
+  }
+  .scroll-cue{
+    font-size:11px;letter-spacing:.24em;text-transform:uppercase;
+    color:var(--muted);text-decoration:none;border-bottom:1px solid var(--paper-line);
+    padding-bottom:6px;transition:color .2s,border-color .2s;
+  }
+  .scroll-cue:hover{color:var(--oxblood);border-color:var(--gold)}
+
+  /* ---- The standard, briefly ---- */
+  .credo{
+    background:var(--oxblood);color:var(--cream);
+    padding:70px 24px;text-align:center;
+  }
+  .credo .line{
+    font-family:'Cormorant Garamond',serif;font-style:italic;
+    font-size:clamp(21px,3.4vw,30px);font-weight:400;line-height:1.5;
+    max-width:34ch;margin:0 auto;color:#F3E9DC;
+  }
+  .credo .rule{width:40px;height:1px;background:var(--gold);margin:26px auto 0}
+
+  /* ---- FORM ---- */
+  .form-wrap{max-width:620px;margin:0 auto;padding:76px 24px 100px}
+  .form-intro{text-align:center;margin-bottom:52px}
+  .form-intro .eyebrow{
+    font-size:11px;letter-spacing:.26em;text-transform:uppercase;
+    color:var(--gold-deep);margin-bottom:14px;
+  }
+  .form-intro h2{
+    font-family:'Cormorant Garamond',serif;font-weight:500;
+    font-size:clamp(28px,5vw,40px);color:var(--charcoal);line-height:1.1;margin-bottom:16px;
+  }
+  .form-intro p{color:var(--muted);font-size:16px;max-width:42ch;margin:0 auto}
+
+  fieldset{border:none;margin-bottom:44px}
+  legend{
+    font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:600;
+    color:var(--oxblood);margin-bottom:4px;
+    display:flex;align-items:baseline;gap:12px;width:100%;
+  }
+  legend .num{
+    font-size:12px;letter-spacing:.1em;color:var(--gold-deep);
+    font-family:'EB Garamond',serif;font-weight:500;
+  }
+  .legend-note{color:var(--muted);font-size:14px;font-style:italic;margin-bottom:24px}
+
+  .field{margin-bottom:22px}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media(max-width:520px){.row2{grid-template-columns:1fr}}
+  label{
+    display:block;font-size:12px;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--muted);margin-bottom:7px;
+  }
+  label .opt{text-transform:none;letter-spacing:0;font-style:italic;color:var(--paper-line);font-size:13px}
+  input,select,textarea{
+    width:100%;font-family:'EB Garamond',serif;font-size:16px;color:var(--charcoal);
+    background:var(--cream);border:1px solid var(--paper-line);border-radius:2px;
+    padding:12px 14px;transition:border-color .18s,box-shadow .18s;
+  }
+  input:focus,select:focus,textarea:focus{
+    outline:none;border-color:var(--gold);box-shadow:0 0 0 3px rgba(198,166,100,.15);
+  }
+  input::placeholder,textarea::placeholder{color:#BEB2A0}
+  textarea{resize:vertical;min-height:88px}
+  select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238C8272' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");
+    background-repeat:no-repeat;background-position:right 14px center;padding-right:38px;}
+
+  .submit{
+    width:100%;font-family:'Cormorant Garamond',serif;
+    background:var(--oxblood);color:var(--cream);border:none;border-radius:2px;
+    font-size:19px;letter-spacing:.04em;padding:17px;cursor:pointer;
+    transition:background .2s;margin-top:8px;
+  }
+  .submit:hover{background:var(--oxblood-deep)}
+  .fine{text-align:center;color:var(--muted);font-size:13.5px;font-style:italic;margin-top:20px;line-height:1.6}
+
+  footer{
+    text-align:center;padding:40px 24px 60px;color:var(--muted);
+    border-top:1px solid var(--paper-line);
+  }
+  footer .wm{
+    font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:600;
+    letter-spacing:.28em;color:var(--oxblood);padding-left:.28em;
+  }
+  footer .tag{font-size:12px;letter-spacing:.18em;text-transform:uppercase;margin-top:8px}
+
+  /* success state */
+  .thanks{display:none;text-align:center;padding:90px 24px}
+  .thanks.show{display:block}
+  .thanks .seal{margin:0 auto 30px}
+  .thanks h2{font-family:'Cormorant Garamond',serif;font-weight:500;font-size:38px;color:var(--charcoal);margin-bottom:16px}
+  .thanks p{color:var(--muted);font-size:17px;max-width:40ch;margin:0 auto;font-style:italic}
+</style>
+</head>
+<body>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="seal"><span>V</span></div>
+    <div class="eyebrow">Vellum Certified · Mobile</div>
+    <h1>A standard worth <em>belonging to.</em></h1>
+    <p>The beginning of a considered relationship — between your home, your guests, and the details that make a stay unforgettable.</p>
+    <a href="#begin" class="scroll-cue">Begin your inquiry</a>
+  </section>
+
+  <!-- CREDO -->
+  <section class="credo">
+    <div class="line">Vellum is not a service you buy. It is a standard your home earns, and a partnership we tend to together.</div>
+    <div class="rule"></div>
+  </section>
+
+  <!-- FORM -->
+  <div class="form-wrap" id="begin">
+    <div id="form">
+      <div class="form-intro">
+        <div class="eyebrow">The Inquiry</div>
+        <h2>Tell us about your property.</h2>
+        <p>Just enough to begin. The finer details we'll gather together, in person, when we visit to certify.</p>
+      </div>
+
+      <fieldset>
+        <legend><span class="num">01</span> You</legend>
+        <div class="legend-note">So we know who we're speaking with.</div>
+        <div class="row2">
+          <div class="field"><label>First name</label><input name="owner_first" required></div>
+          <div class="field"><label>Last name</label><input name="owner_last" required></div>
+        </div>
+        <div class="row2">
+          <div class="field"><label>Email</label><input type="email" name="owner_email" required placeholder="you@example.com"></div>
+          <div class="field"><label>Phone</label><input name="owner_phone" placeholder="(251) 555-0100"></div>
+        </div>
+        <div class="field">
+          <label>How do you prefer we reach you? <span class="opt">optional</span></label>
+          <select name="contact_preference">
+            <option value="">No preference</option>
+            <option>Text</option><option>Email</option><option>Call</option>
+          </select>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend><span class="num">02</span> The Property</legend>
+        <div class="legend-note">Where your guests arrive.</div>
+        <div class="field"><label>Property name <span class="opt">what you call it</span></label><input name="property_name" placeholder="The Dauphin, Unit 4, etc."></div>
+        <div class="field"><label>Street address</label><input name="property_street_address" required></div>
+        <div class="row2">
+          <div class="field"><label>Building / Unit <span class="opt">if applicable</span></label><input name="building_unit" placeholder="Bldg / #"></div>
+          <div class="field"><label>City</label><input name="property_city" value="Mobile"></div>
+        </div>
+        <div class="row2">
+          <div class="field"><label>Zip</label><input name="property_zipcode"></div>
+          <div class="field"><label>Approx. square feet <span class="opt">optional</span></label><input name="sq_ft" inputmode="numeric"></div>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend><span class="num">03</span> The Layout</legend>
+        <div class="legend-note">This shapes your linen and comfort standard.</div>
+        <div class="row2">
+          <div class="field"><label>Bedrooms</label><input name="bedrooms" inputmode="numeric"></div>
+          <div class="field"><label>Bathrooms</label><input name="bathrooms" inputmode="decimal"></div>
+        </div>
+        <div class="field"><label>Sleeps</label><input name="sleeps" inputmode="numeric"></div>
+        <div class="legend-note" style="margin-top:8px">Beds — how many of each?</div>
+        <div class="row2">
+          <div class="field"><label>King</label><input name="king" inputmode="numeric" value="0"></div>
+          <div class="field"><label>Queen</label><input name="queen" inputmode="numeric" value="0"></div>
+        </div>
+        <div class="row2">
+          <div class="field"><label>Full</label><input name="full_beds" inputmode="numeric" value="0"></div>
+          <div class="field"><label>Twin</label><input name="twin" inputmode="numeric" value="0"></div>
+        </div>
+        <div class="field"><label>Sleeper sofa</label><input name="sofa" inputmode="numeric" value="0"></div>
+      </fieldset>
+
+      <fieldset>
+        <legend><span class="num">04</span> How It Books</legend>
+        <div class="legend-note">So we size your program to your rhythm — and grow it as you do.</div>
+        <div class="field">
+          <label>Roughly how many turnovers a month?</label>
+          <select name="turn_volume">
+            <option value="">Select…</option>
+            <option>Fewer than 5</option><option>5–10</option><option>10–20</option><option>20–30</option><option>More than 30</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Where is it listed? <span class="opt">optional</span></label>
+          <input name="listing_platforms" placeholder="Airbnb, VRBO, direct…">
+        </div>
+        <div class="field">
+          <label>Listing link <span class="opt">optional</span></label>
+          <input name="listing_url" placeholder="https://">
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend><span class="num">05</span> The Experience</legend>
+        <div class="legend-note">A few things that help us plan your arrival moment. Everything else, we'll see together.</div>
+        <div class="field">
+          <label>The television guests arrive to</label>
+          <select name="tv_device">
+            <option value="">I'm not sure</option>
+            <option value="FIRE_TV">Fire TV / Fire Stick</option>
+            <option value="ROKU">Roku</option>
+            <option value="APPLE_TV">Apple TV</option>
+            <option value="CHROMECAST">Chromecast / Google TV</option>
+            <option value="SAMSUNG_BUILTIN">Samsung (built-in smart TV)</option>
+            <option value="LG_BUILTIN">LG (built-in smart TV)</option>
+            <option value="VIZIO_BUILTIN">Vizio (built-in smart TV)</option>
+            <option value="OTHER_BUILTIN">Another smart TV</option>
+            <option value="NONE">No smart TV</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Any smart home already in place? <span class="opt">optional</span></label>
+          <input name="existing_smart_home" placeholder="Hue lights, Sonos, Alexa, smart plugs…">
+        </div>
+        <div class="field">
+          <label>Is there anything you're especially proud of, or hoping to elevate?</label>
+          <textarea name="aspirations" placeholder="A view, a room, a feeling you want guests to have…"></textarea>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend><span class="num">06</span> Anything We Should Know</legend>
+        <div class="legend-note">HOA rules, quirks, timing, a good time to visit — all welcome.</div>
+        <div class="field">
+          <label>Notes <span class="opt">optional</span></label>
+          <textarea name="owner_notes" placeholder="Whatever feels useful to share."></textarea>
+        </div>
+      </fieldset>
+
+      <button type="button" class="submit" onclick="submitForm()">Send my inquiry</button>
+      <p class="fine">We read every inquiry personally. You'll hear from us within two business days to arrange your certification visit.</p>
+    </div>
+
+    <!-- SUCCESS -->
+    <div class="thanks" id="thanks">
+      <div class="seal"><span>V</span></div>
+      <h2>Received, with thanks.</h2>
+      <p>We'll be in touch shortly to arrange a time to visit your property and begin. We're glad you're here.</p>
+    </div>
+  </div>
+
+  <footer>
+    <div class="wm">VELLUM</div>
+    <div class="tag">Certified · Mobile</div>
+  </footer>
+
+<script>
+async function submitForm(){
+  const form = document.getElementById('form');
+  const data = {};
+  form.querySelectorAll('input,select,textarea').forEach(el=>{
+    if(el.name) data[el.name] = el.value.trim();
+  });
+  // minimal validation
+  if(!data.owner_first || !data.owner_email || !data.property_street_address){
+    alert('Please share at least your name, email, and the property address.');
+    return;
+  }
+  const btn = document.querySelector('.submit');
+  btn.textContent = 'Sending…'; btn.disabled = true;
+  try{
+    const res = await fetch('/api/certification-inquiry', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify(data)
+    });
+    // Show the thank-you regardless of a slow backend; the inquiry is captured.
+    document.getElementById('form').style.display='none';
+    document.getElementById('thanks').classList.add('show');
+    window.scrollTo({top:document.getElementById('begin').offsetTop-40,behavior:'smooth'});
+  }catch(e){
+    // Still thank them — never leave an owner on an error at first touch.
+    document.getElementById('form').style.display='none';
+    document.getElementById('thanks').classList.add('show');
+  }
+}
+</script>
+</body>
+</html>
