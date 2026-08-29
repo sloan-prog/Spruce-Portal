@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Vellum Effect · Mobile</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400&family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Pinyon+Script&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --oxblood:#4A1A1F; --oxblood-deep:#300909; --cream:#F7F3EC; --vellum:#FBF8F2;
+    --charcoal:#2B2B2B; --gold:#C6A664; --gold-deep:#9C7F45; --rule:#E0D6C4;
+    --muted:#8C8272;
+  }
+  *{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{font-family:'EB Garamond',Georgia,serif;color:var(--charcoal);background:var(--cream);
+       line-height:1.6;font-size:19px;-webkit-font-smoothing:antialiased;}
+  h1,h2,h3{font-family:'Cormorant Garamond',Georgia,serif;font-weight:400;margin:0;}
+  :focus-visible{outline:2px solid var(--gold);outline-offset:3px;}
+
+  .grain::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+    opacity:.045;mix-blend-mode:multiply;}
+
+  .wrap{max-width:720px;margin:0 auto;position:relative;z-index:1;padding:0;}
+  /* the engraved certificate frame */
+  .certificate{position:relative;background:var(--vellum);
+    border:2px solid var(--gold);
+    box-shadow:0 2px 24px rgba(48,9,9,.10), inset 0 0 0 1px rgba(198,166,100,.25);
+    margin:18px 14px;padding:34px 26px 50px;}
+  .certificate::before{content:"";position:absolute;inset:9px;
+    border:1px solid var(--gold-deep);opacity:.45;pointer-events:none;}
+  /* gold corner ornaments on the whole document */
+  .doc-corner{position:absolute;width:46px;height:46px;pointer-events:none;z-index:3;opacity:.85;}
+  .doc-corner svg{width:100%;height:100%;}
+  .dc-tl{top:16px;left:16px;}
+  .dc-tr{top:16px;right:16px;transform:scaleX(-1);}
+  .dc-bl{bottom:16px;left:16px;transform:scaleY(-1);}
+  .dc-br{bottom:16px;right:16px;transform:scale(-1,-1);}
+  .doc-inner{position:relative;z-index:2;}
+
+  /* masthead */
+  .masthead{text-align:center;padding-bottom:20px;margin-bottom:28px;
+            border-bottom:1px solid var(--oxblood);}
+  .brand-logo{width:180px;height:auto;margin:0 auto 4px;display:block;}
+  .wordmark{font-family:'Cormorant Garamond';font-size:36px;letter-spacing:.34em;
+            color:var(--oxblood);padding-left:.34em;}
+  /* decorated stationery script line */
+  .flourish{display:flex;align-items:center;justify-content:center;gap:16px;margin-top:12px;}
+  .flourish .l{height:1px;width:52px;background:linear-gradient(90deg,transparent,var(--gold));}
+  .flourish .r{height:1px;width:52px;background:linear-gradient(90deg,var(--gold),transparent);}
+  .flourish .script{font-family:'Pinyon Script',cursive;font-size:27px;color:var(--gold-deep);
+                    line-height:1;padding-bottom:4px;}
+  .masthead .kicker{font-size:13px;color:var(--muted);letter-spacing:.2em;
+                    text-transform:uppercase;margin-top:16px;}
+
+  /* opening thesis */
+  .thesis{text-align:center;margin-bottom:64px;}
+  .thesis .pre{font-family:'Cormorant Garamond';font-weight:600;font-style:italic;
+               font-size:52px;line-height:1.1;color:var(--oxblood);margin-bottom:18px;}
+  /* ornamental section divider */
+  .ornament{display:flex;align-items:center;justify-content:center;gap:14px;
+            margin:0 auto 40px;width:fit-content;}
+  .ornament .oline{height:1px;width:60px;
+    background:linear-gradient(90deg,transparent,var(--gold));}
+  .ornament .oline.r{background:linear-gradient(90deg,var(--gold),transparent);}
+  .ornament .odot{color:var(--gold-deep);font-size:20px;line-height:1;}
+  .ornament svg{width:44px;height:20px;opacity:.9;}
+  .pre-mark{font-family:'Cormorant Garamond';font-weight:600;font-style:italic;
+            font-size:40px;line-height:1.1;color:var(--oxblood);margin-bottom:16px;}
+  .thesis h1{font-size:31px;line-height:1.28;color:var(--charcoal);font-weight:300;font-style:italic;}
+  .thesis .lede{font-size:21px;color:var(--charcoal);margin-top:24px;max-width:50ch;
+                margin-left:auto;margin-right:auto;}
+
+  /* section rhythm */
+  section{margin-bottom:60px;}
+  .eyebrow{text-transform:uppercase;letter-spacing:.24em;font-size:13px;
+           color:var(--gold-deep);font-weight:500;margin-bottom:16px;text-align:center;}
+  h2{font-size:34px;color:var(--oxblood);margin-bottom:20px;line-height:1.2;text-align:center;}
+  p{margin:0 0 16px;}
+  p:last-child{margin-bottom:0;}
+  .em{color:var(--oxblood);font-style:italic;}
+  .body-copy{max-width:54ch;margin:0 auto;font-size:19.5px;}
+
+  /* THE INVITATION — engraved card */
+  .invite{background:var(--oxblood);color:var(--cream);padding:52px 40px;text-align:center;
+          position:relative;overflow:hidden;border:1px solid var(--gold-deep);}
+  .invite .frame{position:absolute;inset:12px;border:2px solid var(--gold);opacity:.55;
+                 pointer-events:none;}
+  /* gold corner scrolls */
+  .invite .corner{position:absolute;width:34px;height:34px;opacity:.7;pointer-events:none;}
+  .invite .corner svg{width:100%;height:100%;}
+  .invite .c-tl{top:16px;left:16px;}
+  .invite .c-tr{top:16px;right:16px;transform:scaleX(-1);}
+  .invite .c-bl{bottom:16px;left:16px;transform:scaleY(-1);}
+  .invite .c-br{bottom:16px;right:16px;transform:scale(-1,-1);}
+  .invite .inner{position:relative;z-index:1;}
+  .invite .mono{font-family:'Cormorant Garamond';font-size:17px;letter-spacing:.32em;
+                text-transform:uppercase;color:var(--gold);margin-bottom:22px;font-weight:500;}
+  .invite h2{color:#F2E7DC;font-size:38px;margin-bottom:18px;}
+  .invite p{color:#E9DCCB;font-size:19px;max-width:44ch;margin-left:auto;margin-right:auto;
+            line-height:1.55;}
+  .invite .rule{width:46px;height:1px;background:var(--gold);margin:26px auto 0;opacity:.85;}
+
+  /* marks — bordered ornamental panel */
+  .marks-wrap{border:1px solid var(--gold);padding:34px 30px 30px;position:relative;
+              background:var(--vellum);}
+  .marks-wrap .divider{display:flex;align-items:center;justify-content:center;gap:14px;
+                       margin:-52px auto 26px;width:fit-content;max-width:90%;
+                       background:var(--vellum);padding:0 18px;text-align:center;}
+  .marks-wrap .divider .swirl{white-space:nowrap;}
+  .marks-wrap .divider .swirl{font-family:'Pinyon Script',cursive;font-size:30px;
+                              color:var(--gold-deep);line-height:1;padding-bottom:6px;}
+  .marks-wrap .divider .dl,.marks-wrap .divider .dr{height:1px;width:34px;background:var(--gold);}
+  .marks{display:grid;grid-template-columns:1fr 1fr;gap:26px 34px;}
+  .mark h3{font-size:23px;color:var(--oxblood);margin-bottom:5px;}
+  .mark p{font-size:16.5px;color:var(--muted);margin:0;line-height:1.5;}
+  .mark-full{grid-column:1 / -1;text-align:center;padding-top:22px;margin-top:6px;
+             border-top:1px solid var(--rule);}
+  .mark-full p{max-width:46ch;margin:0 auto;}
+  .cert-seal{width:76px;height:auto;display:block;margin:0 auto 12px;
+             filter:drop-shadow(0 2px 5px rgba(48,9,9,.25));}
+  @media(max-width:560px){ .marks{grid-template-columns:1fr;} .thesis .pre{font-size:40px;}
+    .invite h2{font-size:30px;} h2{font-size:28px;} }
+
+  /* the quiet math */
+  .math{background:var(--vellum);border:1px solid var(--rule);border-top:2px solid var(--gold);
+        padding:36px 30px;text-align:center;}
+  .math .big{font-family:'Playfair Display',Georgia,serif;font-weight:600;font-size:74px;
+             line-height:1;color:var(--oxblood);}
+  .math .big small{font-family:'Cormorant Garamond';font-size:24px;font-style:italic;
+                   font-weight:400;display:block;margin-top:10px;color:var(--gold-deep);}
+  .math .math-line{font-family:'Cormorant Garamond';font-weight:400;font-style:italic;
+             font-size:32px;line-height:1.3;color:var(--oxblood);margin:0 0 14px;}
+  .math .math-sub{font-size:18px;color:var(--charcoal);max-width:46ch;margin:0 auto;}
+
+  /* close */
+  .close{text-align:center;padding-top:8px;}
+  .close .line{font-family:'Cormorant Garamond';font-size:36px;font-style:italic;
+               color:var(--oxblood);line-height:1.35;}
+  .close .sub{font-size:14px;color:var(--gold-deep);letter-spacing:.2em;
+              text-transform:uppercase;margin-top:24px;}
+
+  footer{text-align:center;color:var(--muted);font-size:12px;letter-spacing:.26em;
+         text-transform:uppercase;padding-top:58px;margin-top:58px;border-top:1px solid var(--rule);}
+</style>
+</head>
+<body class="grain">
+<div class="wrap">
+  <div class="certificate">
+    <span class="doc-corner dc-tl"><svg viewBox="0 0 48 48" preserveAspectRatio="xMidYMid meet"><g fill="#C6A664"><path d="M4 44 C4 30 10 16 26 6 C22 14 20 20 20 26 C14 24 8 30 4 44 Z" opacity="0.9"/><path d="M6 42 C10 34 16 30 24 30 C20 36 14 40 6 42 Z" fill="#9C7F45" opacity="0.8"/><path d="M4 44 C12 40 18 34 22 26 C24 30 24 36 20 40 C14 44 8 44 4 44 Z" fill="#C6A664" opacity="0.55"/><circle cx="26" cy="7" r="2.4" fill="#9C7F45"/></g></svg></span>
+    <span class="doc-corner dc-tr"><svg viewBox="0 0 48 48" preserveAspectRatio="xMidYMid meet"><g fill="#C6A664"><path d="M4 44 C4 30 10 16 26 6 C22 14 20 20 20 26 C14 24 8 30 4 44 Z" opacity="0.9"/><path d="M6 42 C10 34 16 30 24 30 C20 36 14 40 6 42 Z" fill="#9C7F45" opacity="0.8"/><path d="M4 44 C12 40 18 34 22 26 C24 30 24 36 20 40 C14 44 8 44 4 44 Z" fill="#C6A664" opacity="0.55"/><circle cx="26" cy="7" r="2.4" fill="#9C7F45"/></g></svg></span>
+    <span class="doc-corner dc-bl"><svg viewBox="0 0 48 48" preserveAspectRatio="xMidYMid meet"><g fill="#C6A664"><path d="M4 44 C4 30 10 16 26 6 C22 14 20 20 20 26 C14 24 8 30 4 44 Z" opacity="0.9"/><path d="M6 42 C10 34 16 30 24 30 C20 36 14 40 6 42 Z" fill="#9C7F45" opacity="0.8"/><path d="M4 44 C12 40 18 34 22 26 C24 30 24 36 20 40 C14 44 8 44 4 44 Z" fill="#C6A664" opacity="0.55"/><circle cx="26" cy="7" r="2.4" fill="#9C7F45"/></g></svg></span>
+    <span class="doc-corner dc-br"><svg viewBox="0 0 48 48" preserveAspectRatio="xMidYMid meet"><g fill="#C6A664"><path d="M4 44 C4 30 10 16 26 6 C22 14 20 20 20 26 C14 24 8 30 4 44 Z" opacity="0.9"/><path d="M6 42 C10 34 16 30 24 30 C20 36 14 40 6 42 Z" fill="#9C7F45" opacity="0.8"/><path d="M4 44 C12 40 18 34 22 26 C24 30 24 36 20 40 C14 44 8 44 4 44 Z" fill="#C6A664" opacity="0.55"/><circle cx="26" cy="7" r="2.4" fill="#9C7F45"/></g></svg></span>
+    <div class="doc-inner">
+
+  <div class="masthead">
+    <img class="brand-logo" src="vellum-logo.png" alt="Vellum Hospitality">
+  </div>
+
+  <!-- THE INVITATION -->
+  <section>
+    <div class="invite">
+      <div class="frame"></div>
+      <span class="corner c-tl"><svg viewBox="0 0 40 40" fill="none" stroke="#C6A664" stroke-width="1.4"><path d="M2 38 Q2 8 8 4 Q14 2 18 8 M2 20 Q2 10 10 10 M2 30 Q6 30 8 26"/></svg></span>
+      <span class="corner c-tr"><svg viewBox="0 0 40 40" fill="none" stroke="#C6A664" stroke-width="1.4"><path d="M2 38 Q2 8 8 4 Q14 2 18 8 M2 20 Q2 10 10 10 M2 30 Q6 30 8 26"/></svg></span>
+      <span class="corner c-bl"><svg viewBox="0 0 40 40" fill="none" stroke="#C6A664" stroke-width="1.4"><path d="M2 38 Q2 8 8 4 Q14 2 18 8 M2 20 Q2 10 10 10 M2 30 Q6 30 8 26"/></svg></span>
+      <span class="corner c-br"><svg viewBox="0 0 40 40" fill="none" stroke="#C6A664" stroke-width="1.4"><path d="M2 38 Q2 8 8 4 Q14 2 18 8 M2 20 Q2 10 10 10 M2 30 Q6 30 8 26"/></svg></span>
+      <div class="inner">
+        <div class="mono">By invitation</div>
+        <h2>A curated collection of<br>Mobile's finest stays.</h2>
+        <p>Vellum is quietly bringing together a select group of properties &mdash;
+          homes with southern charm and gracious hosts &mdash; and giving each one the polish
+          of a boutique hotel. Yours is exactly the kind of property we had in mind.</p>
+        <div class="rule"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- THESIS -->
+  <div class="ornament">
+    <span class="oline"></span>
+    <svg viewBox="0 0 44 20" fill="none" stroke="#C6A664" stroke-width="1.1"><path d="M22 10 Q14 2 8 10 Q14 18 22 10 Q30 2 36 10 Q30 18 22 10 Z"/><circle cx="22" cy="10" r="1.6" fill="#9C7F45" stroke="none"/></svg>
+    <span class="oline r"></span>
+  </div>
+  <div class="thesis">
+    <div class="pre">Before the key turns&hellip;</div>
+  </div>
+
+
+
+  <!-- A LAYER OF VELLUM (bridge) -->
+  <section style="text-align:center;margin-bottom:44px;">
+  <div class="ornament">
+    <span class="oline"></span>
+    <svg viewBox="0 0 44 20" fill="none" stroke="#C6A664" stroke-width="1.1"><path d="M22 10 Q14 2 8 10 Q14 18 22 10 Q30 2 36 10 Q30 18 22 10 Z"/><circle cx="22" cy="10" r="1.6" fill="#9C7F45" stroke="none"/></svg>
+    <span class="oline r"></span>
+  </div>
+    <div class="pre-mark">A Layer of Vellum</div>
+    <p style="max-width:52ch;margin:0 auto;font-size:19.5px;color:var(--charcoal);">
+      You're invited to introduce a layer of boutique-hotel style and sensibility to a home
+      that already has heart &mdash; a signature scent at the door, linens like a fine hotel,
+      the small graces guests never forget.</p>
+  </section>
+  <!-- THE MARKS OF A VELLUM HOUSE -->
+  <section>
+    <div class="marks-wrap">
+      <div class="divider">
+        <span class="dl"></span>
+        <span class="swirl">The Marks of a Vellum Home</span>
+        <span class="dr"></span>
+      </div>
+      <div class="marks">
+        <div class="mark"><h3>Arrival</h3><p>Our signature scent, warm and quiet, greeting
+          every guest the moment the door opens.</p></div>
+        <div class="mark"><h3>The Linen Program</h3><p>Hotel-grade sheets and towels, kept
+          fresh on a replacement cycle &mdash; the quiet luxury guests feel instantly.</p></div>
+        <div class="mark"><h3>The Welcome</h3><p>A considered gift and a wax-sealed note
+          &mdash; the touches that turn a booking into a memory.</p></div>
+        <div class="mark"><h3>The Standard</h3><p>A certified level of care and presentation,
+          the same beautiful way, every single stay.</p></div>
+        <div class="mark"><h3>The House App</h3><p>A curated digital guide, so guests feel
+          looked after without ever having to ask.</p></div>
+        <div class="mark"><h3>Never a Bare Shelf</h3><p>Coffee, essentials, the important
+          items guests reach for &mdash; quietly kept stocked and replenished to par with
+          our Vellum System.</p></div>
+        <div class="mark mark-full">
+          <img class="cert-seal" src="seal-certified-c.png" alt="Vellum Certified wax seal">
+          <h3>The Seal</h3><p>Vellum Certified &mdash; a mark that tells a guest, before they
+          book, that this is an exceptional home.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- THE QUIET MATH -->
+  <section>
+  <div class="ornament">
+    <span class="oline"></span>
+    <svg viewBox="0 0 44 20" fill="none" stroke="#C6A664" stroke-width="1.1"><path d="M22 10 Q14 2 8 10 Q14 18 22 10 Q30 2 36 10 Q30 18 22 10 Z"/><circle cx="22" cy="10" r="1.6" fill="#9C7F45" stroke="none"/></svg>
+    <span class="oline r"></span>
+  </div>
+    <div class="math">
+      <p class="math-line">A handful of nights is all it takes<br>to cover the program &mdash;</p>
+      <p class="math-sub">for a property that becomes the one guests choose first.</p>
+    </div>
+  </section>
+
+  <!-- SCARCITY LINE -->
+  <section style="text-align:center;">
+    <p style="font-size:17px;color:var(--muted);font-style:italic;max-width:44ch;margin:0 auto;">
+      Membership is limited. We accept a small number of properties each season.</p>
+  </section>
+  <!-- CLOSE -->
+  <div class="close">
+    <div class="line">A standard worth<br>belonging to.</div>
+    <div class="ornament" style="margin-top:24px;margin-bottom:0;">
+    <span class="oline"></span>
+    <svg viewBox="0 0 44 20" fill="none" stroke="#C6A664" stroke-width="1.1"><path d="M22 10 Q14 2 8 10 Q14 18 22 10 Q30 2 36 10 Q30 18 22 10 Z"/><circle cx="22" cy="10" r="1.6" fill="#9C7F45" stroke="none"/></svg>
+    <span class="oline r"></span>
+  </div>
+  </div>
+
+    <footer>Vellum &middot; Hospitality &middot; Mobile, Alabama</footer>
+    </div><!--/doc-inner-->
+  </div><!--/certificate-->
+</div>
+</body>
+</html>
