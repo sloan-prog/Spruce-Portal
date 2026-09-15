@@ -42,7 +42,23 @@
 </div>
 
 <div id="linenResults" style="display:none; background:white; border-radius:16px; padding:20px; margin:16px 0; box-shadow:0 4px 14px rgba(0,0,0,.08);">
-  <div id="linenSavedMsg" style="font-weight:bold; color:#24382f; margin-bottom:12px;"></div>
+  <div id="linenSavedMsg" style="font-weight:bold; color:#24382f; margin-bottom:6px;"></div>
+  <div id="linenRefreshFlag" style="display:none; background:#fbeaea; color:#7a1f1f; padding:8px 12px; border-radius:8px; font-weight:bold; margin-bottom:12px;"></div>
+
+  <div style="display:flex; flex-wrap:wrap; gap:16px; align-items:center; margin-bottom:14px; font-size:14px;">
+    <label style="font-weight:bold;">Order status:
+      <select id="linenOrderStatus" onchange="saveLinenStatus()" style="margin-left:6px; padding:5px; border-radius:6px; border:1px solid #ccc;">
+        <option value="draft">Draft</option>
+        <option value="placed">Placed</option>
+        <option value="received">Received</option>
+        <option value="installed">Installed</option>
+      </select>
+    </label>
+    <label style="font-weight:bold;">Install date:
+      <input type="date" id="linenInstallDate" onchange="saveLinenStatus()" style="margin-left:6px; padding:5px; border-radius:6px; border:1px solid #ccc;">
+    </label>
+  </div>
+
   <table id="linenResultsTable" style="width:100%; border-collapse:collapse;">
     <thead>
       <tr style="text-transform:uppercase; font-size:13px; color:#6b7a72;">
@@ -395,25 +411,15 @@ async function calcAndSaveLinen() {
     const save = await saveRes.json();
     if (!save.success) { alert('Save error: ' + (save.error || 'unknown')); return; }
 
-    // Render the itemized checkoff list on the page (instead of a plain alert)
-    const resultsDiv = document.getElementById('linenResults');
-    const tbody = document.querySelector('#linenResultsTable tbody');
-    tbody.innerHTML = '';
-    (calc.items || []).forEach(item => {
-      const tr = document.createElement('tr');
-      tr.innerHTML =
-        '<td style="padding:8px; border-bottom:1px solid #f0f0f0;"><input type="checkbox"></td>' +
-        '<td style="padding:8px; border-bottom:1px solid #f0f0f0;">' + (item.item_name || item.item_code) + '</td>' +
-        '<td style="padding:8px; border-bottom:1px solid #f0f0f0; text-align:right;">' + item.quantity + '</td>' +
-        '<td style="padding:8px; border-bottom:1px solid #f0f0f0; text-align:right;">' + money(item.unit_cost) + '</td>' +
-        '<td style="padding:8px; border-bottom:1px solid #f0f0f0; text-align:right;">' + money(item.line_total) + '</td>';
-      tbody.appendChild(tr);
-    });
-    document.getElementById('linenGrandTotal').innerText = money(calc.linen_order_total);
-    document.getElementById('linenSavedMsg').innerText =
-      '\u2713 Linen order saved for ' + propertyId + ' \u2014 check off items as you order them below.';
-    resultsDiv.style.display = 'block';
-    resultsDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    // Render via the shared renderer (fresh calc -> reset checkoffs, draft status)
+    renderLinenOrder({
+      items: calc.items,
+      total_linen_cost: calc.linen_order_total,
+      order_status: 'draft',
+      initial_load_date: null,
+      checkoff_state: {}
+    }, true);
+    document.getElementById('linenResults').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   } catch (err) {
     alert('Error: ' + err.message);
   }
@@ -426,8 +432,105 @@ async function calcAndSaveLinen() {
   if (pid && link) { link.href = '/add-property.html?id=' + encodeURIComponent(pid); }
 })();
 
+// ===== LINEN ORDER: render, load, persist =====
+const LINEN_REFRESH_MONTHS = 18; // suggest refresh after this many months
+
+// Shared renderer used by both a fresh calc and a loaded saved order.
+function renderLinenOrder(order, savedJustNow) {
+  const resultsDiv = document.getElementById('linenResults');
+  const tbody = document.querySelector('#linenResultsTable tbody');
+  const checkoff = order.checkoff_state || {};
+  tbody.innerHTML = '';
+  (order.items || []).forEach(item => {
+    const checked = checkoff[item.item_code] ? 'checked' : '';
+    const tr = document.createElement('tr');
+    tr.innerHTML =
+      '<td style="padding:8px; border-bottom:1px solid #f0f0f0;"><input type="checkbox" data-code="' + item.item_code + '" onchange="saveLinenCheckoffs()" ' + checked + '></td>' +
+      '<td style="padding:8px; border-bottom:1px solid #f0f0f0;">' + (item.item_name || item.item_code) + '</td>' +
+      '<td style="padding:8px; border-bottom:1px solid #f0f0f0; text-align:right;">' + item.quantity + '</td>' +
+      '<td style="padding:8px; border-bottom:1px solid #f0f0f0; text-align:right;">' + money(item.unit_cost) + '</td>' +
+      '<td style="padding:8px; border-bottom:1px solid #f0f0f0; text-align:right;">' + money(item.line_total) + '</td>';
+    tbody.appendChild(tr);
+  });
+  document.getElementById('linenGrandTotal').innerText = money(order.total_linen_cost);
+  document.getElementById('linenOrderStatus').value = order.order_status || 'draft';
+  document.getElementById('linenInstallDate').value = order.initial_load_date || '';
+
+  const msg = document.getElementById('linenSavedMsg');
+  msg.innerText = savedJustNow
+    ? '\\u2713 Linen order saved \\u2014 set status & check off items as you order them.'
+    : 'Saved linen order \\u2014 status & checkoffs persist.';
+
+  // Refresh-due flag based on install date
+  const flag = document.getElementById('linenRefreshFlag');
+  flag.style.display = 'none';
+  if (order.initial_load_date) {
+    const installed = new Date(order.initial_load_date);
+    const months = (Date.now() - installed.getTime()) / (1000 * 60 * 60 * 24 * 30.44);
+    if (months >= LINEN_REFRESH_MONTHS) {
+      flag.style.display = 'block';
+      flag.innerText = '\\u26a0 Linens installed ' + Math.round(months) + ' months ago \\u2014 consider a refresh.';
+    }
+  }
+  resultsDiv.style.display = 'block';
+}
+
+// Load the saved order (if any) when the page opens.
+async function loadSavedLinenOrder() {
+  const propertyId = getPropertyIdFromUrl();
+  if (!propertyId) return;
+  try {
+    const res = await fetch('/api/get-linen-order?property_id=' + encodeURIComponent(propertyId));
+    const data = await res.json();
+    if (data.success && data.has_order) {
+      renderLinenOrder(data, false);
+    }
+  } catch (err) { /* silent - no saved order yet */ }
+}
+
+// Persist checkoff state (which items are checked).
+async function saveLinenCheckoffs() {
+  const propertyId = getPropertyIdFromUrl();
+  if (!propertyId) return;
+  const state = {};
+  document.querySelectorAll('#linenResultsTable tbody input[type="checkbox"]').forEach(cb => {
+    state[cb.getAttribute('data-code')] = cb.checked;
+  });
+  try {
+    await fetch('/api/update-linen-status', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ property_id: propertyId, checkoff_state: state })
+    });
+  } catch (err) { /* best-effort */ }
+}
+
+// Persist status + install date.
+async function saveLinenStatus() {
+  const propertyId = getPropertyIdFromUrl();
+  if (!propertyId) return;
+  const status = document.getElementById('linenOrderStatus').value;
+  const installDate = document.getElementById('linenInstallDate').value || null;
+  try {
+    await fetch('/api/update-linen-status', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ property_id: propertyId, order_status: status, initial_load_date: installDate })
+    });
+    // Re-evaluate the refresh flag live
+    const flag = document.getElementById('linenRefreshFlag');
+    flag.style.display = 'none';
+    if (installDate) {
+      const months = (Date.now() - new Date(installDate).getTime()) / (1000*60*60*24*30.44);
+      if (months >= LINEN_REFRESH_MONTHS) {
+        flag.style.display = 'block';
+        flag.innerText = '\\u26a0 Linens installed ' + Math.round(months) + ' months ago \\u2014 consider a refresh.';
+      }
+    }
+  } catch (err) { /* best-effort */ }
+}
+
 loadPropertyDetail();
 loadPropertyStock();
+loadSavedLinenOrder();
 </script>
 
 </body>
