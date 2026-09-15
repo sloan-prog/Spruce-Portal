@@ -36,6 +36,11 @@ module.exports = async function handler(req, res) {
     const bathrooms = num(body.bathrooms);
     const sleeps = num(body.sleeps);
     const bedrooms = num(body.bedrooms);
+    // Shower curtains: use the property's explicit count (0 if glass doors).
+    // Falls back to bathrooms only if the field is missing/undefined (legacy).
+    const showerCurtains = (body.shower_curtains_needed === undefined || body.shower_curtains_needed === null || body.shower_curtains_needed === '')
+      ? bathrooms
+      : num(body.shower_curtains_needed);
 
     // Sofa beds are treated as full-size beds (same as the pricing engine's
     // fullEquivalent logic) so they use the Full-size sheet SKUs.
@@ -121,8 +126,11 @@ module.exports = async function handler(req, res) {
     addLinen('TWL-002', sleeps * towelPar);       // Washcloths
     addLinen('TWL-003', sleeps * towelPar);       // Hand towels
     addLinen('TWL-004', bathrooms * towelPar);    // Bath mats
+    addLinen('TWL-005', showerCurtains);          // Shower curtains (explicit count; 0 if glass doors)
     addLinen('TWL-006', 2 * towelPar);            // Kitchen towels
     addLinen('TWL-007', 2 * towelPar);            // Kitchen washcloths
+    addLinen('TWL-008', 2);                       // Kitchen potholders (a pair per kitchen)
+    addLinen('MSC-001', 2 * towelPar);            // Mesh laundry bags (rotation)
 
     const linenOrderTotal = items.reduce((sum, r) => sum + Number(r.line_total || 0), 0);
     const linenFeeCharged = bedrooms * linenFeePerBed;
