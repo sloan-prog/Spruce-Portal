@@ -33,7 +33,7 @@
 
 <div class="actions">
   <a href="/admin-properties.html"><button type="button">Back to Properties</button></a>
-  <a href="/add-property.html"><button type="button">Edit Property</button></a>
+  <a id="editPropertyLink" href="/add-property.html"><button type="button">Edit Property</button></a>
   <button type="button" onclick="runPAR()">Run PAR</button>
   <label style="display:flex;align-items:center;gap:6px;font-weight:bold;">
     <input type="checkbox" id="inactiveToggle" onchange="toggleInactive(this)"> Inactive
@@ -347,7 +347,8 @@ async function calcAndSaveLinen() {
     sofa: p.sofa || 0,
     bathrooms: p.bathrooms || 0,
     sleeps: p.sleeps || 0,
-    bedrooms: p.bedrooms || 0
+    bedrooms: p.bedrooms || 0,
+    shower_curtains_needed: (p.shower_curtains_needed === undefined || p.shower_curtains_needed === null) ? p.bathrooms : p.shower_curtains_needed
   };
 
   try {
@@ -383,6 +384,13 @@ async function calcAndSaveLinen() {
     alert('Error: ' + err.message);
   }
 }
+
+// Wire the Edit Property button to the current property so it opens in EDIT mode
+(function setEditLink() {
+  const pid = getPropertyIdFromUrl();
+  const link = document.getElementById('editPropertyLink');
+  if (pid && link) { link.href = '/add-property.html?id=' + encodeURIComponent(pid); }
+})();
 
 loadPropertyDetail();
 loadPropertyStock();
