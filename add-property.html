@@ -29,7 +29,7 @@
 <body>
 
 <div class="box">
-  <h1>Add Property</h1>
+  <h1 id="pageTitle">Add Property</h1>
 
   <form id="propertyForm">
     <label>Property ID</label>
@@ -75,6 +75,24 @@
     <label>Sleeps</label>
     <input name="sleeps" type="number">
 
+    <label>King Beds</label>
+    <input name="king" type="number" value="0">
+
+    <label>Queen Beds</label>
+    <input name="queen" type="number" value="0">
+
+    <label>Full Beds</label>
+    <input name="full_beds" type="number" value="0">
+
+    <label>Twin Beds</label>
+    <input name="twin" type="number" value="0">
+
+    <label>Sofa Beds</label>
+    <input name="sofa" type="number" value="0">
+
+    <label>Shower Curtains Needed <span style="font-weight:normal;font-size:12px;color:#777;">(0 if all bathrooms have glass doors)</span></label>
+    <input name="shower_curtains_needed" type="number" value="0">
+
     <label>Square Feet</label>
     <input name="sq_ft" type="number">
 
@@ -102,7 +120,7 @@
     <label>PAR Cleans</label>
     <input name="par_cleans" type="number" value="10">
 
-    <button type="submit">Add Property</button>
+    <button type="submit" id="submitBtn">Add Property</button>
   </form>
 
   <div class="msg" id="msg"></div>
@@ -110,6 +128,47 @@
 </div>
 
 <script>
+// ---- ADD vs EDIT mode ----
+const editId = new URLSearchParams(window.location.search).get('id');
+const isEdit = !!editId;
+
+async function loadForEdit() {
+  if (!isEdit) return;
+  document.getElementById('pageTitle').innerText = 'Edit Property';
+  document.getElementById('submitBtn').innerText = 'Save Changes';
+  try {
+    const res = await fetch('/api/get-property-detail?property_id=' + encodeURIComponent(editId));
+    const data = await res.json();
+    if (!data.success || !data.property) {
+      document.getElementById('msg').innerText = 'Could not load property ' + editId;
+      return;
+    }
+    const p = data.property;
+    const form = document.getElementById('propertyForm');
+    // Prefill every matching field by name
+    Array.from(form.elements).forEach(el => {
+      if (!el.name) return;
+      if (p[el.name] !== null && p[el.name] !== undefined) {
+        el.value = p[el.name];
+      }
+    });
+    // Owner select is loaded async — set it once options exist
+    if (p.owner_id) {
+      const trySetOwner = () => {
+        const sel = document.getElementById('ownerSelect');
+        if (sel && sel.options.length > 1) { sel.value = p.owner_id; }
+        else { setTimeout(trySetOwner, 150); }
+      };
+      trySetOwner();
+    }
+    // Lock the property_id so the upsert targets the right row (can't rename the key)
+    const idField = form.querySelector('input[name="property_id"]');
+    if (idField) { idField.value = editId; idField.readOnly = true; idField.style.background = '#eee'; }
+  } catch (err) {
+    document.getElementById('msg').innerText = 'Error loading property: ' + err.message;
+  }
+}
+
 async function loadOwners() {
   const select = document.getElementById('ownerSelect');
 
@@ -135,7 +194,7 @@ async function loadOwners() {
   }
 }
 
-document.addEventListener('DOMContentLoaded', loadOwners);
+document.addEventListener('DOMContentLoaded', () => { loadOwners(); loadForEdit(); });
 
 document.getElementById('propertyForm').addEventListener('submit', async (e) => {
   e.preventDefault();
@@ -152,7 +211,9 @@ document.getElementById('propertyForm').addEventListener('submit', async (e) => 
   const data = await res.json();
 
   document.getElementById('msg').innerText =
-    data.success ? 'Property added successfully.' : 'Error: ' + data.error;
+    data.success
+      ? (isEdit ? 'Property updated successfully.' : 'Property added successfully.')
+      : 'Error: ' + data.error;
 });
 
 function feeMoney(v) {
