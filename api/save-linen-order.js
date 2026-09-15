@@ -24,7 +24,8 @@ const SKU_COLUMN = {
   'SHT-014': 'full_fitted',  'SHT-015': 'full_flat',  'SHT-016': 'full_pillowcase',  'SHT-017': 'full_insert',
   'SHT-019': 'twin_fitted',  'SHT-020': 'twin_flat',  'SHT-021': 'twin_pillowcase',  'SHT-022': 'twin_insert',
   'TWL-001': 'bath_towels',  'TWL-002': 'washcloths', 'TWL-003': 'hand_towels',
-  'TWL-004': 'bath_mats',    'TWL-006': 'kitchen_towels', 'TWL-007': 'kitchen_washcloths'
+  'TWL-004': 'bath_mats',    'TWL-006': 'kitchen_towels', 'TWL-007': 'kitchen_washcloths',
+  'TWL-005': 'shower_curtains', 'TWL-008': 'kitchen_potholders', 'MSC-001': 'laundry_bags'
 };
 
 module.exports = async function handler(req, res) {
