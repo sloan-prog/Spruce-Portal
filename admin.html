@@ -1,109 +1,165 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <!-- admin auth gate (added on branch add-admin-auth) -->
+  <!-- admin auth gate -->
   <style id="auth-gate-style">html{visibility:hidden!important}</style>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="admin-auth.js"></script>
   <script src="auth-guard.js"></script>
 
-  <title>Spruce Admin</title>
+  <title>Vellum Admin</title>
   <link rel="icon" href="/favicon.ico" sizes="any">
   <link rel="icon" type="image/png" href="/favicon-32.png" sizes="32x32">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600&family=EB+Garamond&display=swap" rel="stylesheet">
   <style>
-    body {
-      font-family: Arial;
-      background: #f5f5f5;
-      padding: 20px;
+    :root{
+      --oxblood:#4A1A1F; --oxblood-deep:#300909; --cream:#F7F3EC; --vellum:#FBF8F2;
+      --gold:#C6A664; --gold-deep:#9C7F45; --charcoal:#2B2B2B; --muted:#8C8272;
+      --red:#c0392b; --amber:#e67e22; --green:#27ae60;
     }
-    h1 {
-      margin-bottom: 20px;
+    *{box-sizing:border-box;}
+    body{font-family:'EB Garamond',Georgia,serif; background:var(--cream); color:var(--charcoal); padding:24px; margin:0;}
+    h1{font-family:'Cormorant Garamond',serif; color:var(--oxblood); letter-spacing:.02em; margin:0 0 4px;}
+    .sub{color:var(--muted); margin-bottom:20px; font-size:14px;}
+    h2{font-family:'Cormorant Garamond',serif; color:var(--oxblood); font-size:22px; margin:32px 0 12px; border-bottom:1px solid var(--gold); padding-bottom:6px;}
+
+    nav{margin-bottom:8px;}
+    nav a{text-decoration:none;}
+    nav button{
+      font-family:'EB Garamond',serif; font-size:14px; background:var(--oxblood); color:var(--cream);
+      border:1px solid var(--gold-deep); padding:9px 16px; border-radius:8px; cursor:pointer; margin:0 6px 6px 0;
     }
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 20px;
-    }
-    .card {
-      background: white;
-      padding: 20px;
-      border-radius: 12px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-    }
-    .title {
-      font-size: 14px;
-      color: gray;
-    }
-    .value {
-      font-size: 28px;
-      font-weight: bold;
-    }
+    nav button:hover{background:var(--oxblood-deep);}
+
+    .grid{display:grid; grid-template-columns:repeat(4,1fr); gap:16px;}
+    @media(max-width:900px){ .grid{grid-template-columns:repeat(2,1fr);} }
+    .card{background:white; padding:18px; border-radius:12px; box-shadow:0 2px 8px rgba(48,9,9,.08); border-top:3px solid var(--gold);}
+    .title{font-size:13px; color:var(--muted); text-transform:uppercase; letter-spacing:.08em;}
+    .value{font-size:30px; font-weight:bold; color:var(--oxblood); font-family:'Cormorant Garamond',serif;}
+    .card.soon{opacity:.55; border-top-color:#ccc;}
+    .card.soon .value{color:var(--muted);}
+    .soon-tag{font-size:10px; color:var(--muted); font-style:italic;}
+
+    .tier-row{display:flex; gap:16px; flex-wrap:wrap;}
+    .tier{flex:1; min-width:150px; background:white; border-radius:12px; padding:16px; box-shadow:0 2px 8px rgba(48,9,9,.08); border-left:4px solid var(--oxblood);}
+    .tier .t-name{font-family:'Cormorant Garamond',serif; font-size:18px; color:var(--oxblood);}
+    .tier .t-count{font-size:26px; font-weight:bold; color:var(--charcoal);}
+
+    .alert-box{background:white; border-radius:12px; padding:18px; box-shadow:0 2px 8px rgba(48,9,9,.08);}
+    .alert-box.attention{border-left:5px solid var(--red);}
+    .alert-list{list-style:none; padding:0; margin:8px 0 0;}
+    .alert-list li{padding:8px 0; border-bottom:1px solid #f0ece3; font-size:15px; display:flex; justify-content:space-between;}
+    .alert-list li:last-child{border-bottom:none;}
+    .pill{background:var(--oxblood); color:var(--cream); padding:2px 10px; border-radius:20px; font-size:12px;}
+    .empty{color:var(--muted); font-style:italic; padding:8px 0;}
+    a.prop-link{color:var(--oxblood); text-decoration:none; font-weight:600;}
+    a.prop-link:hover{text-decoration:underline;}
   </style>
 </head>
-
 <body>
 
-<h1>Spruce Admin Dashboard</h1>
-<p>
+<h1>Vellum Admin Dashboard</h1>
+<div class="sub">Your operation at a glance.</div>
+
+<nav>
   <a href="/admin.html"><button>Dashboard</button></a>
   <a href="/admin-properties.html"><button>Properties</button></a>
   <a href="/add-owner.html"><button>Add Owner</button></a>
   <a href="/add-property.html"><button>Add Property</button></a>
   <a href="/calculate-linen-order.html"><button>Quick Linen Order Estimate (will not save)</button></a>
   <a href="/admin-laundry.html"><button>Laundry</button></a>
-</p>
+</nav>
+
+<!-- ATTENTION STRIP -->
+<h2>Needs Attention</h2>
 <div class="grid">
-  <div class="card">
-    <div class="title">Cleans Today</div>
-    <div class="value" id="cleansToday">-</div>
+  <div class="alert-box attention" style="grid-column:span 2;">
+    <div class="title">Properties Needing a Box</div>
+    <ul class="alert-list" id="needsBoxList"><li class="empty">Loading…</li></ul>
   </div>
-
-  <div class="card">
-    <div class="title">Cleans This Week</div>
-    <div class="value" id="cleansWeek">-</div>
-  </div>
-
-  <div class="card">
-    <div class="title">Urgent Issues</div>
-    <div class="value" id="urgentIssues">-</div>
-  </div>
-
-  <div class="card">
-    <div class="title">Callouts</div>
-    <div class="value" id="callouts">-</div>
-  </div>
-
-  <div class="card">
-    <div class="title">Revenue Today</div>
-    <div class="value" id="revenueToday">$-</div>
-  </div>
-
-  <div class="card">
-    <div class="title">Net Today</div>
-    <div class="value" id="netToday">$-</div>
-  </div>
-
-  <div class="card">
-    <div class="title">Laundry Pickups</div>
-    <div class="value" id="laundry">-</div>
+  <div class="alert-box attention" style="grid-column:span 2;">
+    <div class="title">Linens Due for Refresh</div>
+    <ul class="alert-list" id="refreshList"><li class="empty">Loading…</li></ul>
   </div>
 </div>
 
+<!-- PORTFOLIO -->
+<h2>Portfolio</h2>
+<div class="tier-row">
+  <div class="tier"><div class="t-name">Total Properties</div><div class="t-count" id="totalProps">-</div></div>
+  <div class="tier"><div class="t-name">The Edit</div><div class="t-count" id="tierEdit">-</div></div>
+  <div class="tier"><div class="t-name">The Signature</div><div class="t-count" id="tierSig">-</div></div>
+  <div class="tier"><div class="t-name">The Collector's Edition</div><div class="t-count" id="tierColl">-</div></div>
+</div>
+
+<!-- OPERATIONS -->
+<h2>Operations Today</h2>
+<div class="grid">
+  <div class="card"><div class="title">Cleans Today</div><div class="value" id="cleansToday">-</div></div>
+  <div class="card"><div class="title">Cleans This Week</div><div class="value" id="cleansWeek">-</div></div>
+  <div class="card"><div class="title">Urgent Issues</div><div class="value" id="urgentIssues">-</div></div>
+  <div class="card"><div class="title">Callouts</div><div class="value" id="callouts">-</div></div>
+  <div class="card"><div class="title">Laundry Pickups</div><div class="value" id="laundry">-</div></div>
+</div>
+
+<!-- FINANCIAL -->
+<h2>Financial</h2>
+<div class="grid">
+  <div class="card"><div class="title">Revenue Today</div><div class="value" id="revenueToday">$-</div></div>
+  <div class="card"><div class="title">Net Today</div><div class="value" id="netToday">$-</div></div>
+  <div class="card soon"><div class="title">MRR <span class="soon-tag">(coming soon)</span></div><div class="value">$—</div></div>
+  <div class="card soon"><div class="title">Payments Due <span class="soon-tag">(coming soon)</span></div><div class="value">—</div></div>
+</div>
+
 <script>
+function propLink(pid){ return '<a class="prop-link" href="/admin-property.html?id=' + encodeURIComponent(pid) + '">' + pid + '</a>'; }
+
 async function loadDashboard() {
   const res = await fetch('/api/admin-dashboard');
   const data = await res.json();
 
+  // operations
   document.getElementById('cleansToday').innerText = data.cleansToday;
   document.getElementById('cleansWeek').innerText = data.cleansWeek;
   document.getElementById('urgentIssues').innerText = data.urgentIssues;
   document.getElementById('callouts').innerText = data.callouts;
+  document.getElementById('laundry').innerText = data.laundry;
+
+  // financial
   document.getElementById('revenueToday').innerText = "$" + data.revenueToday;
   document.getElementById('netToday').innerText = "$" + data.netToday;
-  document.getElementById('laundry').innerText = data.laundry;
-}
 
+  // portfolio
+  document.getElementById('totalProps').innerText = data.totalProperties;
+  document.getElementById('tierEdit').innerText = (data.tierCounts?.SIMPLY ?? 0);
+  document.getElementById('tierSig').innerText = (data.tierCounts?.SIGNATURE ?? 0);
+  document.getElementById('tierColl').innerText = (data.tierCounts?.CERTIFIED ?? 0);
+
+  // needs a box (grouped by property)
+  const nb = document.getElementById('needsBoxList');
+  if (!data.propsNeedingBox || data.propsNeedingBox.length === 0) {
+    nb.innerHTML = '<li class="empty">All stocked. Nothing needs a box.</li>';
+  } else {
+    nb.innerHTML = data.propsNeedingBox.map(pid => {
+      const items = (data.lowList||[]).filter(l => l.property_id === pid);
+      const names = items.map(i => i.item_name.split(' ').slice(0,2).join(' ')).join(', ');
+      return '<li>' + propLink(pid) + '<span class="pill">' + items.length + ' low</span></li>' +
+             '<li style="font-size:12px;color:#8C8272;border:none;padding-top:0;">' + names + '</li>';
+    }).join('');
+  }
+
+  // refresh due
+  const rf = document.getElementById('refreshList');
+  if (!data.refreshDue || data.refreshDue.length === 0) {
+    rf.innerHTML = '<li class="empty">No linens due for refresh.</li>';
+  } else {
+    rf.innerHTML = data.refreshDue.map(r =>
+      '<li>' + propLink(r.property_id) + '<span class="pill">' + r.months + ' mo</span></li>'
+    ).join('');
+  }
+}
 loadDashboard();
 </script>
 
