@@ -354,7 +354,7 @@
               <select id="req-plan">
                 <option value="SIMPLY">The Edit</option>
                 <option value="SIGNATURE">The Signature</option>
-                <option value="CERTIFIED">Vellum Certified</option>
+                <option value="CERTIFIED">The Collector's Edition</option>
               </select>
             </div>
           </div>
@@ -420,8 +420,6 @@ async function loadProperties(){
   const {data:props}=await sb.from('properties')
     .select('property_id, property_name, property_city, plan_type, status, bedrooms, bathrooms')
     .order('property_name',{nullsFirst:false});
-  const {data:addons}=await sb.from('property_addons').select('*');
-  const addonBy={}; (addons||[]).forEach(a=>addonBy[a.property_id]=a);
   const wrap=$('properties'), sel=$('req-property');
   wrap.innerHTML=''; sel.innerHTML='';
   $('prop-count').textContent = props?.length ? `${props.length} in care` : '';
@@ -430,17 +428,13 @@ async function loadProperties(){
     wrap.innerHTML='<div class="empty" style="grid-column:1/-1"><div class="line">No properties on file yet.</div><div class="sub">Once your first property is onboarded, it will appear here.</div></div>';
     return;
   }
-  const SERVICES=[['scents_enabled','Scents'],['sprigs_enabled','Sprigs'],['scapes_enabled','Scapes'],
-                  ['salutations_enabled','Salutations'],['spresso_enabled','Spresso'],['shopped_enabled','Shopped']];
-  const PLAN={SIMPLY:'The Edit',SIGNATURE:'The Signature',CERTIFIED:'Vellum Certified'};
+  const PLAN={SIMPLY:'The Edit',SIGNATURE:'The Signature',CERTIFIED:"The Collector's Edition"};
   // Placeholder seals. CERTIFIED has none yet -> falls back to the typographic label.
-  const SEAL={SIMPLY:'/seal-edit.png',SIGNATURE:'/seal-signature.png',CERTIFIED:'/seal-certified.png'};
+  const SEAL={SIMPLY:'/seal-edit.png',SIGNATURE:'/seal-signature.png',CERTIFIED:'/seal-collectors.png'};
   const truthy=v=>v!=null&&!['','no','false','off','0'].includes(String(v).toLowerCase());
   const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 
   props.forEach(p=>{
-    const a=addonBy[p.property_id]||{};
-    const svc=SERVICES.map(([k,l])=>`<span class="svc ${truthy(a[k])?'on':''}">${l}</span>`).join('');
     const beds=p.bedrooms!=null?`${p.bedrooms} bed`:'', baths=p.bathrooms!=null?`${p.bathrooms} bath`:'';
     const place=[esc(p.property_city),[beds,baths].filter(Boolean).join(', ')].filter(Boolean).join(' &middot; ');
     const planName = PLAN[p.plan_type]||p.plan_type||'';
@@ -450,7 +444,6 @@ async function loadProperties(){
         ${sealSrc?`<img class="seal-mark" src="${sealSrc}" alt="${esc(planName)}">`:''}
         <h3>${esc(p.property_name||p.property_id)}</h3>
         ${place?`<div class="place">${place}</div>`:''}
-        <div class="services">${svc}</div>
         <div class="plan">
           <span class="label">${esc(planName||'—')}</span>
           <span class="status">${esc(p.status||'')}</span>
