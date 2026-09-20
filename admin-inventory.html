@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style id="auth-gate-style">html{visibility:hidden!important}</style>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="admin-auth.js"></script>
+  <script src="auth-guard.js"></script>
+  <title>Inventory · Vellum Atelier</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600&family=EB+Garamond&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --oxblood:#4A1A1F; --oxblood-deep:#300909; --cream:#F7F3EC; --vellum:#FBF8F2;
+      --gold:#C6A664; --gold-deep:#9C7F45; --charcoal:#2B2B2B; --muted:#8C8272;
+      --red:#c0392b; --amber:#e67e22; --green:#27ae60;
+    }
+    *{box-sizing:border-box;}
+    body{font-family:'EB Garamond',Georgia,serif; background:var(--cream); color:var(--charcoal); padding:24px; margin:0;}
+    h1{font-family:'Cormorant Garamond',serif; color:var(--oxblood); margin:0 0 4px;}
+    .sub{color:var(--muted); margin-bottom:16px; font-size:14px;}
+    h2{font-family:'Cormorant Garamond',serif; color:var(--oxblood); font-size:22px; margin:28px 0 12px; border-bottom:1px solid var(--gold); padding-bottom:6px;}
+    nav a{text-decoration:none;}
+    nav button{font-family:'EB Garamond',serif; font-size:14px; background:var(--oxblood); color:var(--cream);
+      border:1px solid var(--gold-deep); padding:9px 16px; border-radius:8px; cursor:pointer; margin:0 6px 16px 0;}
+    nav button:hover{background:var(--oxblood-deep);}
+
+    .cards{display:flex; gap:16px; flex-wrap:wrap; margin-bottom:8px;}
+    .card{background:white; padding:16px 20px; border-radius:12px; box-shadow:0 2px 8px rgba(48,9,9,.08); border-top:3px solid var(--gold); min-width:160px;}
+    .card.alert{border-top-color:var(--red);}
+    .title{font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:.06em;}
+    .value{font-size:28px; font-weight:bold; color:var(--oxblood); font-family:'Cormorant Garamond',serif;}
+
+    .panel{background:white; border-radius:12px; box-shadow:0 2px 8px rgba(48,9,9,.08); padding:0; overflow:hidden; margin-bottom:20px;}
+    table{width:100%; border-collapse:collapse;}
+    thead th{text-transform:uppercase; font-size:11px; color:var(--muted); letter-spacing:.05em; text-align:left; padding:9px 16px; border-bottom:1px solid #eee;}
+    tbody td{padding:9px 16px; border-bottom:1px solid #f4f0e8; font-size:14.5px;}
+    tbody tr.low td{background:#fdf3f2;}
+    .lowtag{font-size:10px; background:var(--red); color:white; padding:1px 8px; border-radius:10px;}
+    .num{text-align:right;}
+    .vendor-group{margin-bottom:14px;}
+    .vendor-head{font-family:'Cormorant Garamond',serif; font-size:18px; color:var(--oxblood); margin:6px 0;}
+
+    .btn{font-family:'EB Garamond',serif; background:var(--gold-deep); color:white; border:none; padding:8px 16px; border-radius:8px; cursor:pointer; font-size:14px;}
+    .btn.oxblood{background:var(--oxblood);}
+    .btn:hover{opacity:.92;}
+    input[type=number]{width:70px; padding:5px; border:1px solid #ccc; border-radius:6px; font-family:inherit;}
+    .empty{color:var(--muted); font-style:italic; padding:12px 16px;}
+    #receivePanel{display:none; background:var(--vellum); border:1px solid var(--gold); border-radius:12px; padding:16px 20px; margin-bottom:20px;}
+  </style>
+</head>
+<body>
+
+<h1>The Atelier — Inventory</h1>
+<div class="sub">Central warehouse stock. Receive from suppliers, watch par, pack boxes for properties.</div>
+
+<nav>
+  <a href="/admin.html"><button>&larr; Dashboard</button></a>
+  <a href="/admin-ordering.html"><button>Ordering Board (pack boxes)</button></a>
+  <a href="/admin-properties.html"><button>Properties</button></a>
+</nav>
+
+<div class="cards">
+  <div class="card"><div class="title">Atelier Items</div><div class="value" id="totalItems">-</div></div>
+  <div class="card alert"><div class="title">Below Reorder</div><div class="value" id="lowCount">-</div></div>
+  <div><button class="btn oxblood" style="margin-top:18px;" onclick="toggleReceive()">+ Receive an Order</button></div>
+</div>
+
+<!-- RECEIVE PANEL -->
+<div id="receivePanel">
+  <h2 style="margin-top:0;">Receive an Order</h2>
+  <div class="sub">Check in what physically arrived. Enter received quantities, then Confirm Received to add to atelier stock.</div>
+  <div class="panel" style="box-shadow:none; border:1px solid #eee;">
+    <table>
+      <thead><tr><th>Item</th><th>On hand</th><th>Vendor</th><th class="num">Received qty</th></tr></thead>
+      <tbody id="receiveBody"></tbody>
+    </table>
+  </div>
+  <button class="btn oxblood" onclick="confirmReceive()">Confirm Received</button>
+  <span id="receiveMsg" style="margin-left:12px; color:var(--green);"></span>
+</div>
+
+<!-- REORDER-BY-VENDOR -->
+<h2>To Reorder from Suppliers</h2>
+<div id="reorderBlock"><div class="empty">Loading…</div></div>
+
+<!-- FULL ATELIER STOCK -->
+<h2>Atelier Stock</h2>
+<div class="panel">
+  <table>
+    <thead><tr><th>Item</th><th class="num">On hand</th><th class="num">Par</th><th class="num">Reorder pt</th><th class="num">To par</th><th>Vendor</th></tr></thead>
+    <tbody id="stockBody"><tr><td class="empty" colspan="6">Loading…</td></tr></tbody>
+  </table>
+</div>
+
+<script>
+let WAREHOUSE = [];
+
+async function loadWarehouse() {
+  const res = await fetch('/api/get-warehouse');
+  const data = await res.json();
+  if (!data.success) { document.getElementById('stockBody').innerHTML = '<tr><td colspan="6">Error: '+(data.error||'')+'</td></tr>'; return; }
+  WAREHOUSE = data.items;
+
+  document.getElementById('totalItems').innerText = data.total_items;
+  document.getElementById('lowCount').innerText = data.low_count;
+
+  // full stock table
+  document.getElementById('stockBody').innerHTML = data.items.map(i =>
+    '<tr class="'+(i.low?'low':'')+'">' +
+      '<td>'+i.item_name+(i.low?' <span class="lowtag">LOW</span>':'')+'</td>' +
+      '<td class="num">'+i.on_hand+'</td>' +
+      '<td class="num">'+i.par+'</td>' +
+      '<td class="num">'+i.reorder_point+'</td>' +
+      '<td class="num">'+(i.topoff_to_par>0?('+'+i.topoff_to_par):'—')+'</td>' +
+      '<td>'+(i.vendor||'—')+'</td>' +
+    '</tr>'
+  ).join('');
+
+  // reorder-by-vendor
+  const rb = document.getElementById('reorderBlock');
+  const vendors = Object.keys(data.reorder_by_vendor || {});
+  if (!vendors.length) {
+    rb.innerHTML = '<div class="empty">Nothing below reorder point. Atelier is stocked. \u2713</div>';
+  } else {
+    rb.innerHTML = vendors.map(v => {
+      const rows = data.reorder_by_vendor[v].map(i =>
+        '<tr><td>'+i.item_name+'</td><td class="num">'+i.on_hand+' / '+i.par+'</td><td class="num">order ~'+(i.topoff_to_par||1)+'</td></tr>'
+      ).join('');
+      return '<div class="vendor-group"><div class="vendor-head">'+v+'</div>' +
+        '<div class="panel" style="box-shadow:none;border:1px solid #eee;"><table>' +
+        '<thead><tr><th>Item</th><th class="num">On hand / Par</th><th class="num">Suggest</th></tr></thead>' +
+        '<tbody>'+rows+'</tbody></table></div></div>';
+    }).join('');
+  }
+}
+
+function toggleReceive() {
+  const p = document.getElementById('receivePanel');
+  if (p.style.display === 'block') { p.style.display = 'none'; return; }
+  // populate with all items, blank received qty
+  document.getElementById('receiveBody').innerHTML = WAREHOUSE.map(i =>
+    '<tr><td>'+i.item_name+'</td><td>'+i.on_hand+'</td><td>'+(i.vendor||'—')+'</td>' +
+    '<td class="num"><input type="number" min="0" data-code="'+i.item_code+'" placeholder="0"></td></tr>'
+  ).join('');
+  p.style.display = 'block';
+  p.scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+async function confirmReceive() {
+  const items = [];
+  document.querySelectorAll('#receiveBody input[type=number]').forEach(inp => {
+    const q = Number(inp.value||0);
+    if (q > 0) items.push({ item_code: inp.getAttribute('data-code'), qty: q });
+  });
+  if (!items.length) { document.getElementById('receiveMsg').innerText = 'Enter at least one quantity.'; return; }
+  const res = await fetch('/api/receive-order', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ items, note: 'Received via inventory dashboard' })
+  });
+  const data = await res.json();
+  if (data.success) {
+    document.getElementById('receiveMsg').innerText = '\u2713 Received '+items.length+' item(s). Atelier updated.';
+    setTimeout(()=>{ document.getElementById('receivePanel').style.display='none'; loadWarehouse(); }, 1200);
+  } else {
+    document.getElementById('receiveMsg').innerText = 'Error: '+(data.error||'unknown');
+  }
+}
+
+loadWarehouse();
+</script>
+
+</body>
+</html>
