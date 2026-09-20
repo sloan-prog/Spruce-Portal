@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style id="auth-gate-style">html{visibility:hidden!important}</style>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="admin-auth.js"></script>
+  <script src="auth-guard.js"></script>
+  <title>Ordering Board · Vellum</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600&family=EB+Garamond&display=swap" rel="stylesheet">
+  <style>
+    :root{--oxblood:#4A1A1F;--oxblood-deep:#300909;--cream:#F7F3EC;--vellum:#FBF8F2;--gold:#C6A664;--gold-deep:#9C7F45;--charcoal:#2B2B2B;--muted:#8C8272;--red:#c0392b;}
+    *{box-sizing:border-box;}
+    body{font-family:'EB Garamond',Georgia,serif;background:var(--cream);color:var(--charcoal);padding:24px;margin:0;}
+    h1{font-family:'Cormorant Garamond',serif;color:var(--oxblood);margin:0 0 4px;}
+    .sub{color:var(--muted);margin-bottom:16px;font-size:14px;}
+    nav a{text-decoration:none;}
+    nav button{font-family:'EB Garamond',serif;font-size:14px;background:var(--oxblood);color:var(--cream);border:1px solid var(--gold-deep);padding:9px 16px;border-radius:8px;cursor:pointer;margin:0 6px 16px 0;}
+    nav button:hover{background:var(--oxblood-deep);}
+    .summary{font-family:'Cormorant Garamond',serif;font-size:22px;color:var(--oxblood);margin:8px 0 20px;}
+    .prop-card{background:white;border-radius:14px;box-shadow:0 3px 12px rgba(48,9,9,.09);border-top:4px solid var(--red);margin-bottom:20px;overflow:hidden;}
+    .prop-head{display:flex;justify-content:space-between;align-items:center;padding:16px 20px;}
+    .prop-name{font-family:'Cormorant Garamond',serif;font-size:24px;color:var(--oxblood);}
+    .prop-name a{color:var(--oxblood);text-decoration:none;}
+    .prop-badges{display:flex;gap:8px;align-items:center;}
+    .pill{padding:3px 12px;border-radius:20px;font-size:12px;font-weight:bold;}
+    .pill.urgent{background:var(--red);color:white;}
+    .pill.count{background:var(--gold);color:var(--oxblood-deep);}
+    table{width:100%;border-collapse:collapse;}
+    thead th{text-transform:uppercase;font-size:11px;color:var(--muted);letter-spacing:.06em;text-align:left;padding:8px 20px;border-bottom:1px solid #eee;}
+    tbody td{padding:9px 20px;border-bottom:1px solid #f4f0e8;font-size:15px;}
+    tbody tr.low td{background:#fdf3f2;}
+    .prio{font-size:10px;padding:1px 7px;border-radius:10px;text-transform:uppercase;letter-spacing:.04em;}
+    .prio.DRIVER{background:#f7d9d5;color:#8a2b20;}
+    .prio.RIDE_ALONG{background:#f2e6c9;color:#8a6d1f;}
+    .prio.SLOW{background:#e6e6e6;color:#666;}
+    .topoff-qty{font-weight:bold;color:var(--oxblood);}
+    .packbtn{font-family:'EB Garamond',serif;background:var(--oxblood);color:white;border:1px solid var(--gold-deep);padding:9px 18px;border-radius:8px;cursor:pointer;font-size:14px;margin:12px 20px;}
+    .packbtn:hover{background:var(--oxblood-deep);}
+    .packmsg{margin-left:12px;color:#27ae60;}
+    .empty{background:white;border-radius:14px;padding:40px;text-align:center;box-shadow:0 3px 12px rgba(48,9,9,.09);font-family:'Cormorant Garamond',serif;font-size:22px;color:var(--muted);}
+  </style>
+</head>
+<body>
+<h1>Ordering Board</h1>
+<div class="sub">Properties with a fast-mover at/below reorder point. Check off what you pack, then Confirm Packed to decrement the atelier and send the box.</div>
+<nav>
+  <a href="/admin.html"><button>&larr; Dashboard</button></a>
+  <a href="/admin-inventory.html"><button>Atelier Inventory</button></a>
+  <a href="/admin-properties.html"><button>Properties</button></a>
+</nav>
+<div class="summary" id="summary">Loading…</div>
+<div id="board"></div>
+
+<script>
+function propLink(pid,name){return '<a href="/admin-property.html?id='+encodeURIComponent(pid)+'">'+(name||pid)+'</a>';}
+
+async function loadBoard(){
+  const res=await fetch('/api/get-ordering-board');
+  const data=await res.json();
+  const board=document.getElementById('board');
+  const summary=document.getElementById('summary');
+  if(!data.success){summary.innerText='Error: '+(data.error||'unknown');return;}
+  if(data.count===0){summary.innerText='';board.innerHTML='<div class="empty">All homes stocked. Nothing needs a box right now. \u2713</div>';return;}
+  summary.innerText=data.count+(data.count===1?' home needs a box':' homes need a box');
+  board.innerHTML=data.needsBox.map((p,idx)=>{
+    const rows=p.topoff.map(t=>
+      '<tr class="'+(t.is_driver_low?'low':'')+'">'+
+        '<td><input type="checkbox" data-code="'+t.item_code+'" data-qty="'+t.topoff_qty+'" checked></td>'+
+        '<td>'+t.item_name+'</td>'+
+        '<td><span class="prio '+t.priority+'">'+(t.priority||'').replace('_',' ')+'</span></td>'+
+        '<td>'+t.on_hand+' / '+t.par+'</td>'+
+        '<td class="topoff-qty">+'+t.topoff_qty+'</td>'+
+      '</tr>').join('');
+    return '<div class="prop-card" id="card'+idx+'">'+
+      '<div class="prop-head">'+
+        '<div class="prop-name">'+propLink(p.property_id,p.property_name)+'</div>'+
+        '<div class="prop-badges"><span class="pill urgent">'+p.driver_low_count+' low</span><span class="pill count">'+p.item_count+' to pack</span></div>'+
+      '</div>'+
+      '<table><thead><tr><th>Pack</th><th>Item</th><th>Type</th><th>On hand / Par</th><th>Qty</th></tr></thead><tbody>'+rows+'</tbody></table>'+
+      '<button class="packbtn" onclick="confirmPacked('+idx+',\''+p.property_id+'\')">Confirm Packed &amp; Send</button>'+
+      '<span class="packmsg" id="packmsg'+idx+'"></span>'+
+    '</div>';
+  }).join('');
+}
+
+async function confirmPacked(idx, propertyId){
+  const card=document.getElementById('card'+idx);
+  const items=[];
+  card.querySelectorAll('input[type=checkbox]:checked').forEach(cb=>{
+    items.push({item_code:cb.getAttribute('data-code'),qty:Number(cb.getAttribute('data-qty'))});
+  });
+  if(!items.length){document.getElementById('packmsg'+idx).innerText='Check at least one item.';return;}
+  if(!confirm('Confirm packing '+items.length+' item(s) for '+propertyId+'? This decrements the atelier and marks the box in-transit.'))return;
+  const res=await fetch('/api/pack-box',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({property_id:propertyId,items})});
+  const data=await res.json();
+  if(data.success){
+    const neg=(data.packed||[]).filter(x=>x.warehouse_negative);
+    let msg='\u2713 Box packed & sent. Atelier decremented.';
+    if(neg.length)msg+=' \u26a0 '+neg.length+' item(s) went negative in atelier — reorder!';
+    document.getElementById('packmsg'+idx).innerText=msg;
+    setTimeout(loadBoard,1600);
+  }else{document.getElementById('packmsg'+idx).innerText='Error: '+(data.error||'unknown');}
+}
+loadBoard();
+</script>
+</body>
+</html>
