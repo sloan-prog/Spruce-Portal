@@ -126,11 +126,9 @@ const row = {
         { item_code: 'CON-005', qty: row.dish_liquid_adjusted   || row.dish_liquid },
         { item_code: 'CON-007', qty: row.dish_pods_adjusted     || row.dish_pods },
         { item_code: 'CON-006', qty: row.laundry_packs_adjusted || row.laundry_packs },
-        { item_code: 'CON-016', qty: row.coffee_pods_adjusted   || row.coffee_pods },
         { item_code: 'CON-017', qty: row.coffee_bags_adjusted   || row.coffee_bags },
         { item_code: 'CON-013', qty: row.sugar_adjusted         || row.sugar },
         { item_code: 'CON-015', qty: row.creamer_adjusted       || row.creamer },
-        { item_code: 'CON-014', qty: row.stirrers_adjusted      || row.stirrers },
         { item_code: 'GFT-001', qty: row.arrival_gift },
       ].filter(d => d.qty > 0);
 
