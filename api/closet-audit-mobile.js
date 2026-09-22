@@ -20,6 +20,28 @@ function parseMultipart(req) {
 }
 
 // Helper: pull a numeric value trying several possible field-name keys.
+// Convert a trash-range dropdown (cleaner's guesstimate of individual bags left in a
+// 120-count box) to a number. Options: bathroom 0-25 / 50-100; kitchen 0-25 / 50-75 / 100 or over.
+function rangeToNum(raw, key) {
+  const v = raw[key];
+  if (v === undefined || v === null || v === '') return null;
+  const s = String(v).toLowerCase().trim();
+  if (s.includes('over')) return 110;          // "100 or over" -> ~110 (box is 120)
+  const map = {
+    '0-25': 12,
+    '25-50': 37,
+    '50-75': 62,
+    '75-100': 87,
+    '50-100': 75,
+    '100 or over': 110,
+  };
+  if (map[s] !== undefined) return map[s];
+  const m = s.match(/(\d+)\s*-\s*(\d+)/);   // generic "a-b" fallback -> midpoint
+  if (m) return Math.round((Number(m[1]) + Number(m[2])) / 2);
+  const n = Number(s);
+  return isNaN(n) ? null : n;
+}
+
 function pick(raw, keys) {
   for (const k of keys) {
     if (raw[k] !== undefined && raw[k] !== null && raw[k] !== '') {
@@ -63,6 +85,8 @@ module.exports = async function handler(req, res) {
       'CON-010': pick(raw, ['q81_soap']),               // soap
       'CON-017': pick(raw, ['q108_coffeeBags108']),     // coffee bags (ground)
       'GFT-001': pick(raw, ['q155_arrivalGift']),       // arrival gift (copper key)
+      'CON-004': rangeToNum(raw, 'q152_bathroomTrash'),  // sm trash bags (range dropdown)
+      'CON-003': rangeToNum(raw, 'q153_kitchenTrash'),   // lg trash bags (range dropdown)
     };
 
     // 1) Log the audit to closet_audit (best-effort; skip fields the table lacks)
@@ -82,6 +106,8 @@ module.exports = async function handler(req, res) {
       soap: counts['CON-010'],
       coffee_bags: counts['CON-017'],
       arrival_gift: counts['GFT-001'],
+      lg_trash_bags: counts['CON-003'],
+      sm_trash_bags: counts['CON-004'],
       audited_by: String(raw.q_lastName || raw.yourLastName || ''),
     };
     const { error: logErr } = await supabase.from('closet_audit').insert(auditRow);
