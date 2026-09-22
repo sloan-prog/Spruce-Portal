@@ -41,30 +41,28 @@ module.exports = async function handler(req, res) {
 
     // LOG the full raw payload so we can confirm/correct field IDs from the first test.
     console.log('AUDIT RAW:', JSON.stringify(raw));
-    // DEBUG: also dump raw payload to a table we can read directly (remove after calibration)
-    try { await supabase.from('audit_debug').insert({ raw_payload: raw }); } catch (e) { console.error('debug dump failed', e); }
 
     const submission_id = fields.submissionID || '';
     // property_id may arrive under a few possible keys — try them
     const property_id = String(
-      raw.q72_property_id || raw.q_property_id || raw.propertyID || raw.property_id || ''
+      raw.q72_property_id || raw.property_id || ''
     );
 
     // Map audit COUNT fields -> item_code. Each value is the PHYSICAL COUNT that will
     // OVERWRITE current_on_hand. We try multiple likely field keys per item since this
     // is a new form; the console log lets us lock the exact keys after the first test.
     const counts = {
-      'CON-001': pick(raw, ['q9_toiletTissue', 'q6_toiletTissue', 'q_toiletTissue', 'toiletTissue']),          // toilet tissue
-      'CON-002': pick(raw, ['q12_paperTowels', 'q7_paperTowels', 'q_paperTowels', 'paperTowels']),             // paper towels
-      'CON-011': pick(raw, ['q15_makeupWipes', 'q10_makeupWipes', 'q_makeupWipes', 'makeupWipes']),            // makeup wipes
-      'CON-006': pick(raw, ['q16_laundryPacks', 'q11_laundryPacks', 'q_laundryPacks', 'laundryPacks']),        // laundry packs
-      'CON-005': pick(raw, ['q17_dishLiquid', 'q12_dishLiquid', 'q_dishLiquid', 'dishLiquid']),                // dish liquid
-      'CON-007': pick(raw, ['q18_dishPods', 'q13_dishPods', 'q_dishPods', 'dishPods']),                        // dish pods
-      'CON-008': pick(raw, ['q19_shampoo', 'q14_shampoo', 'q_shampoo', 'shampoo']),                            // shampoo
-      'CON-009': pick(raw, ['q20_conditioner', 'q15_conditioner', 'q_conditioner', 'conditioner']),           // conditioner
-      'CON-010': pick(raw, ['q21_soap', 'q16_soap', 'q_soap', 'soap']),                                        // soap
-      'CON-017': pick(raw, ['q89_coffeeBags', 'q_coffeeBags', 'coffeeBags']),                                  // coffee bags (ground)
-      'GFT-001': pick(raw, ['q151_arrivalGift', 'q_arrivalGift', 'arrivalGift']),                              // arrival gift (copper key)
+      'CON-001': pick(raw, ['q78_toiletTissue78']),     // toilet tissue
+      'CON-002': pick(raw, ['q100_paperTowels100']),    // paper towels
+      'CON-011': pick(raw, ['q82_makeupWipes82']),      // makeup wipes
+      'CON-006': pick(raw, ['q104_laundryPacks104']),   // laundry packs
+      'CON-005': pick(raw, ['q102_dishLiquid102']),     // dish liquid
+      'CON-007': pick(raw, ['q103_dishPods103']),       // dish pods
+      'CON-008': pick(raw, ['q83_shampoo']),            // shampoo
+      'CON-009': pick(raw, ['q80_conditioner']),        // conditioner
+      'CON-010': pick(raw, ['q81_soap']),               // soap
+      'CON-017': pick(raw, ['q108_coffeeBags108']),     // coffee bags (ground)
+      'GFT-001': pick(raw, ['q155_arrivalGift']),       // arrival gift (copper key)
     };
 
     // 1) Log the audit to closet_audit (best-effort; skip fields the table lacks)
@@ -72,7 +70,7 @@ module.exports = async function handler(req, res) {
       audit_id: String(submission_id),
       audit_date: new Date().toISOString().split('T')[0],
       property_id,
-      property_name: String(raw.q3_property || raw.property || ''),
+      property_name: String(raw.q3_property || ''),
       toilet_tissue: counts['CON-001'],
       paper_towels: counts['CON-002'],
       makeup_wipes: counts['CON-011'],
