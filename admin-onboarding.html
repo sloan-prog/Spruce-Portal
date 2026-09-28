@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style id="auth-gate-style">html{visibility:hidden!important}</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="admin-auth.js"></script>
+<script src="auth-guard.js"></script>
+<title>Vellum · Onboarding</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --oxblood:#4A1A1F; --oxblood-deep:#3A1216; --cream:#FDFBF7; --paper:#F6F1E8;
+    --paper-line:#E8DFD0; --charcoal:#2B2724; --ink:#463F39; --gold:#C6A664;
+    --gold-deep:#A8873F; --muted:#8C8272; --ok:#4F6B52; --warn:#B07A2E;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'EB Garamond',Georgia,serif; background:var(--paper); color:var(--ink);
+    line-height:1.5; padding:32px 22px 80px;}
+  .wrap{max-width:1120px;margin:0 auto}
+  header{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;flex-wrap:wrap;
+    border-bottom:1px solid var(--paper-line);padding-bottom:20px}
+  .wordmark{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:600;letter-spacing:.30em;color:var(--oxblood)}
+  .eyebrow{font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:var(--muted)}
+  h1{font-family:'Cormorant Garamond',serif;font-weight:500;font-size:34px;color:var(--charcoal);margin:24px 0 4px}
+  .sub{color:var(--muted);font-size:15px;font-style:italic;margin-bottom:22px}
+  nav a{text-decoration:none}
+  nav button{font-family:'EB Garamond',serif;font-size:13px;background:var(--oxblood);color:var(--cream);
+    border:1px solid var(--gold-deep);padding:8px 14px;border-radius:8px;cursor:pointer;margin:14px 6px 0 0}
+
+  .summary{display:flex;gap:0;flex-wrap:wrap;border:1px solid var(--paper-line);border-radius:12px;
+    overflow:hidden;margin:8px 0 24px;background:#fff}
+  .summary .cell{flex:1;min-width:110px;padding:12px 14px;border-right:1px solid var(--paper-line);text-align:center}
+  .summary .cell:last-child{border-right:none}
+  .summary .n{font-family:'Cormorant Garamond',serif;font-size:26px;color:var(--oxblood);font-weight:600}
+  .summary .l{font-size:10px;letter-spacing:.10em;text-transform:uppercase;color:var(--muted)}
+
+  .card{background:#fff;border:1px solid var(--paper-line);border-radius:14px;padding:18px 20px;margin-bottom:16px;
+    box-shadow:0 2px 10px rgba(58,18,22,.05)}
+  .card-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
+  .prop{font-family:'Cormorant Garamond',serif;font-size:22px;color:var(--oxblood)}
+  .owner{font-size:13px;color:var(--muted)}
+  .tier{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--gold-deep)}
+
+  .stagebar{display:flex;gap:4px;flex-wrap:wrap;margin:14px 0}
+  .stage{font-size:10px;letter-spacing:.04em;text-transform:uppercase;padding:4px 9px;border-radius:20px;
+    border:1px solid var(--paper-line);color:var(--muted);cursor:pointer;background:#fff}
+  .stage.done{background:var(--ok);color:#fff;border-color:var(--ok)}
+  .stage.current{background:var(--oxblood);color:#fff;border-color:var(--oxblood)}
+
+  .checks{display:flex;gap:16px;flex-wrap:wrap;margin-top:10px;font-size:13px}
+  .checks label{display:flex;align-items:center;gap:6px;cursor:pointer}
+  .baseline{margin-top:12px;padding-top:12px;border-top:1px dashed var(--paper-line);font-size:13px;
+    display:flex;gap:14px;flex-wrap:wrap;align-items:center}
+  .baseline input{width:80px;padding:5px;border:1px solid var(--paper-line);border-radius:6px;font-family:inherit}
+  .baseline .savebtn{background:var(--gold-deep);color:#fff;border:none;padding:6px 12px;border-radius:6px;cursor:pointer;font-family:inherit}
+  .missing{color:var(--warn);font-style:italic;font-size:12px}
+  .empty{text-align:center;padding:50px;color:var(--muted);font-family:'Cormorant Garamond',serif;font-size:22px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <div class="wordmark">VELLUM</div>
+      <div class="eyebrow">Admin</div>
+    </div>
+    <nav>
+      <a href="/admin.html"><button>Dashboard</button></a>
+      <a href="/admin-properties.html"><button>Properties</button></a>
+      <a href="/admin-inventory.html"><button>Atelier</button></a>
+    </nav>
+  </header>
+
+  <h1>Onboarding Pipeline</h1>
+  <div class="sub">Every property from lead to live. Capture the baseline before activation — it's how we prove the Vellum lift.</div>
+
+  <div class="summary" id="summary"></div>
+  <div id="list"><div class="empty">Loading…</div></div>
+</div>
+
+<script>
+const STAGE_LABELS = {
+  LEAD:'Lead', PROPOSAL_SENT:'Proposal', FEE_PAID:'Fee Paid', CONTRACT_SIGNED:'Signed',
+  BASELINE_CAPTURED:'Baseline', AUDIT_PASSED:'Audit', SUPPLIES_LOADED:'Supplies', LIVE:'Live'
+};
+let STAGES = [];
+
+async function load(){
+  const res = await fetch('/api/get-onboarding');
+  const data = await res.json();
+  if(!data.success){ document.getElementById('list').innerHTML = '<div class="empty">Error: '+(data.error||'')+'</div>'; return; }
+  STAGES = data.stages;
+
+  // summary strip
+  document.getElementById('summary').innerHTML = STAGES.map(s =>
+    '<div class="cell"><div class="n">'+(data.counts[s]||0)+'</div><div class="l">'+STAGE_LABELS[s]+'</div></div>'
+  ).join('');
+
+  const list = document.getElementById('list');
+  if(!data.items.length){ list.innerHTML = '<div class="empty">No properties in the pipeline yet.</div>'; return; }
+
+  list.innerHTML = data.items.map(it => {
+    const curIdx = STAGES.indexOf(it.stage);
+    const stages = STAGES.map((s,i) => {
+      let cls = 'stage';
+      if(i < curIdx) cls += ' done';
+      if(i === curIdx) cls += ' current';
+      return '<span class="'+cls+'" onclick="setStage(\''+it.id+'\',\''+s+'\')">'+STAGE_LABELS[s]+'</span>';
+    }).join('');
+
+    const baselineMissing = !it.baseline_adr;
+    return '<div class="card">'+
+      '<div class="card-head">'+
+        '<div><div class="prop">'+it.property_name+'</div><div class="owner">'+it.owner_name+(it.market_id?' · '+it.market_id:'')+'</div></div>'+
+        '<div class="tier">'+(it.plan_type||'')+'</div>'+
+      '</div>'+
+      '<div class="stagebar">'+stages+'</div>'+
+      '<div class="checks">'+
+        '<label><input type="checkbox" '+(it.fee_paid?'checked':'')+' onchange="setFlag(\''+it.id+'\',\'fee_paid\',this.checked)"> Onboarding fee paid</label>'+
+        '<label><input type="checkbox" '+(it.contract_signed?'checked':'')+' onchange="setFlag(\''+it.id+'\',\'contract_signed\',this.checked)"> Contract signed</label>'+
+        '<label><input type="checkbox" '+(it.locked_closet?'checked':'')+' onchange="setFlag(\''+it.id+'\',\'locked_closet\',this.checked)"> Locked closet confirmed</label>'+
+      '</div>'+
+      '<div class="baseline">'+
+        '<strong>Baseline:</strong>'+
+        'ADR $<input type="number" id="adr_'+it.id+'" value="'+(it.baseline_adr||'')+'" placeholder="0">'+
+        'Occ %<input type="number" id="occ_'+it.id+'" placeholder="0">'+
+        'Reviews<input type="number" step="0.01" id="rev_'+it.id+'" placeholder="0">'+
+        '<button class="savebtn" onclick="saveBaseline(\''+it.id+'\')">Save baseline</button>'+
+        (baselineMissing ? '<span class="missing">⚠ capture before going live</span>' : '<span style="color:var(--ok)">✓ captured</span>')+
+      '</div>'+
+    '</div>';
+  }).join('');
+}
+
+async function post(body){
+  const r = await fetch('/api/update-onboarding',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+  return r.json();
+}
+async function setStage(id, stage){ await post({id, stage}); load(); }
+async function setFlag(id, flag, val){ const b={id}; b[flag]=val; await post(b); }
+async function saveBaseline(id){
+  const adr = document.getElementById('adr_'+id).value;
+  const occ = document.getElementById('occ_'+id).value;
+  const rev = document.getElementById('rev_'+id).value;
+  await post({ id, baseline_adr:adr, baseline_occupancy:occ, baseline_review_score:rev,
+    baseline_captured_date: new Date().toISOString().split('T')[0] });
+  load();
+}
+load();
+</script>
+</body>
+</html>
