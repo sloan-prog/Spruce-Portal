@@ -95,6 +95,17 @@ export default async function handler(req, res) {
       }
     });
 
+    // ---- NEW: scent due for refresh (last refreshed > 8 weeks / 56 days) ----
+    const { data: scentProps } = await supabase
+      .from('properties').select('property_id, scent_last_refreshed').eq('active', true);
+    const scentRefreshDue = [];
+    (scentProps || []).forEach(p => {
+      if (p.scent_last_refreshed) {
+        const weeks = (now - new Date(p.scent_last_refreshed).getTime()) / (1000*60*60*24*7);
+        if (weeks >= 8) scentRefreshDue.push({ property_id: p.property_id, weeks: Math.round(weeks) });
+      }
+    });
+
     res.status(200).json({
       cleansToday: cleansToday || 0,
       cleansWeek: cleansWeek || 0,
@@ -106,7 +117,8 @@ export default async function handler(req, res) {
       tierCounts,
       lowList,
       propsNeedingBox,
-      refreshDue
+      refreshDue,
+      scentRefreshDue
     });
   } catch (err) {
     res.status(500).json({ error: err.message });
