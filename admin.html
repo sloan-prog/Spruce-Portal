@@ -86,6 +86,10 @@
     <div class="title">Linens Due for Refresh</div>
     <ul class="alert-list" id="refreshList"><li class="empty">Loading…</li></ul>
   </div>
+  <div class="alert-box attention" style="grid-column:span 2;">
+    <div class="title">Scent Refresh Due (8 wks)</div>
+    <ul class="alert-list" id="scentList"><li class="empty">Loading…</li></ul>
+  </div>
 </div>
 
 <!-- PORTFOLIO -->
@@ -160,6 +164,16 @@ async function loadDashboard() {
   } else {
     rf.innerHTML = data.refreshDue.map(r =>
       '<li>' + propLink(r.property_id) + '<span class="pill">' + r.months + ' mo</span></li>'
+    ).join('');
+  }
+
+  // scent refresh due
+  const sc = document.getElementById('scentList');
+  if (!data.scentRefreshDue || data.scentRefreshDue.length === 0) {
+    sc.innerHTML = '<li class="empty">All scents fresh.</li>';
+  } else {
+    sc.innerHTML = data.scentRefreshDue.map(r =>
+      '<li>' + propLink(r.property_id) + '<span class="pill">' + r.weeks + ' wks</span></li>'
     ).join('');
   }
 }
