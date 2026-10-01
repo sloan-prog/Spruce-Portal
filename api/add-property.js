@@ -33,6 +33,7 @@ function buildLinks(p) {
     '&property='    + encodeURIComponent(p.property_name || '') +
     '&beds='        + (p.bedrooms != null ? p.bedrooms : '') +
     '&baths='       + (p.bathrooms != null ? p.bathrooms : '') +
+    '&half_baths='  + (p.half_baths != null ? p.half_baths : 0) +
     '&sleeps='      + (p.sleeps != null ? p.sleeps : '') +
     '&plan_type='   + encodeURIComponent(p.plan_type || '') +
     '&coffee_type=' + encodeURIComponent(p.coffee_type || '') +
@@ -68,6 +69,7 @@ export default async function handler(req, res) {
       active: body.status === 'ACTIVE',
       bedrooms: toNumber(body.bedrooms),
       bathrooms: toNumber(body.bathrooms),
+      half_baths: toNumber(body.half_baths),
       sleeps: toNumber(body.sleeps),
       king: toNumber(body.king),
       queen: toNumber(body.queen),
@@ -83,6 +85,12 @@ export default async function handler(req, res) {
       par_cleans: toNumber(body.par_cleans),
       updated_at: new Date().toISOString()
     };
+
+    // Auto-compute total_sinks = kitchen(1) + bathrooms (full count) + half_baths.
+    // Back-of-house ordering only (soap/lotion set count). Not on the forms.
+    const _baths = toNumber(body.bathrooms) || 0;
+    const _half = toNumber(body.half_baths) || 0;
+    property.total_sinks = 1 + _baths + _half;
 
     // Auto-generate all per-property form links + QRs from the property's data.
     // Runs on every add AND edit (upsert), so links always reflect current data
