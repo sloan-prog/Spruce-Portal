@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style id="auth-gate-style">html{visibility:hidden!important}</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="admin-auth.js"></script><script src="auth-guard.js"></script>
+<title>Initial Orders · Vellum</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=EB+Garamond&display=swap" rel="stylesheet">
+<style>
+  :root{--oxblood:#4A1A1F;--oxblood-deep:#3A1216;--cream:#FDFBF7;--paper:#F6F1E8;--paper-line:#E8DFD0;--ink:#463F39;--gold:#C6A664;--gold-deep:#A8873F;--muted:#8C8272;--ok:#4F6B52;--warn:#B07A2E;}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'EB Garamond',Georgia,serif;background:var(--paper);color:var(--ink);padding:28px 20px 70px;}
+  .wrap{max-width:1080px;margin:0 auto}
+  .wordmark{font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:600;letter-spacing:.3em;color:var(--oxblood)}
+  h1{font-family:'Cormorant Garamond',serif;font-weight:500;font-size:32px;color:var(--oxblood);margin:18px 0 2px}
+  .sub{color:var(--muted);font-style:italic;font-size:14px;margin-bottom:18px}
+  nav a{text-decoration:none}
+  nav button{font-family:'EB Garamond',serif;font-size:13px;background:var(--oxblood);color:var(--cream);border:1px solid var(--gold-deep);padding:8px 14px;border-radius:8px;cursor:pointer;margin:0 6px 16px 0}
+  .picker{margin:4px 0 20px}
+  .picker select{font-family:inherit;font-size:15px;padding:8px 12px;border:1px solid var(--paper-line);border-radius:8px;min-width:260px}
+  .track{background:#fff;border:1px solid var(--paper-line);border-radius:14px;margin-bottom:18px;overflow:hidden;box-shadow:0 2px 10px rgba(58,18,22,.05)}
+  .track-head{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid var(--paper-line)}
+  .track-name{font-family:'Cormorant Garamond',serif;font-size:21px;color:var(--oxblood)}
+  .badge{font-size:11px;letter-spacing:.06em;text-transform:uppercase;padding:3px 10px;border-radius:20px}
+  .badge.draft{background:#eee;color:#777}
+  .badge.placed{background:#f2e6c9;color:var(--warn)}
+  .badge.received{background:var(--ok);color:#fff}
+  table{width:100%;border-collapse:collapse}
+  td,th{padding:8px 18px;border-bottom:1px solid #f4f0e8;font-size:14.5px;text-align:left}
+  th{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+  .num{text-align:right}
+  .actions{padding:14px 18px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .btn{font-family:'EB Garamond',serif;font-size:14px;border:none;border-radius:8px;padding:9px 16px;cursor:pointer}
+  .btn.place{background:var(--gold-deep);color:#fff}
+  .btn.allrec{background:var(--oxblood);color:#fff}
+  .btn:disabled{opacity:.4;cursor:not-allowed}
+  .msg{font-size:13px;color:var(--ok)}
+  .err{font-size:13px;color:#b0392e}
+  .locked{color:var(--ok);font-style:italic;font-size:13px}
+  .empty{text-align:center;padding:40px;color:var(--muted);font-family:'Cormorant Garamond',serif;font-size:20px}
+  .linen-note{padding:14px 18px;color:var(--muted);font-size:14px;font-style:italic}
+</style>
+</head>
+<body><div class="wrap">
+  <div class="wordmark">VELLUM</div>
+  <h1>Initial Orders</h1>
+  <div class="sub">Onboarding fulfillment — place, receive, then stock. Par sets only after ALL RECEIVED.</div>
+  <nav>
+    <a href="/admin.html"><button>&larr; Dashboard</button></a>
+    <a href="/admin-properties.html"><button>Properties</button></a>
+    <a href="/admin-inventory.html"><button>Atelier</button></a>
+  </nav>
+
+  <div class="picker">
+    <label>Property: <select id="propSel" onchange="loadProp()"><option value="">— choose —</option></select></label>
+    <button class="btn place" style="margin-left:10px" onclick="genOrder()">Generate / Refresh Order</button>
+    <span id="genMsg"></span>
+  </div>
+
+  <div id="tracks"><div class="empty">Choose a property to view or generate its initial order.</div></div>
+</div>
+
+<script>
+async function loadProps(){
+  const { data } = await window.sb ? {} : {}; // placeholder; use fetch instead
+}
+// populate property dropdown from get-properties
+async function initProps(){
+  try{
+    const r = await fetch('/api/get-properties'); const d = await r.json();
+    const list = d.properties || d.data || d || [];
+    const sel = document.getElementById('propSel');
+    list.forEach(p=>{
+      const o=document.createElement('option'); o.value=p.property_id;
+      o.textContent=(p.property_name||p.property_id)+' ('+(p.plan_type||'')+')'; sel.appendChild(o);
+    });
+  }catch(e){}
+}
+let CURRENT='';
+async function loadProp(){
+  CURRENT=document.getElementById('propSel').value;
+  if(!CURRENT){document.getElementById('tracks').innerHTML='<div class="empty">Choose a property.</div>';return;}
+  render();
+}
+async function genOrder(){
+  if(!CURRENT){document.getElementById('genMsg').innerHTML='<span class="err">Choose a property first.</span>';return;}
+  document.getElementById('genMsg').textContent='Generating…';
+  const r=await fetch('/api/generate-initial-order',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({property_id:CURRENT})});
+  const d=await r.json();
+  document.getElementById('genMsg').innerHTML = d.success?'<span class="msg">\u2713 Order generated.</span>':'<span class="err">'+(d.error||'error')+'</span>';
+  render();
+}
+const TRACK_LABEL={CONSUMABLES:'Track 1 — Consumables',SETUP:'Track 2 — Setup & Hand Pumps',LINENS:'Track 3 — Linens'};
+async function render(){
+  const r=await fetch('/api/get-initial-orders?property_id='+encodeURIComponent(CURRENT));
+  const d=await r.json();
+  const box=document.getElementById('tracks');
+  if(!d.success||!d.tracks.length){box.innerHTML='<div class="empty">No initial order yet. Click “Generate / Refresh Order”.</div>';return;}
+  const order={CONSUMABLES:1,SETUP:2,LINENS:3};
+  d.tracks.sort((a,b)=>(order[a.track]||9)-(order[b.track]||9));
+  box.innerHTML=d.tracks.map(t=>{
+    const badge=t.stocked?'<span class="badge received">Received & Stocked</span>':(t.status==='PLACED'?'<span class="badge placed">Placed</span>':'<span class="badge draft">Draft</span>');
+    if(t.track==='LINENS'){
+      return '<div class="track"><div class="track-head"><div class="track-name">'+TRACK_LABEL.LINENS+'</div>'+badge+'</div>'+
+        '<div class="linen-note">Linens are generated via the Linen Order tool. Use that to place/receive the initial linen order. (Status shown here for tracking.)</div></div>';
+    }
+    const rows=t.items.map(i=>
+      '<tr><td><input type="checkbox" '+(i.received?'checked':'')+' '+(t.stocked?'disabled':'')+' onchange="rec(\''+i.id+'\',this.checked)"></td>'+
+      '<td>'+(i.item_name||i.item_code)+'</td><td class="num">'+i.qty+'</td></tr>').join('');
+    const canAllRec = t.all_received && !t.stocked;
+    return '<div class="track"><div class="track-head"><div class="track-name">'+(TRACK_LABEL[t.track]||t.track)+'</div>'+badge+'</div>'+
+      '<table><thead><tr><th>Rec\u2019d</th><th>Item</th><th class="num">Qty</th></tr></thead><tbody>'+rows+'</tbody></table>'+
+      '<div class="actions">'+
+        (t.stocked?'<span class="locked">\u2713 Stocked '+ (t.stocked_at?('on '+String(t.stocked_at).split('T')[0]):'') +' — locked (no re-do).</span>':
+          '<button class="btn place" onclick="place(\''+t.track+'\')">Mark Placed</button>'+
+          '<button class="btn allrec" '+(canAllRec?'':'disabled')+' onclick="allReceived(\''+t.track+'\')">ALL RECEIVED \u2192 Stock</button>'+
+          '<span class="msg">'+t.received_count+'/'+t.item_count+' received</span>')+
+        '<span id="trkmsg_'+t.track+'"></span>'+
+      '</div></div>';
+  }).join('');
+}
+async function rec(id,val){await fetch('/api/receive-initial-order',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'receive_item',id,received:val})});render();}
+async function place(track){await fetch('/api/receive-initial-order',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'place',property_id:CURRENT,track})});render();}
+async function allReceived(track){
+  if(!confirm('Confirm ALL items received for '+track+'? This stocks the property to par and LOCKS the track (cannot be re-done).'))return;
+  const r=await fetch('/api/receive-initial-order',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'all_received',property_id:CURRENT,track})});
+  const d=await r.json();
+  document.getElementById('trkmsg_'+track).innerHTML=d.success?'<span class="msg">\u2713 Stocked '+d.stocked_items+' items.</span>':'<span class="err">'+(d.error||'error')+'</span>';
+  render();
+}
+initProps();
+</script>
+</body></html>
