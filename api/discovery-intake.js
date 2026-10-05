@@ -46,25 +46,28 @@ module.exports = async function handler(req, res) {
 
     // DEBUG: dump raw so we can confirm/lock exact field IDs from the first test.
     console.log('DISCOVERY RAW:', JSON.stringify(raw));
-    try { await supabase.from('audit_debug').insert({ raw_payload: raw }); } catch (e) {}
 
-    // Best-effort field mapping (will be tightened after we see the real field IDs).
-    const owner_name = joinName(raw, 'q3_yourName') || joinName(raw, 'q3_name') ||
-      pick(raw, ['q3_yourName', 'q3_name', 'yourName', 'name']);
-    const owner_email = pick(raw, ['q4_email', 'q4_Email', 'email', 'Email']);
-    const owner_phone = pick(raw, ['q5_phone', 'q5_Phone', 'phone', 'Phone', 'q5_phoneNumber']);
-    const street = pick(raw, ['q7_streetAddress', 'q7_street', 'streetAddress']);
-    const building = pick(raw, ['q8_buildingUnit', 'q8_building', 'buildingUnit']);
-    const city = pick(raw, ['q9_city', 'city']);
-    const zip = pick(raw, ['q10_zipCode', 'q10_zip', 'zipCode']);
-    const bedrooms = toNum(pick(raw, ['q11_bedrooms', 'bedrooms']));
-    const bathrooms = toNum(pick(raw, ['q12_bathrooms', 'bathrooms']));
-    const sleeps = toNum(pick(raw, ['q13_maximumGuests', 'q13_sleeps', 'maximumGuests', 'sleeps']));
-    const listing = pick(raw, ['q14_linkTo', 'q14_listing', 'listing']);
-    const managed = pick(raw, ['q16_howIs', 'q16_managed', 'howIs']);
-    const turnovers = pick(raw, ['q17_approximateTurnovers', 'turnovers']);
-    const services = pick(raw, ['q19_whatServices', 'services']);
-    const apptTime = pick(raw, ['q22_preferredAppointment', 'q22_schedule', 'schedule', 'appointment']);
+    // Exact field mapping (locked from real submission 10/5).
+    const nm = raw.q5_q5_fullname3 || {};
+    const owner_name = [nm.first, nm.last].filter(Boolean).join(' ') || null;
+    const owner_email = pick(raw, ['q6_q6_email4']);
+    const ph = raw.q7_q7_phone5 || {};
+    const owner_phone = ph.full || pick(raw, ['q7_q7_phone5']);
+    const street = pick(raw, ['q11_q11_textbox9']);
+    const building = pick(raw, ['q12_q12_textbox10']);
+    const city = pick(raw, ['q13_q13_textbox11']);
+    const zip = pick(raw, ['q14_q14_textbox12']);
+    const bedrooms = toNum(pick(raw, ['q15_q15_number13']));
+    const bathrooms = toNum(pick(raw, ['q16_q16_number14']));
+    const sleeps = toNum(pick(raw, ['q17_q17_number15']));
+    const listing = pick(raw, ['q18_q18_textbox16']);
+    const managed = pick(raw, ['q20_q20_radio18']);
+    const turnovers = pick(raw, ['q22_q22_radio20']);
+    let servicesRaw = raw.q24_q24_checkbox22;
+    const services = Array.isArray(servicesRaw) ? servicesRaw.join(', ') : (servicesRaw || null);
+    const apptSlot = raw['appointmentSlot-input_31'];
+    const apptObj = raw.q31_preferredAppointment || {};
+    const apptTime = apptSlot || apptObj.date || null;
 
     const row = {
       owner_name: owner_name || null,
