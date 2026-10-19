@@ -15,28 +15,42 @@
     p.sub { margin:0 0 20px; color:#6b7a72; font-size:14px; }
     label { display:block; font-weight:bold; margin-bottom:6px; font-size:14px; }
     input { width:100%; padding:11px; border:1px solid #ccc; border-radius:8px; box-sizing:border-box; }
+    #code { letter-spacing:.4em; text-align:center; font-size:20px; font-weight:bold; }
     button { margin-top:16px; width:100%; padding:12px; border:0; border-radius:10px;
              background:#24382f; color:white; font-weight:bold; cursor:pointer; }
     button:disabled { opacity:.55; cursor:default; }
+    .linkbtn { background:none; color:#6b7a72; font-weight:normal; text-decoration:underline;
+               padding:4px; margin-top:10px; font-size:13px; }
     .msg { margin-top:16px; font-size:14px; font-weight:bold; min-height:1em; }
     .msg.err { color:#b3261e; }
     .msg.ok  { color:#1e7d4f; }
     .note { margin-top:18px; font-size:12px; color:#9aa7a0; }
+    .hidden { display:none; }
   </style>
 </head>
 <body>
   <div class="box">
     <h1>Spruce Admin</h1>
-    <p class="sub">Sign in with your approved admin email. We'll send you a magic link.</p>
+    <p class="sub">Sign in with your approved admin email. We'll send you a 6-digit code.</p>
 
+    <!-- Step 1: email -->
     <form id="form">
       <label for="email">Email</label>
       <input id="email" type="email" required placeholder="you@example.com" autocomplete="email" />
-      <button id="submit" type="submit">Send magic link</button>
+      <button id="submit" type="submit">Send code</button>
+    </form>
+
+    <!-- Step 2: code -->
+    <form id="code-form" class="hidden">
+      <label for="code">Enter the 6-digit code</label>
+      <input id="code" type="text" inputmode="numeric" autocomplete="one-time-code"
+             maxlength="6" pattern="[0-9]*" placeholder="••••••" />
+      <button id="verify" type="submit">Verify &amp; sign in</button>
+      <button id="restart" type="button" class="linkbtn">Use a different email</button>
     </form>
 
     <div id="msg" class="msg" role="status"></div>
-    <div id="signedout" style="display:none">
+    <div id="signedout" class="hidden">
       <button id="signout" type="button">Sign out</button>
     </div>
 
@@ -48,8 +62,11 @@
       var A = window.SPRUCE_ADMIN_AUTH;
       var msg = document.getElementById("msg");
       var form = document.getElementById("form");
+      var codeForm = document.getElementById("code-form");
       var submit = document.getElementById("submit");
+      var verify = document.getElementById("verify");
       var signedoutBox = document.getElementById("signedout");
+      var currentEmail = "";
 
       var ADMIN_PAGES = [
         "admin.html", "admin-properties.html", "admin-property.html",
@@ -77,7 +94,7 @@
 
       var client = A.client();
 
-      // If we returned from a magic link, a session will be present now.
+      // Already signed in? (e.g. returning with a live session)
       client.auth.getSession().then(function (res) {
         var session = res && res.data ? res.data.session : null;
         if (!session) return;
@@ -86,9 +103,8 @@
           setMsg("Signed in. Redirecting...", "ok");
           location.replace(safeNext());
         } else {
-          // Valid Supabase user, but not an approved admin.
-          form.style.display = "none";
-          signedoutBox.style.display = "block";
+          form.classList.add("hidden");
+          signedoutBox.classList.remove("hidden");
           setMsg("This email (" + email + ") is not an approved admin.", "err");
         }
       });
@@ -97,6 +113,14 @@
         client.auth.signOut().then(function () { location.reload(); });
       });
 
+      document.getElementById("restart").addEventListener("click", function () {
+        codeForm.classList.add("hidden");
+        form.classList.remove("hidden");
+        submit.disabled = false;
+        setMsg("", "");
+      });
+
+      // Step 1 — send the code
       form.addEventListener("submit", function (e) {
         e.preventDefault();
         var email = document.getElementById("email").value.trim();
@@ -110,23 +134,59 @@
         submit.disabled = true;
         setMsg("Sending...", "");
 
-        var loginUrl = new URL("login.html", location.href);
-        var next = new URLSearchParams(location.search).get("next");
-        if (next) loginUrl.searchParams.set("next", next);
-
         client.auth
-          .signInWithOtp({ email: email, options: { emailRedirectTo: loginUrl.href } })
+          .signInWithOtp({ email: email, options: { shouldCreateUser: true } })
           .then(function (r) {
             if (r.error) {
-              setMsg(r.error.message || "Could not send link.", "err");
+              setMsg(r.error.message || "Could not send code.", "err");
               submit.disabled = false;
             } else {
-              setMsg("Check your inbox for a sign-in link.", "ok");
+              currentEmail = email;
+              form.classList.add("hidden");
+              codeForm.classList.remove("hidden");
+              setMsg("We emailed you a 6-digit code. Enter it above.", "ok");
+              document.getElementById("code").focus();
             }
           })
           .catch(function () {
-            setMsg("Could not send link. Try again.", "err");
+            setMsg("Could not send code. Try again.", "err");
             submit.disabled = false;
+          });
+      });
+
+      // Step 2 — verify the code
+      codeForm.addEventListener("submit", function (e) {
+        e.preventDefault();
+        var token = document.getElementById("code").value.trim();
+        if (token.length < 6) {
+          setMsg("That code is six digits.", "err");
+          return;
+        }
+        verify.disabled = true;
+        setMsg("Verifying...", "");
+
+        client.auth
+          .verifyOtp({ email: currentEmail, token: token, type: "email" })
+          .then(function (r) {
+            if (r.error) {
+              setMsg(r.error.message || "That code didn't work. Try again.", "err");
+              verify.disabled = false;
+              return;
+            }
+            var session = r.data ? r.data.session : null;
+            var email = session && session.user ? session.user.email : currentEmail;
+            if (A.isAllowed(email)) {
+              setMsg("Signed in. Redirecting...", "ok");
+              location.replace(safeNext());
+            } else {
+              client.auth.signOut();
+              setMsg("This email (" + email + ") is not an approved admin.", "err");
+              verify.disabled = false;
+            }
+          })
+          .catch(function () {
+            setMsg("Could not verify. Try again.", "err");
+            verify.disabled = false;
           });
       });
     })();
