@@ -4,5 +4,12 @@
       "path": "/api/process-intake",
       "schedule": "*/15 * * * *"
     }
+  ],
+  "rewrites": [
+    {
+      "source": "/",
+      "has": [{ "type": "host", "value": "portal.vellumhospitality.com" }],
+      "destination": "/owner-portal.html"
+    }
   ]
 }
