@@ -244,6 +244,15 @@
   .leaf .plan{margin-top:16px;padding-top:13px;border-top:1px solid var(--rule);
     display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;}
   .leaf .plan .status{font-size:11px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;}
+    .leaf .coffee-note{
+    display:flex;align-items:center;gap:8px;
+    margin-top:14px;padding-top:12px;border-top:1px solid var(--rule);
+    font-size:13.5px;color:var(--gold-deep);font-style:italic;line-height:1.4;
+  }
+  .leaf .coffee-note .coffee-dot{
+    flex:none;width:7px;height:7px;border-radius:50%;background:var(--gold);
+    box-shadow:0 0 0 3px rgba(198,166,100,.2);
+  }
 
   /* ---------- the ledger ---------- */
   .ledger-wrap{
@@ -595,7 +604,7 @@ async function loadConcierge(){
 
 async function loadProperties(){
   const {data:props}=await sb.from('properties')
-    .select('property_id, property_name, property_city, plan_type, status, bedrooms, bathrooms')
+        .select('property_id, property_name, property_city, plan_type, status, bedrooms, bathrooms, coffee_enabled, coffee_status, coffee_expires_on')
     .order('property_name',{nullsFirst:false});
   const wrap=$('properties'), sel=$('req-property');
   wrap.innerHTML=''; sel.innerHTML='';
@@ -625,6 +634,7 @@ async function loadProperties(){
           <span class="label">${esc(planName||'—')}</span>
           <span class="status">${esc(p.status||'')}</span>
         </div>
+        ${(p.coffee_enabled && p.coffee_status==='PULL_DUE')?`<div class="coffee-note"><span class="coffee-dot"></span>Coffee being refreshed — fresh coffee coming.</div>`:''}
       </article>`);
     const o=document.createElement('option');
     o.value=p.property_id; o.textContent=p.property_name||p.property_id; o.dataset.plan=p.plan_type||'';
