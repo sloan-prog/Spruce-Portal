@@ -3,14 +3,6 @@
     {
       "path": "/api/process-intake",
       "schedule": "*/15 * * * *"
-    },
-    {
-      "path": "/api/coffee-cron",
-      "schedule": "0 13 * * *"
-    },
-    {
-      "path": "/api/coffee-bill",
-      "schedule": "0 14 1 * *"
     }
   ],
   "rewrites": [
