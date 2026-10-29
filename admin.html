@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <!-- admin auth gate -->
+  <!-- admin auth gate (unchanged) -->
   <style id="auth-gate-style">html{visibility:hidden!important}</style>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="admin-auth.js"></script>
@@ -17,15 +17,15 @@
     :root{
       --oxblood:#4A1A1F; --oxblood-deep:#300909; --cream:#F7F3EC; --vellum:#FBF8F2;
       --gold:#C6A664; --gold-deep:#9C7F45; --charcoal:#2B2B2B; --muted:#8C8272;
-      --red:#c0392b; --amber:#e67e22; --green:#27ae60;
+      --red:#c0392b; --amber:#e67e22; --green:#27ae60; --rule:#e7ddc9;
     }
     *{box-sizing:border-box;}
     body{font-family:'EB Garamond',Georgia,serif; background:var(--cream); color:var(--charcoal); padding:24px; margin:0;}
-    h1{font-family:'Cormorant Garamond',serif; color:var(--oxblood); letter-spacing:.02em; margin:0 0 4px;}
-    .sub{color:var(--muted); margin-bottom:20px; font-size:14px;}
-    h2{font-family:'Cormorant Garamond',serif; color:var(--oxblood); font-size:22px; margin:32px 0 12px; border-bottom:1px solid var(--gold); padding-bottom:6px;}
+    h1{font-family:'Cormorant Garamond',serif; color:var(--oxblood); letter-spacing:.02em; margin:0 0 4px; font-size:34px;}
+    .sub{color:var(--muted); margin-bottom:18px; font-size:14px;}
+    h2{font-family:'Cormorant Garamond',serif; color:var(--oxblood); font-size:22px; margin:30px 0 12px; border-bottom:1px solid var(--gold); padding-bottom:6px;}
 
-    nav{margin-bottom:8px;}
+    nav{margin-bottom:18px;}
     nav a{text-decoration:none;}
     nav button{
       font-family:'EB Garamond',serif; font-size:14px; background:var(--oxblood); color:var(--cream);
@@ -33,36 +33,57 @@
     }
     nav button:hover{background:var(--oxblood-deep);}
 
-    .grid{display:grid; grid-template-columns:repeat(4,1fr); gap:16px;}
+    /* ---- Tasks for Today (panel, no drill) ---- */
+    .tasks{background:var(--oxblood); color:var(--cream); border-radius:16px; padding:22px 26px; box-shadow:0 10px 30px rgba(48,9,9,.20);}
+    .tasks h2{color:var(--cream); border:none; margin:0 0 10px; font-size:24px; padding:0;}
+    .tasks ul{list-style:none; padding:0; margin:0;}
+    .tasks li{padding:9px 0; border-bottom:1px solid rgba(247,243,236,.14); font-size:15px; display:flex; gap:11px; align-items:baseline;}
+    .tasks li:last-child{border-bottom:none;}
+    .tasks .tdot{flex:none; width:7px; height:7px; border-radius:50%; background:var(--gold); transform:translateY(-1px);}
+    .tasks .tkind{font-size:10px; letter-spacing:.14em; text-transform:uppercase; color:var(--gold); min-width:74px;}
+    .tasks .empty2{color:rgba(247,243,236,.72); font-style:italic;}
+
+    /* ---- big clickable cards (count bottom-right) ---- */
+    .cards{display:grid; grid-template-columns:repeat(3,1fr); gap:16px;}
+    @media(max-width:920px){ .cards{grid-template-columns:repeat(2,1fr);} }
+    @media(max-width:560px){ .cards{grid-template-columns:1fr;} }
+    .bcard{position:relative; display:block; background:var(--vellum); border:1px solid var(--rule); border-top:3px solid var(--gold);
+      border-radius:14px; padding:22px 20px 46px; text-decoration:none; color:var(--charcoal);
+      box-shadow:0 2px 10px rgba(48,9,9,.06); transition:box-shadow .2s, transform .2s, border-color .2s; min-height:118px;}
+    .bcard:hover{box-shadow:0 12px 28px rgba(48,9,9,.15); transform:translateY(-2px); border-color:var(--gold);}
+    .bcard .bname{font-family:'Cormorant Garamond',serif; font-size:23px; color:var(--oxblood); line-height:1.1;}
+    .bcard .bsub{font-size:12.5px; color:var(--muted); margin-top:5px;}
+    .bcard .bcount{position:absolute; right:20px; bottom:14px; font-family:'Cormorant Garamond',serif; font-size:36px; font-weight:600; color:var(--oxblood); line-height:1;}
+    .bcard.urgent{border-top-color:var(--red);}
+    .bcard.urgent .bcount{color:var(--red);}
+    .bcard .newtag{position:absolute; top:12px; right:14px; font-size:9px; letter-spacing:.14em; text-transform:uppercase; color:var(--gold-deep); background:#f3ead6; padding:3px 7px; border-radius:20px;}
+
+    /* ---- small cards ---- */
+    .scards{display:grid; grid-template-columns:repeat(3,1fr); gap:16px;}
+    @media(max-width:700px){ .scards{grid-template-columns:1fr;} }
+    .scard{position:relative; display:block; background:white; border:1px solid #efe7d8; border-radius:12px;
+      padding:15px 16px 34px; text-decoration:none; color:var(--charcoal); box-shadow:0 2px 8px rgba(48,9,9,.06); transition:box-shadow .2s;}
+    .scard:hover{box-shadow:0 8px 20px rgba(48,9,9,.12);}
+    .scard .sname{font-size:12.5px; text-transform:uppercase; letter-spacing:.1em; color:var(--gold-deep);}
+    .scard .ssub{font-size:11.5px; color:var(--muted); margin-top:3px; font-style:italic;}
+    .scard .scount{position:absolute; right:14px; bottom:9px; font-family:'Cormorant Garamond',serif; font-size:27px; color:var(--oxblood);}
+    .scard.urgent .scount{color:var(--amber);}
+
+    /* ---- lower: operations + financial (plain tiles) ---- */
+    .grid{display:grid; grid-template-columns:repeat(4,1fr); gap:14px;}
     @media(max-width:900px){ .grid{grid-template-columns:repeat(2,1fr);} }
-    .card{background:white; padding:18px; border-radius:12px; box-shadow:0 2px 8px rgba(48,9,9,.08); border-top:3px solid var(--gold);}
-    .title{font-size:13px; color:var(--muted); text-transform:uppercase; letter-spacing:.08em;}
-    .value{font-size:30px; font-weight:bold; color:var(--oxblood); font-family:'Cormorant Garamond',serif;}
-    .card.soon{opacity:.55; border-top-color:#ccc;}
-    .card.soon .value{color:var(--muted);}
-    .soon-tag{font-size:10px; color:var(--muted); font-style:italic;}
-
-    .tier-row{display:flex; gap:16px; flex-wrap:wrap;}
-    .tier{flex:1; min-width:150px; background:white; border-radius:12px; padding:16px; box-shadow:0 2px 8px rgba(48,9,9,.08); border-left:4px solid var(--oxblood);}
-    .tier .t-name{font-family:'Cormorant Garamond',serif; font-size:18px; color:var(--oxblood);}
-    .tier .t-count{font-size:26px; font-weight:bold; color:var(--charcoal);}
-
-    .alert-box{background:white; border-radius:12px; padding:18px; box-shadow:0 2px 8px rgba(48,9,9,.08);}
-    .alert-box.attention{border-left:5px solid var(--red);}
-    .alert-list{list-style:none; padding:0; margin:8px 0 0;}
-    .alert-list li{padding:8px 0; border-bottom:1px solid #f0ece3; font-size:15px; display:flex; justify-content:space-between;}
-    .alert-list li:last-child{border-bottom:none;}
-    .pill{background:var(--oxblood); color:var(--cream); padding:2px 10px; border-radius:20px; font-size:12px;}
-    .empty{color:var(--muted); font-style:italic; padding:8px 0;}
-    a.prop-link{color:var(--oxblood); text-decoration:none; font-weight:600;}
-    a.prop-link:hover{text-decoration:underline;}
+    .tile{background:white; padding:16px; border-radius:12px; box-shadow:0 2px 8px rgba(48,9,9,.07); border-top:3px solid var(--muted);}
+    .tile .title{font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:.08em;}
+    .tile .value{font-size:28px; font-weight:bold; color:var(--oxblood); font-family:'Cormorant Garamond',serif;}
+    .tile.soon{opacity:.55;} .tile.soon .value{color:var(--muted);} .soon-tag{font-size:10px; color:var(--muted); font-style:italic;}
   </style>
 </head>
 <body>
 
-<h1>Vellum Admin Dashboard</h1>
+<h1>Vellum Admin</h1>
 <div class="sub">Your operation at a glance.</div>
 
+<!-- KEEP ALL BUTTONS AT TOP (regroup later) -->
 <nav>
   <a href="/admin.html"><button>Dashboard</button></a>
   <a href="/admin-properties.html"><button>Properties</button></a>
@@ -70,113 +91,129 @@
   <a href="/admin-initial-orders.html"><button>Initial Orders</button></a>
   <a href="/add-owner.html"><button>Add Owner</button></a>
   <a href="/add-property.html"><button>Add Property</button></a>
-  <a href="/calculate-linen-order.html"><button>Quick Linen Order Estimate (will not save)</button></a>
   <a href="/admin-ordering.html"><button>Ordering Board</button></a>
   <a href="/admin-inventory.html"><button>Atelier Inventory</button></a>
   <a href="/admin-laundry.html"><button>Laundry</button></a>
 </nav>
 
-<!-- ATTENTION STRIP -->
-<h2>Needs Attention</h2>
-<div class="grid">
-  <div class="alert-box attention" style="grid-column:span 2;">
-    <div class="title">Properties Needing a Box</div>
-    <ul class="alert-list" id="needsBoxList"><li class="empty">Loading…</li></ul>
-  </div>
-  <div class="alert-box attention" style="grid-column:span 2;">
-    <div class="title">Linens Due for Refresh</div>
-    <ul class="alert-list" id="refreshList"><li class="empty">Loading…</li></ul>
-  </div>
-  <div class="alert-box attention" style="grid-column:span 2;">
-    <div class="title">Scent Refresh Due (8 wks)</div>
-    <ul class="alert-list" id="scentList"><li class="empty">Loading…</li></ul>
-  </div>
+<!-- ===== TASKS FOR TODAY (no drill-down) ===== -->
+<div class="tasks">
+  <h2>Tasks for Today</h2>
+  <ul id="tasksList"><li class="empty2">Loading…</li></ul>
 </div>
 
-<!-- PORTFOLIO -->
-<h2>Portfolio</h2>
-<div class="tier-row">
-  <div class="tier"><div class="t-name">Total Properties</div><div class="t-count" id="totalProps">-</div></div>
-  <div class="tier"><div class="t-name">The Edit</div><div class="t-count" id="tierEdit">-</div></div>
-  <div class="tier"><div class="t-name">The Signature</div><div class="t-count" id="tierSig">-</div></div>
-  <div class="tier"><div class="t-name">The Collector's Edition</div><div class="t-count" id="tierColl">-</div></div>
+<!-- ===== BOARDS (6 large clickable cards, count bottom-right) ===== -->
+<h2>Boards</h2>
+<div class="cards">
+  <a class="bcard" href="/admin-onboarding.html">
+    <div class="bname">Onboarding</div><div class="bsub">In the pipeline, pre-live</div>
+    <div class="bcount" id="c-onboarding">–</div></a>
+  <a class="bcard" href="/admin-ordering.html">
+    <div class="bname">Needs a Box</div><div class="bsub">Properties with a driver low</div>
+    <div class="bcount" id="c-needsbox">–</div></a>
+  <a class="bcard" href="/admin-properties.html">
+    <div class="bname">Properties</div><div class="bsub">In care</div>
+    <div class="bcount" id="c-properties">–</div></a>
+  <a class="bcard" href="/admin-invoices.html">
+    <div class="newtag">build me</div>
+    <div class="bname">Invoices</div><div class="bsub">Pending to send</div>
+    <div class="bcount" id="c-invoices">–</div></a>
+  <a class="bcard" href="/admin-laundry.html">
+    <div class="bname">Laundry</div><div class="bsub">Open jobs</div>
+    <div class="bcount" id="c-laundry">–</div></a>
+  <a class="bcard" href="/admin-owners.html">
+    <div class="newtag">build me</div>
+    <div class="bname">Owners</div><div class="bsub">Directory — search &amp; detail</div>
+    <div class="bcount" id="c-owners">–</div></a>
 </div>
 
-<!-- OPERATIONS -->
+<!-- ===== SMALL CARDS ===== -->
+<h2>On the Radar</h2>
+<div class="scards">
+  <a class="scard" href="/admin-properties.html">
+    <div class="sname">Linens due for refresh</div><div class="ssub">Installed &gt; 18 months</div>
+    <div class="scount" id="c-linen">–</div></a>
+  <a class="scard" href="/admin-properties.html">
+    <div class="sname">Scent due for refresh</div><div class="ssub">&gt; 8 weeks</div>
+    <div class="scount" id="c-scent">–</div></a>
+  <a class="scard" href="#" onclick="return false;">
+    <div class="newtag" style="position:absolute;top:10px;right:12px;">needs field</div>
+    <div class="sname">Contracts renewing</div><div class="ssub">60-day window · 30-day urgent</div>
+    <div class="scount" id="c-contracts">—</div></a>
+</div>
+
+<!-- ===== OPERATIONS (moved lower) ===== -->
 <h2>Operations Today</h2>
 <div class="grid">
-  <div class="card"><div class="title">Cleans Today</div><div class="value" id="cleansToday">-</div></div>
-  <div class="card"><div class="title">Cleans This Week</div><div class="value" id="cleansWeek">-</div></div>
-  <div class="card"><div class="title">Urgent Issues</div><div class="value" id="urgentIssues">-</div></div>
-  <div class="card"><div class="title">Callouts</div><div class="value" id="callouts">-</div></div>
-  <div class="card"><div class="title">Laundry Pickups</div><div class="value" id="laundry">-</div></div>
+  <div class="tile"><div class="title">Cleans Today</div><div class="value" id="cleansToday">-</div></div>
+  <div class="tile"><div class="title">Cleans This Week</div><div class="value" id="cleansWeek">-</div></div>
+  <div class="tile"><div class="title">Urgent Issues</div><div class="value" id="urgentIssues">-</div></div>
+  <div class="tile"><div class="title">Callouts</div><div class="value" id="callouts">-</div></div>
+  <div class="tile"><div class="title">Laundry Pickups</div><div class="value" id="laundryOps">-</div></div>
 </div>
 
-<!-- FINANCIAL -->
+<!-- ===== FINANCIAL ===== -->
 <h2>Financial</h2>
 <div class="grid">
-  <div class="card"><div class="title">Revenue Today</div><div class="value" id="revenueToday">$-</div></div>
-  <div class="card"><div class="title">Net Today</div><div class="value" id="netToday">$-</div></div>
-  <div class="card soon"><div class="title">MRR <span class="soon-tag">(coming soon)</span></div><div class="value">$—</div></div>
-  <div class="card soon"><div class="title">Payments Due <span class="soon-tag">(coming soon)</span></div><div class="value">—</div></div>
+  <div class="tile"><div class="title">Revenue Today</div><div class="value" id="revenueToday">$-</div></div>
+  <div class="tile"><div class="title">Net Today</div><div class="value" id="netToday">$-</div></div>
+  <div class="tile soon"><div class="title">MRR <span class="soon-tag">(soon)</span></div><div class="value">$—</div></div>
+  <div class="tile soon"><div class="title">P&amp;L <span class="soon-tag">(soon)</span></div><div class="value">—</div></div>
 </div>
 
 <script>
-function propLink(pid){ return '<a class="prop-link" href="/admin-property.html?id=' + encodeURIComponent(pid) + '">' + pid + '</a>'; }
+// Forward-compatible with the API lockdown: always send the admin session token.
+async function adminFetch(url, opts){
+  opts = opts || {}; var headers = opts.headers || {};
+  try {
+    var s = await window.SPRUCE_ADMIN_AUTH.client().auth.getSession();
+    var session = s && s.data ? s.data.session : null;
+    if (session) headers = Object.assign({}, headers, { 'Authorization':'Bearer ' + session.access_token });
+  } catch(e){}
+  return fetch(url, Object.assign({}, opts, { headers: headers }));
+}
+const $ = id => document.getElementById(id);
 
-async function loadDashboard() {
-  const res = await fetch('/api/admin-dashboard');
-  const data = await res.json();
+async function loadDashboard(){
+  let data;
+  try { const r = await adminFetch('/api/admin-dashboard'); data = await r.json(); }
+  catch(e){ $('tasksList').innerHTML = '<li class="empty2">Could not load.</li>'; return; }
 
-  // operations
-  document.getElementById('cleansToday').innerText = data.cleansToday;
-  document.getElementById('cleansWeek').innerText = data.cleansWeek;
-  document.getElementById('urgentIssues').innerText = data.urgentIssues;
-  document.getElementById('callouts').innerText = data.callouts;
-  document.getElementById('laundry').innerText = data.laundry;
+  // ----- Tasks for Today -----
+  const tl = $('tasksList');
+  const tasks = data.tasksToday || [];
+  if (!tasks.length) tl.innerHTML = '<li class="empty2">All clear — nothing needs you today.</li>';
+  else tl.innerHTML = tasks.map(t =>
+    '<li><span class="tdot"></span><span class="tkind">'+(t.kind||'')+'</span><span>'+t.text+'</span></li>'
+  ).join('');
 
-  // financial
-  document.getElementById('revenueToday').innerText = "$" + data.revenueToday;
-  document.getElementById('netToday').innerText = "$" + data.netToday;
+  // ----- big card counts -----
+  const nb = (data.propsNeedingBox||[]).length;
+  setCount('c-onboarding', data.onboardingActive, 'c', false);
+  setCount('c-needsbox', nb, 'c', nb>0);
+  setCount('c-properties', data.totalProperties, 'c', false);
+  setCount('c-invoices', data.invoicesPending, 'c', (data.invoicesPending||0)>0);
+  setCount('c-laundry', data.laundry, 'c', false);
+  setCount('c-owners', data.ownersCount, 'c', false);
 
-  // portfolio
-  document.getElementById('totalProps').innerText = data.totalProperties;
-  document.getElementById('tierEdit').innerText = (data.tierCounts?.SIMPLY ?? 0);
-  document.getElementById('tierSig').innerText = (data.tierCounts?.SIGNATURE ?? 0);
-  document.getElementById('tierColl').innerText = (data.tierCounts?.CERTIFIED ?? 0);
+  // ----- small cards -----
+  const lin = (data.refreshDue||[]).length, scn = (data.scentRefreshDue||[]).length;
+  $('c-linen').innerText = lin; if (lin>0) $('c-linen').closest('.scard').classList.add('urgent');
+  $('c-scent').innerText = scn; if (scn>0) $('c-scent').closest('.scard').classList.add('urgent');
 
-  // needs a box (grouped by property)
-  const nb = document.getElementById('needsBoxList');
-  if (!data.propsNeedingBox || data.propsNeedingBox.length === 0) {
-    nb.innerHTML = '<li class="empty">All stocked. Nothing needs a box.</li>';
-  } else {
-    nb.innerHTML = data.propsNeedingBox.map(pid => {
-      const items = (data.lowList||[]).filter(l => l.property_id === pid);
-      const names = items.map(i => i.item_name.split(' ').slice(0,2).join(' ')).join(', ');
-      return '<li>' + propLink(pid) + '<span class="pill">' + items.length + ' low</span></li>' +
-             '<li style="font-size:12px;color:#8C8272;border:none;padding-top:0;">' + names + '</li>';
-    }).join('');
-  }
-
-  // refresh due
-  const rf = document.getElementById('refreshList');
-  if (!data.refreshDue || data.refreshDue.length === 0) {
-    rf.innerHTML = '<li class="empty">No linens due for refresh.</li>';
-  } else {
-    rf.innerHTML = data.refreshDue.map(r =>
-      '<li>' + propLink(r.property_id) + '<span class="pill">' + r.months + ' mo</span></li>'
-    ).join('');
-  }
-
-  // scent refresh due
-  const sc = document.getElementById('scentList');
-  if (!data.scentRefreshDue || data.scentRefreshDue.length === 0) {
-    sc.innerHTML = '<li class="empty">All scents fresh.</li>';
-  } else {
-    sc.innerHTML = data.scentRefreshDue.map(r =>
-      '<li>' + propLink(r.property_id) + '<span class="pill">' + r.weeks + ' wks</span></li>'
-    ).join('');
-  }
+  // ----- operations + financial (lower) -----
+  $('cleansToday').innerText = data.cleansToday ?? '-';
+  $('cleansWeek').innerText = data.cleansWeek ?? '-';
+  $('urgentIssues').innerText = data.urgentIssues ?? '-';
+  $('callouts').innerText = data.callouts ?? '-';
+  $('laundryOps').innerText = data.laundry ?? '-';
+  $('revenueToday').innerText = '$' + (data.revenueToday ?? 0);
+  $('netToday').innerText = '$' + (data.netToday ?? 0);
+}
+function setCount(id, val, _c, urgent){
+  const el = $(id); if(!el) return;
+  el.innerText = (val ?? 0);
+  if (urgent) el.closest('.bcard').classList.add('urgent');
 }
 loadDashboard();
 </script>
