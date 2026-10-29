@@ -1,4 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
+// When you build Section 1 of the security guide, uncomment the next line + the gate below.
+// import { requireAdmin } from './_lib/requireAdmin.js';
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -6,8 +8,13 @@ const supabase = createClient(
 );
 
 export default async function handler(req, res) {
+  // ---- SECURITY GATE (enable with Section 1 of the build guide) ----
+  // const auth = await requireAdmin(req);
+  // if (!auth.ok) return res.status(auth.status).json({ error: auth.error });
+
   try {
     const today = new Date().toISOString().split('T')[0];
+    const now = Date.now();
 
     // ---- existing operational tiles ----
     const { count: cleansToday } = await supabase
@@ -43,7 +50,7 @@ export default async function handler(req, res) {
       .from('laundry_jobs').select('*', { count: 'exact', head: true })
       .not('pickup_status', 'is', null);
 
-    // ---- NEW: property counts by tier ----
+    // ---- property counts by tier ----
     const { data: props } = await supabase
       .from('properties').select('property_id, plan_type');
     const tierCounts = { SIMPLY: 0, SIGNATURE: 0, CERTIFIED: 0 };
@@ -53,7 +60,7 @@ export default async function handler(req, res) {
       if (tierCounts[p.plan_type] !== undefined) tierCounts[p.plan_type]++;
     });
 
-    // ---- NEW: who's low (DRIVER item at/below min_threshold) ----
+    // ---- who's low (DRIVER item at/below min_threshold) ----
     const { data: drivers } = await supabase
       .from('item_catalog').select('item_code, item_name')
       .eq('reorder_priority', 'DRIVER');
@@ -83,11 +90,10 @@ export default async function handler(req, res) {
     }
     const propsNeedingBox = [...new Set(lowList.map(l => l.property_id))];
 
-    // ---- NEW: linens due for refresh (installed > 18 months) ----
+    // ---- linens due for refresh (installed > 18 months) ----
     const { data: linens } = await supabase
       .from('property_linen_inventory').select('property_id, initial_load_date');
     const refreshDue = [];
-    const now = Date.now();
     (linens || []).forEach(l => {
       if (l.initial_load_date) {
         const months = (now - new Date(l.initial_load_date).getTime()) / (1000*60*60*24*30.44);
@@ -95,7 +101,7 @@ export default async function handler(req, res) {
       }
     });
 
-    // ---- NEW: scent due for refresh (last refreshed > 8 weeks / 56 days) ----
+    // ---- scent due for refresh (last refreshed > 8 weeks / 56 days) ----
     const { data: scentProps } = await supabase
       .from('properties').select('property_id, scent_last_refreshed').eq('active', true);
     const scentRefreshDue = [];
@@ -105,6 +111,48 @@ export default async function handler(req, res) {
         if (weeks >= 8) scentRefreshDue.push({ property_id: p.property_id, weeks: Math.round(weeks) });
       }
     });
+
+    // ================= NEW CARD COUNTS =================
+
+    // ---- Onboarding: in the pipeline, pre-live ----
+    // onboarding_stage runs LEAD -> ... -> LIVE; anything not LIVE is still in flight.
+    const { data: onbRows } = await supabase
+      .from('property_onboarding_submissions').select('onboarding_stage');
+    const onboardingActive = (onbRows || [])
+      .filter(o => (o.onboarding_stage || 'LEAD') !== 'LIVE').length;
+
+    // ---- Invoices: pending to send (not yet processed/sent) ----
+    const { count: invoicesPending } = await supabase
+      .from('invoicing_queue').select('*', { count: 'exact', head: true })
+      .eq('processed', false);
+
+    // ---- Owners: directory count ----
+    const { count: ownersCount } = await supabase
+      .from('owners').select('*', { count: 'exact', head: true });
+
+    // ---- Atelier (warehouse) low — for the Tasks feed only ----
+    const { data: wh } = await supabase
+      .from('warehouse_stock')
+      .select('item_code, item_name, units_on_hand, reorder_point, current_season_par, warehouse_par, vendor');
+    const atelierLow = (wh || []).filter(w =>
+      Number(w.reorder_point) > 0 && Number(w.units_on_hand) <= Number(w.reorder_point));
+
+    // ================= TASKS FOR TODAY (aggregated, no drill) =================
+    const tasksToday = [];
+    propsNeedingBox.forEach(pid =>
+      tasksToday.push({ kind: 'restock', text: pid + ' — due for a supply box' }));
+    atelierLow.forEach(w =>
+      tasksToday.push({ kind: 'atelier', text: 'Atelier low: ' + (w.item_name || w.item_code) + ' — order from ' + (w.vendor || 'vendor') }));
+    (scentRefreshDue || []).forEach(s =>
+      tasksToday.push({ kind: 'scent', text: s.property_id + ' — scent refresh due (' + s.weeks + ' wks)' }));
+    (refreshDue || []).forEach(r =>
+      tasksToday.push({ kind: 'linens', text: r.property_id + ' — linens due for refresh (' + r.months + ' mo)' }));
+    if ((invoicesPending || 0) > 0)
+      tasksToday.push({ kind: 'invoice', text: invoicesPending + ' invoice(s) pending to send' });
+    if ((callouts || 0) > 0)
+      tasksToday.push({ kind: 'callout', text: callouts + ' emergency call-out(s) to process' });
+    if ((urgentIssues || 0) > 0)
+      tasksToday.push({ kind: 'urgent', text: urgentIssues + ' urgent issue(s) open' });
 
     res.status(200).json({
       cleansToday: cleansToday || 0,
@@ -118,7 +166,13 @@ export default async function handler(req, res) {
       lowList,
       propsNeedingBox,
       refreshDue,
-      scentRefreshDue
+      scentRefreshDue,
+      // new:
+      onboardingActive,
+      invoicesPending: invoicesPending || 0,
+      ownersCount: ownersCount || 0,
+      atelierLow: atelierLow.length,
+      tasksToday
     });
   } catch (err) {
     res.status(500).json({ error: err.message });
