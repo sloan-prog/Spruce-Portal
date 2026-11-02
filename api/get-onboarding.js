@@ -26,6 +26,7 @@ export default async function handler(req, res) {
       stage: r.onboarding_stage || 'LEAD',
       fee_paid: r.onboarding_fee_paid || false,
       contract_signed: r.contract_signed || false,
+      contract_signed_date: r.contract_signed_date || null,
       locked_closet: r.locked_closet_confirmed || false,
       baseline_adr: r.baseline_adr,
       baseline_captured: r.baseline_captured_date,

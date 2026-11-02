@@ -17,6 +17,7 @@ export default async function handler(req, res) {
     if (body.stage !== undefined) patch.onboarding_stage = body.stage;
     if (body.fee_paid !== undefined) patch.onboarding_fee_paid = body.fee_paid;
     if (body.contract_signed !== undefined) patch.contract_signed = body.contract_signed;
+    if (body.contract_signed_date !== undefined) patch.contract_signed_date = body.contract_signed_date || null;
     if (body.locked_closet !== undefined) patch.locked_closet_confirmed = body.locked_closet;
     if (body.baseline_adr !== undefined) patch.baseline_adr = body.baseline_adr || null;
     if (body.baseline_occupancy !== undefined) patch.baseline_occupancy = body.baseline_occupancy || null;
