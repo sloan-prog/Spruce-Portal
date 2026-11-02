@@ -121,8 +121,10 @@ async function load(){
       '<div class="checks">'+
         '<label><input type="checkbox" '+(it.fee_paid?'checked':'')+' onchange="setFlag(\''+it.id+'\',\'fee_paid\',this.checked)"> Onboarding fee paid</label>'+
         '<label><input type="checkbox" '+(it.contract_signed?'checked':'')+' onchange="setFlag(\''+it.id+'\',\'contract_signed\',this.checked)"> Contract signed</label>'+
+        '<label style="gap:6px">Signed date <input type="date" id="csd_'+it.id+'" value="'+(it.contract_signed_date||'')+'" onchange="setContractDate(\''+it.id+'\',this.value)" style="padding:4px 6px;border:1px solid var(--paper-line);border-radius:6px;font-family:inherit"></label>'+
         '<label><input type="checkbox" '+(it.locked_closet?'checked':'')+' onchange="setFlag(\''+it.id+'\',\'locked_closet\',this.checked)"> Locked closet confirmed</label>'+
       '</div>'+
+      (it.contract_signed_date ? '<div style="font-size:12px;color:var(--muted);margin-top:6px">Renews '+renewalLabel(it.contract_signed_date)+' &middot; 6-month term, auto-renew</div>' : '')+
       '<div class="baseline">'+
         '<strong>Baseline:</strong>'+
         'ADR $<input type="number" id="adr_'+it.id+'" value="'+(it.baseline_adr||'')+'" placeholder="0">'+
@@ -141,6 +143,15 @@ async function post(body){
 }
 async function setStage(id, stage){ await post({id, stage}); load(); }
 async function setFlag(id, flag, val){ const b={id}; b[flag]=val; await post(b); }
+async function setContractDate(id, val){ await post({ id, contract_signed_date: val || null }); load(); }
+
+// next 6-month renewal from a signed date (auto-renew: roll forward until future)
+function renewalLabel(signed){
+  const d = new Date(signed + 'T00:00:00'); if(isNaN(d)) return '—';
+  const now = new Date(); now.setHours(0,0,0,0);
+  while(d <= now){ d.setMonth(d.getMonth() + 6); }
+  return d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+}
 async function saveBaseline(id){
   const adr = document.getElementById('adr_'+id).value;
   const occ = document.getElementById('occ_'+id).value;

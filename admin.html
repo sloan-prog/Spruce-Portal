@@ -115,14 +115,12 @@
     <div class="bname">Properties</div><div class="bsub">In care</div>
     <div class="bcount" id="c-properties">–</div></a>
   <a class="bcard" href="/admin-invoices.html">
-    <div class="newtag">build me</div>
     <div class="bname">Invoices</div><div class="bsub">Pending to send</div>
     <div class="bcount" id="c-invoices">–</div></a>
   <a class="bcard" href="/admin-laundry.html">
     <div class="bname">Laundry</div><div class="bsub">Open jobs</div>
     <div class="bcount" id="c-laundry">–</div></a>
   <a class="bcard" href="/admin-owners.html">
-    <div class="newtag">build me</div>
     <div class="bname">Owners</div><div class="bsub">Directory — search &amp; detail</div>
     <div class="bcount" id="c-owners">–</div></a>
 </div>
@@ -136,10 +134,9 @@
   <a class="scard" href="/admin-properties.html">
     <div class="sname">Scent due for refresh</div><div class="ssub">&gt; 8 weeks</div>
     <div class="scount" id="c-scent">–</div></a>
-  <a class="scard" href="#" onclick="return false;">
-    <div class="newtag" style="position:absolute;top:10px;right:12px;">needs field</div>
+  <a class="scard" href="/admin-owners.html">
     <div class="sname">Contracts renewing</div><div class="ssub">60-day window · 30-day urgent</div>
-    <div class="scount" id="c-contracts">—</div></a>
+    <div class="scount" id="c-contracts">–</div></a>
 </div>
 
 <!-- ===== OPERATIONS (moved lower) ===== -->
@@ -200,6 +197,8 @@ async function loadDashboard(){
   const lin = (data.refreshDue||[]).length, scn = (data.scentRefreshDue||[]).length;
   $('c-linen').innerText = lin; if (lin>0) $('c-linen').closest('.scard').classList.add('urgent');
   $('c-scent').innerText = scn; if (scn>0) $('c-scent').closest('.scard').classList.add('urgent');
+  const cr = data.contractsRenewing || 0;
+  $('c-contracts').innerText = cr; if ((data.contractsUrgent||0) > 0) $('c-contracts').closest('.scard').classList.add('urgent');
 
   // ----- operations + financial (lower) -----
   $('cleansToday').innerText = data.cleansToday ?? '-';

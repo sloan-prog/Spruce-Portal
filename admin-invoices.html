@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style id="auth-gate-style">html{visibility:hidden!important}</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="admin-auth.js"></script>
+<script src="auth-guard.js"></script>
+<title>Vellum · Invoices</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --oxblood:#4A1A1F; --oxblood-deep:#3A1216; --cream:#FDFBF7; --paper:#F6F1E8;
+    --paper-line:#E8DFD0; --charcoal:#2B2724; --ink:#463F39; --gold:#C6A664;
+    --gold-deep:#A8873F; --muted:#8C8272; --ok:#4F6B52; --warn:#B07A2E; --red:#A3362F; --blue:#3C5A6B;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'EB Garamond',Georgia,serif; background:var(--paper); color:var(--ink); line-height:1.5; padding:32px 22px 80px;}
+  .wrap{max-width:1120px;margin:0 auto}
+  header{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;flex-wrap:wrap;border-bottom:1px solid var(--paper-line);padding-bottom:20px}
+  .wordmark{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:600;letter-spacing:.30em;color:var(--oxblood)}
+  .eyebrow{font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:var(--muted)}
+  h1{font-family:'Cormorant Garamond',serif;font-weight:500;font-size:34px;color:var(--charcoal);margin:24px 0 4px}
+  .sub{color:var(--muted);font-size:15px;font-style:italic;margin-bottom:22px}
+  nav a{text-decoration:none}
+  nav button{font-family:'EB Garamond',serif;font-size:13px;background:var(--oxblood);color:var(--cream);border:1px solid var(--gold-deep);padding:8px 14px;border-radius:8px;cursor:pointer;margin:14px 6px 0 0}
+
+  .summary{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:8px 0 22px}
+  @media(max-width:640px){.summary{grid-template-columns:repeat(2,1fr)}}
+  .scell{background:#fff;border:1px solid var(--paper-line);border-radius:12px;padding:14px 16px;cursor:pointer;border-top:3px solid var(--muted);transition:box-shadow .15s}
+  .scell:hover{box-shadow:0 6px 16px rgba(58,18,22,.10)}
+  .scell.active{box-shadow:0 6px 18px rgba(58,18,22,.16)}
+  .scell .l{font-size:11px;letter-spacing:.10em;text-transform:uppercase;color:var(--muted)}
+  .scell .n{font-family:'Cormorant Garamond',serif;font-size:30px;color:var(--oxblood);font-weight:600;line-height:1.1}
+  .scell .t{font-size:12.5px;color:var(--muted)}
+  .scell.ready{border-top-color:var(--warn)} .scell.sent{border-top-color:var(--blue)}
+  .scell.paid{border-top-color:var(--ok)} .scell.issues{border-top-color:var(--red)}
+
+  .tbl{background:#fff;border:1px solid var(--paper-line);border-radius:14px;overflow:hidden;box-shadow:0 2px 10px rgba(58,18,22,.05)}
+  .r{display:grid;grid-template-columns:1.4fr 1.2fr .9fr .7fr .9fr;gap:10px;padding:13px 18px;border-bottom:1px solid var(--paper-line);align-items:center;font-size:14px}
+  .r:last-child{border-bottom:none}
+  .r.head{background:var(--oxblood);color:var(--cream);font-size:11px;letter-spacing:.10em;text-transform:uppercase}
+  @media(max-width:640px){.r{grid-template-columns:1fr 1fr;gap:4px}.r.head{display:none}.r>div:nth-child(3),.r>div:nth-child(4){display:none}}
+  .owner{font-family:'Cormorant Garamond',serif;font-size:17px;color:var(--oxblood)}
+  .prop{font-size:12.5px;color:var(--muted)}
+  .amt{font-weight:600;color:var(--charcoal)}
+  .st{font-size:10px;letter-spacing:.06em;text-transform:uppercase;padding:4px 9px;border-radius:20px;display:inline-block;white-space:nowrap}
+  .st.READY,.st.NEEDS_ACTION{background:#f5e9d4;color:var(--warn)}
+  .st.SENT{background:#dde8ee;color:var(--blue)}
+  .st.PAID{background:var(--ok);color:#fff}
+  .st.FAILED,.st.VOID{background:var(--red);color:#fff}
+  .lk{color:var(--gold-deep);text-decoration:none;font-size:12.5px}
+  .err{color:var(--red);font-size:11.5px;font-style:italic}
+  .empty{text-align:center;padding:50px;color:var(--muted);font-family:'Cormorant Garamond',serif;font-size:22px}
+  .note{font-size:12.5px;color:var(--muted);font-style:italic;margin-top:14px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div><div class="wordmark">VELLUM</div><div class="eyebrow">Admin</div></div>
+    <nav>
+      <a href="/admin.html"><button>Dashboard</button></a>
+      <a href="/admin-owners.html"><button>Owners</button></a>
+      <a href="/admin-properties.html"><button>Properties</button></a>
+    </nav>
+  </header>
+
+  <h1>Invoices</h1>
+  <div class="sub">The weekly billing queue — what's ready to send, out for payment, paid, and what needs a look.</div>
+
+  <div class="summary" id="summary"></div>
+  <div class="tbl" id="tbl"><div class="empty">Loading…</div></div>
+  <div class="note">Reads the invoicing queue. Sending &amp; charging happens through your Stripe pipeline; this board is the view over it.</div>
+</div>
+
+<script>
+let DATA = null, FILTER = 'ready';
+const BUCKETS = [
+  { key:'ready',  label:'Ready to send' },
+  { key:'sent',   label:'Sent · awaiting' },
+  { key:'paid',   label:'Paid' },
+  { key:'issues', label:'Needs a look' },
+];
+
+async function adminFetch(url, opts){
+  opts = opts || {}; var headers = opts.headers || {};
+  try {
+    var s = await window.SPRUCE_ADMIN_AUTH.client().auth.getSession();
+    var session = s && s.data ? s.data.session : null;
+    if (session) headers = Object.assign({}, headers, { 'Authorization':'Bearer ' + session.access_token });
+  } catch(e){}
+  return fetch(url, Object.assign({}, opts, { headers: headers }));
+}
+const money = n => '$'+Number(n||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+function fmtDate(iso){ if(!iso) return '—'; const d=new Date(iso); return isNaN(d)?'—':d.toLocaleDateString('en-US',{month:'short',day:'numeric'}); }
+
+async function load(){
+  let d;
+  try { const r = await adminFetch('/api/admin-invoices'); d = await r.json(); }
+  catch(e){ document.getElementById('tbl').innerHTML='<div class="empty">Could not load.</div>'; return; }
+  if(!d.success){ document.getElementById('tbl').innerHTML='<div class="empty">Error: '+(d.error||'')+'</div>'; return; }
+  DATA = d;
+  // default to the first non-empty bucket, preferring ready
+  if(!(d.buckets[FILTER]||[]).length){ const first = BUCKETS.find(b => (d.buckets[b.key]||[]).length); if(first) FILTER = first.key; }
+  renderSummary(); renderTable();
+}
+
+function renderSummary(){
+  const s = DATA.summary;
+  document.getElementById('summary').innerHTML = BUCKETS.map(b =>
+    '<div class="scell '+b.key+(FILTER===b.key?' active':'')+'" onclick="FILTER=\''+b.key+'\';renderSummary();renderTable()">'+
+      '<div class="l">'+b.label+'</div>'+
+      '<div class="n">'+s[b.key].count+'</div>'+
+      '<div class="t">'+money(s[b.key].total)+'</div>'+
+    '</div>'
+  ).join('');
+}
+
+function renderTable(){
+  const rows = DATA.buckets[FILTER] || [];
+  const tbl = document.getElementById('tbl');
+  if(!rows.length){ tbl.innerHTML='<div class="empty">Nothing here.</div>'; return; }
+  const head = '<div class="r head"><div>Owner</div><div>Property</div><div>Week</div><div>Amount</div><div>Status</div></div>';
+  tbl.innerHTML = head + rows.map(r => {
+    const link = r.stripe_hosted_invoice_url || r.payment_link;
+    const statusCell = '<span class="st '+r.status+'">'+r.status.replace('_',' ')+'</span>'+
+      (link ? ' <a class="lk" href="'+link+'" target="_blank">open ↗</a>' : '') +
+      (r.stripe_last_error ? '<div class="err">'+r.stripe_last_error+'</div>' : '') +
+      (r.paid_at ? '<div class="prop">paid '+fmtDate(r.paid_at)+'</div>' : (r.sent_at ? '<div class="prop">sent '+fmtDate(r.sent_at)+'</div>' : ''));
+    return '<div class="r">'+
+      '<div><div class="owner">'+(r.owner_name||'—')+'</div><div class="prop">'+(r.owner_email||'')+'</div></div>'+
+      '<div><div>'+(r.property_name||'—')+'</div>'+(r.plan_type?'<div class="prop">'+r.plan_type+'</div>':'')+'</div>'+
+      '<div class="prop">'+fmtDate(r.week_start)+' – '+fmtDate(r.week_end)+'</div>'+
+      '<div class="amt">'+money(r.total)+'</div>'+
+      '<div>'+statusCell+'</div>'+
+    '</div>';
+  }).join('');
+}
+load();
+</script>
+</body>
+</html>

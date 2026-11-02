@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style id="auth-gate-style">html{visibility:hidden!important}</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="admin-auth.js"></script>
+<script src="auth-guard.js"></script>
+<title>Vellum · Owners</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --oxblood:#4A1A1F; --oxblood-deep:#3A1216; --cream:#FDFBF7; --paper:#F6F1E8;
+    --paper-line:#E8DFD0; --charcoal:#2B2724; --ink:#463F39; --gold:#C6A664;
+    --gold-deep:#A8873F; --muted:#8C8272; --ok:#4F6B52; --warn:#B07A2E; --red:#A3362F;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'EB Garamond',Georgia,serif; background:var(--paper); color:var(--ink); line-height:1.5; padding:32px 22px 80px;}
+  .wrap{max-width:1120px;margin:0 auto}
+  header{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;flex-wrap:wrap;border-bottom:1px solid var(--paper-line);padding-bottom:20px}
+  .wordmark{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:600;letter-spacing:.30em;color:var(--oxblood)}
+  .eyebrow{font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:var(--muted)}
+  h1{font-family:'Cormorant Garamond',serif;font-weight:500;font-size:34px;color:var(--charcoal);margin:24px 0 4px}
+  .sub{color:var(--muted);font-size:15px;font-style:italic;margin-bottom:22px}
+  nav a{text-decoration:none}
+  nav button{font-family:'EB Garamond',serif;font-size:13px;background:var(--oxblood);color:var(--cream);border:1px solid var(--gold-deep);padding:8px 14px;border-radius:8px;cursor:pointer;margin:14px 6px 0 0}
+
+  .toolbar{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin:8px 0 20px}
+  .search{flex:1;min-width:220px;padding:10px 14px;border:1px solid var(--paper-line);border-radius:10px;font-family:inherit;font-size:15px;background:#fff}
+  .legend{font-size:12px;color:var(--muted);display:flex;gap:14px;flex-wrap:wrap;align-items:center}
+  .dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px;vertical-align:middle}
+  .dot.urgent{background:var(--red)} .dot.soon{background:var(--warn)} .dot.ok{background:var(--ok)}
+
+  .card{background:#fff;border:1px solid var(--paper-line);border-radius:14px;padding:18px 20px;margin-bottom:14px;box-shadow:0 2px 10px rgba(58,18,22,.05)}
+  .card-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;cursor:pointer}
+  .oname{font-family:'Cormorant Garamond',serif;font-size:23px;color:var(--oxblood)}
+  .ometa{font-size:13px;color:var(--muted);margin-top:2px}
+  .badges{display:flex;gap:7px;flex-wrap:wrap;align-items:center}
+  .chip{font-size:10px;letter-spacing:.06em;text-transform:uppercase;padding:4px 9px;border-radius:20px;border:1px solid var(--paper-line);color:var(--muted);background:#fff;white-space:nowrap}
+  .chip.good{background:var(--ok);color:#fff;border-color:var(--ok)}
+  .chip.warnc{background:var(--warn);color:#fff;border-color:var(--warn)}
+  .chip.urgentc{background:var(--red);color:#fff;border-color:var(--red)}
+  .chip.gold{background:#f3ead6;color:var(--gold-deep);border-color:#e6d6ad}
+
+  .props{margin-top:14px;padding-top:12px;border-top:1px dashed var(--paper-line);display:none}
+  .card.open .props{display:block}
+  .prow{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;padding:8px 0;border-bottom:1px solid var(--paper-line)}
+  .prow:last-child{border-bottom:none}
+  .pname{font-family:'Cormorant Garamond',serif;font-size:17px;color:var(--charcoal)}
+  .ptier{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--gold-deep);margin-left:8px}
+  .pren{font-size:12.5px;color:var(--muted)}
+  .pren b{color:var(--charcoal);font-weight:600}
+  .noc{color:var(--warn);font-style:italic}
+  .caret{font-size:12px;color:var(--muted);margin-left:6px}
+  .empty{text-align:center;padding:50px;color:var(--muted);font-family:'Cormorant Garamond',serif;font-size:22px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div><div class="wordmark">VELLUM</div><div class="eyebrow">Admin</div></div>
+    <nav>
+      <a href="/admin.html"><button>Dashboard</button></a>
+      <a href="/admin-onboarding.html"><button>Onboarding</button></a>
+      <a href="/admin-properties.html"><button>Properties</button></a>
+      <a href="/admin-invoices.html"><button>Invoices</button></a>
+    </nav>
+  </header>
+
+  <h1>Owners</h1>
+  <div class="sub">Every owner, their properties, and when each contract comes up for renewal. 6-month term, auto-renew.</div>
+
+  <div class="toolbar">
+    <input class="search" id="q" placeholder="Search owners or properties…" oninput="render()">
+    <div class="legend">
+      <span><span class="dot urgent"></span>≤ 30 days</span>
+      <span><span class="dot soon"></span>≤ 60 days</span>
+      <span><span class="dot ok"></span>&gt; 60 days</span>
+    </div>
+  </div>
+
+  <div id="list"><div class="empty">Loading…</div></div>
+</div>
+
+<script>
+let OWNERS = [];
+
+async function adminFetch(url, opts){
+  opts = opts || {}; var headers = opts.headers || {};
+  try {
+    var s = await window.SPRUCE_ADMIN_AUTH.client().auth.getSession();
+    var session = s && s.data ? s.data.session : null;
+    if (session) headers = Object.assign({}, headers, { 'Authorization':'Bearer ' + session.access_token });
+  } catch(e){}
+  return fetch(url, Object.assign({}, opts, { headers: headers }));
+}
+
+function fmtDate(iso){ if(!iso) return ''; const d=new Date(iso+'T00:00:00'); return isNaN(d)?'':d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}); }
+function renewText(p){
+  if(!p.contract_signed_date) return '<span class="noc">no contract date — set on Onboarding</span>';
+  const d = p.days_to_renewal;
+  const when = fmtDate(p.renewal_date);
+  const dd = (d===1?'1 day':d+' days');
+  return 'Renews <b>'+when+'</b> · '+dd+' out';
+}
+function tierClass(t){ return t==='urgent'?'urgentc':(t==='soon'?'warnc':''); }
+
+async function load(){
+  let data;
+  try { const r = await adminFetch('/api/admin-owners'); data = await r.json(); }
+  catch(e){ document.getElementById('list').innerHTML='<div class="empty">Could not load.</div>'; return; }
+  if(!data.success){ document.getElementById('list').innerHTML='<div class="empty">Error: '+(data.error||'')+'</div>'; return; }
+  OWNERS = data.items || [];
+  render();
+}
+
+function render(){
+  const q = (document.getElementById('q').value||'').toLowerCase().trim();
+  const rows = OWNERS.filter(o => {
+    if(!q) return true;
+    if(o.owner_name.toLowerCase().includes(q) || o.owner_email.toLowerCase().includes(q)) return true;
+    return (o.properties||[]).some(p => (p.property_name||'').toLowerCase().includes(q));
+  });
+  const list = document.getElementById('list');
+  if(!rows.length){ list.innerHTML='<div class="empty">No owners match.</div>'; return; }
+
+  list.innerHTML = rows.map((o,i) => {
+    // owner-level renewal chip
+    let renChip = '';
+    if(o.soonest_renewal_days != null && o.soonest_renewal_days <= 60){
+      const t = o.soonest_renewal_days <= 30 ? 'urgentc' : 'warnc';
+      renChip = '<span class="chip '+t+'">Renews in '+o.soonest_renewal_days+'d</span>';
+    }
+    const stripeChip = o.on_stripe ? '<span class="chip good">Stripe ✓</span>' : '<span class="chip warnc">No Stripe</span>';
+    const autopayChip = o.autopay_enabled ? '<span class="chip good">Autopay</span>' : '<span class="chip">Manual pay</span>';
+    const propsHtml = (o.properties||[]).map(p =>
+      '<div class="prow"><div><span class="pname">'+p.property_name+'</span>'+(p.plan_type?'<span class="ptier">'+p.plan_type+'</span>':'')+'</div>'+
+      '<div class="pren">'+( p.contract_signed_date ? '<span class="dot '+p.renewal_tier+'"></span>' : '')+renewText(p)+'</div></div>'
+    ).join('') || '<div class="pren noc">No properties linked yet.</div>';
+
+    return '<div class="card" id="oc'+i+'">'+
+      '<div class="card-head" onclick="document.getElementById(\'oc'+i+'\').classList.toggle(\'open\')">'+
+        '<div><div class="oname">'+o.owner_name+'<span class="caret">▾</span></div>'+
+          '<div class="ometa">'+(o.owner_email||'—')+(o.owner_phone?' · '+o.owner_phone:'')+' · '+o.property_count+' propert'+(o.property_count===1?'y':'ies')+'</div></div>'+
+        '<div class="badges">'+renChip+stripeChip+autopayChip+(o.portal_link?'<a class="chip gold" href="'+o.portal_link+'" target="_blank" onclick="event.stopPropagation()">Portal ↗</a>':'')+'</div>'+
+      '</div>'+
+      '<div class="props">'+propsHtml+'</div>'+
+    '</div>';
+  }).join('');
+}
+load();
+</script>
+</body>
+</html>
