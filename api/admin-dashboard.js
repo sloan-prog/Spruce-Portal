@@ -7,6 +7,17 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
+const TERM_MONTHS = 6; // contract term; auto-renew
+// next renewal from a signed date: roll forward in TERM_MONTHS steps until in the future
+function daysToNextRenewal(signed) {
+  if (!signed) return null;
+  const d = new Date(signed + 'T00:00:00');
+  if (isNaN(d)) return null;
+  const now = new Date(); now.setHours(0, 0, 0, 0);
+  while (d <= now) { d.setMonth(d.getMonth() + TERM_MONTHS); }
+  return Math.round((d.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+}
+
 export default async function handler(req, res) {
   // ---- SECURITY GATE (enable with Section 1 of the build guide) ----
   // const auth = await requireAdmin(req);
@@ -117,9 +128,16 @@ export default async function handler(req, res) {
     // ---- Onboarding: in the pipeline, pre-live ----
     // onboarding_stage runs LEAD -> ... -> LIVE; anything not LIVE is still in flight.
     const { data: onbRows } = await supabase
-      .from('property_onboarding_submissions').select('onboarding_stage');
+      .from('property_onboarding_submissions').select('onboarding_stage, contract_signed_date');
     const onboardingActive = (onbRows || [])
       .filter(o => (o.onboarding_stage || 'LEAD') !== 'LIVE').length;
+
+    // ---- Contracts renewing (6-mo term): 60-day window, 30-day urgent ----
+    let contractsRenewing = 0, contractsUrgent = 0;
+    (onbRows || []).forEach(o => {
+      const d = daysToNextRenewal(o.contract_signed_date);
+      if (d != null && d <= 60) { contractsRenewing++; if (d <= 30) contractsUrgent++; }
+    });
 
     // ---- Invoices: pending to send (not yet processed/sent) ----
     const { count: invoicesPending } = await supabase
@@ -153,6 +171,8 @@ export default async function handler(req, res) {
       tasksToday.push({ kind: 'callout', text: callouts + ' emergency call-out(s) to process' });
     if ((urgentIssues || 0) > 0)
       tasksToday.push({ kind: 'urgent', text: urgentIssues + ' urgent issue(s) open' });
+    if (contractsRenewing > 0)
+      tasksToday.push({ kind: 'contract', text: contractsRenewing + ' contract(s) renewing within 60 days' + (contractsUrgent ? ' (' + contractsUrgent + ' within 30)' : '') });
 
     res.status(200).json({
       cleansToday: cleansToday || 0,
@@ -172,6 +192,8 @@ export default async function handler(req, res) {
       invoicesPending: invoicesPending || 0,
       ownersCount: ownersCount || 0,
       atelierLow: atelierLow.length,
+      contractsRenewing,
+      contractsUrgent,
       tasksToday
     });
   } catch (err) {
