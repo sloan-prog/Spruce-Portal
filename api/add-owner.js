@@ -1,3 +1,4 @@
+import { requireAdmin } from './_lib/requireAdmin.js';
 import { createClient } from '@supabase/supabase-js';
 
 const supabase = createClient(
@@ -6,6 +7,9 @@ const supabase = createClient(
 );
 
 export default async function handler(req, res) {
+  const auth = await requireAdmin(req);
+  if (!auth.ok) return res.status(auth.status).json({ error: auth.error });
+
   if (req.method !== 'POST') {
     return res.status(405).json({ success: false, error: 'Method not allowed' });
   }

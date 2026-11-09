@@ -1,3 +1,4 @@
+import { requireAdmin } from './_lib/requireAdmin.js';
 import { createClient } from '@supabase/supabase-js';
 
 const supabase = createClient(
@@ -9,6 +10,9 @@ const supabase = createClient(
 // increment property_stock as EXPECTED/in-transit (audit corrects at next turn).
 // Body: { property_id, items: [{item_code, qty}], note }
 export default async function handler(req, res) {
+  const auth = await requireAdmin(req);
+  if (!auth.ok) return res.status(auth.status).json({ error: auth.error });
+
   if (req.method !== 'POST') return res.status(405).json({ success: false, error: 'Method not allowed' });
   try {
     const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;

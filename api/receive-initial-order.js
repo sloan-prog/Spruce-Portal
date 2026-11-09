@@ -1,3 +1,4 @@
+import { requireAdmin } from './_lib/requireAdmin.js';
 import { createClient } from '@supabase/supabase-js';
 
 const supabase = createClient(
@@ -11,6 +12,9 @@ const supabase = createClient(
 //  action 'all_received' { property_id, track } -> ONLY if every item received:
 //        seed property_stock to par for that track's items (one-time), lock the track.
 export default async function handler(req, res) {
+  const auth = await requireAdmin(req);
+  if (!auth.ok) return res.status(auth.status).json({ error: auth.error });
+
   if (req.method !== 'POST') return res.status(405).json({ success: false, error: 'Method not allowed' });
   try {
     const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;

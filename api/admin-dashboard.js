@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 // When you build Section 1 of the security guide, uncomment the next line + the gate below.
-// import { requireAdmin } from './_lib/requireAdmin.js';
+import { requireAdmin } from './_lib/requireAdmin.js';
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -20,8 +20,8 @@ function daysToNextRenewal(signed) {
 
 export default async function handler(req, res) {
   // ---- SECURITY GATE (enable with Section 1 of the build guide) ----
-  // const auth = await requireAdmin(req);
-  // if (!auth.ok) return res.status(auth.status).json({ error: auth.error });
+  const auth = await requireAdmin(req);
+  if (!auth.ok) return res.status(auth.status).json({ error: auth.error });
 
   try {
     const today = new Date().toISOString().split('T')[0];

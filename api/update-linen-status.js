@@ -1,3 +1,4 @@
+const { requireAdmin } = require('./_lib/requireAdmin');
 const { createClient } = require('@supabase/supabase-js');
 
 const supabase = createClient(
@@ -8,6 +9,9 @@ const supabase = createClient(
 // Updates status / dates / checkoff state on an existing linen order row.
 // Does NOT touch quantities — that's save-linen-order's job.
 module.exports = async function handler(req, res) {
+  const auth = await requireAdmin(req);
+  if (!auth.ok) return res.status(auth.status).json({ error: auth.error });
+
   if (req.method !== 'POST') {
     return res.status(405).json({ success: false, error: 'Method not allowed' });
   }

@@ -1,3 +1,4 @@
+import { requireAdmin } from './_lib/requireAdmin.js';
 import { createClient } from '@supabase/supabase-js';
 
 const supabase = createClient(
@@ -7,6 +8,9 @@ const supabase = createClient(
 
 // Returns initial-order status for one property (if ?property_id=) or all in-progress.
 export default async function handler(req, res) {
+  const auth = await requireAdmin(req);
+  if (!auth.ok) return res.status(auth.status).json({ error: auth.error });
+
   try {
     const property_id = req.query.property_id;
 

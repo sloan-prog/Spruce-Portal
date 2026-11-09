@@ -1,3 +1,4 @@
+const { requireAdmin } = require('./_lib/requireAdmin');
 const { createClient } = require('@supabase/supabase-js');
 
 const supabase = createClient(
@@ -17,6 +18,9 @@ const COLUMN_SKU = {
 };
 
 module.exports = async function handler(req, res) {
+  const auth = await requireAdmin(req);
+  if (!auth.ok) return res.status(auth.status).json({ error: auth.error });
+
   try {
     const propertyId = req.query.property_id;
     if (!propertyId) {

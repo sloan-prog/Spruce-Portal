@@ -1,3 +1,4 @@
+import { requireAdmin } from './_lib/requireAdmin.js';
 import { createClient } from '@supabase/supabase-js';
 
 const supabase = createClient(
@@ -11,6 +12,9 @@ function num(v, d = 0) { const n = Number(v); return isNaN(n) ? d : n; }
 // CONSUMABLES (per-turn items), SETUP (trays/vessels + hand pumps), LINENS (via separate linen calc).
 // Writes rows to initial_orders. Does NOT touch property_stock — that happens only on "ALL RECEIVED".
 export default async function handler(req, res) {
+  const auth = await requireAdmin(req);
+  if (!auth.ok) return res.status(auth.status).json({ error: auth.error });
+
   if (req.method !== 'POST') return res.status(405).json({ success: false, error: 'Method not allowed' });
   try {
     const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;

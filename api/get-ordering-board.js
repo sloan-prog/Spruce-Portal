@@ -1,3 +1,4 @@
+import { requireAdmin } from './_lib/requireAdmin.js';
 import { createClient } from '@supabase/supabase-js';
 
 const supabase = createClient(
@@ -8,6 +9,9 @@ const supabase = createClient(
 // Returns properties that need a box (any DRIVER item at/below min_threshold),
 // each with a full top-off list (every item below par -> qty to bring to par).
 export default async function handler(req, res) {
+  const auth = await requireAdmin(req);
+  if (!auth.ok) return res.status(auth.status).json({ error: auth.error });
+
   try {
     // catalog: item names + reorder priority
     const { data: catalog } = await supabase

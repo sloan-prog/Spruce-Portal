@@ -1,3 +1,4 @@
+import { requireAdmin } from './_lib/requireAdmin.js';
 import { createClient } from '@supabase/supabase-js';
 
 const supabase = createClient(
@@ -8,6 +9,9 @@ const supabase = createClient(
 // Read-only. Returns every laundry job with a display-friendly property name and
 // a normalised shape, plus the total cost across all jobs.
 export default async function handler(req, res) {
+  const auth = await requireAdmin(req);
+  if (!auth.ok) return res.status(auth.status).json({ error: auth.error });
+
   try {
     const { data: jobs, error } = await supabase
       .from('laundry_jobs')

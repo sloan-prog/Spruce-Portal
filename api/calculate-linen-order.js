@@ -1,3 +1,4 @@
+const { requireAdmin } = require('./_lib/requireAdmin');
 const { createClient } = require('@supabase/supabase-js');
 
 const supabase = createClient(
@@ -20,6 +21,9 @@ function getConfig(configRows, key, fallback = 0) {
 }
 
 module.exports = async function handler(req, res) {
+  const auth = await requireAdmin(req);
+  if (!auth.ok) return res.status(auth.status).json({ error: auth.error });
+
   if (req.method !== 'POST') {
     return res.status(405).json({ success: false, error: 'Method not allowed' });
   }

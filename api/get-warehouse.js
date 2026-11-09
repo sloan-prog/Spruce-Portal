@@ -1,3 +1,4 @@
+import { requireAdmin } from './_lib/requireAdmin.js';
 import { createClient } from '@supabase/supabase-js';
 
 const supabase = createClient(
@@ -7,6 +8,9 @@ const supabase = createClient(
 
 // Returns atelier (warehouse) stock with reorder flags + a low-count summary.
 export default async function handler(req, res) {
+  const auth = await requireAdmin(req);
+  if (!auth.ok) return res.status(auth.status).json({ error: auth.error });
+
   try {
     const { data: rows } = await supabase
       .from('warehouse_stock')
