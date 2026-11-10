@@ -19,7 +19,8 @@ const supabase = createClient(
  * missed run costs nothing and a double run is harmless.
  *
  * Auth: Vercel sends `Authorization: Bearer $CRON_SECRET` when that env var is
- * set on the project. Set it. Without it this endpoint is publicly callable.
+ * set on the project. CRON_SECRET is configured in Vercel (production), so this
+ * endpoint now rejects any caller without it. Vercel's own cron sends it automatically.
  */
 module.exports = async function handler(req, res) {
   const secret = process.env.CRON_SECRET;
