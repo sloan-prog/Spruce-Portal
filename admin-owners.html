@@ -70,7 +70,7 @@
   </header>
 
   <h1>Owners</h1>
-  <div class="sub">Every owner, their properties, and when each contract comes up for renewal. 6-month term, auto-renew.</div>
+  <div class="sub">Every owner, their properties, and when each contract comes up for renewal. <span id="termnote">6-month term, auto-renew</span>.</div>
 
   <div class="toolbar">
     <input class="search" id="q" placeholder="Search owners or properties…" oninput="render()">
@@ -113,6 +113,7 @@ async function load(){
   catch(e){ document.getElementById('list').innerHTML='<div class="empty">Could not load.</div>'; return; }
   if(!data.success){ document.getElementById('list').innerHTML='<div class="empty">Error: '+(data.error||'')+'</div>'; return; }
   OWNERS = data.items || [];
+  const tm = data.term_months || 6; const te = document.getElementById('termnote'); if(te) te.textContent = tm + '-month term, auto-renew';
   render();
 }
 

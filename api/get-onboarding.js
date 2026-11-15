@@ -1,4 +1,5 @@
 import { requireAdmin } from './_lib/requireAdmin.js';
+import { getContractTermMonths } from './_lib/contractTerm.js';
 import { createClient } from '@supabase/supabase-js';
 
 const supabase = createClient(
@@ -44,7 +45,8 @@ export default async function handler(req, res) {
     STAGES.forEach(s => counts[s] = 0);
     items.forEach(i => { if (counts[i.stage] !== undefined) counts[i.stage]++; });
 
-    res.status(200).json({ success: true, items, counts, stages: STAGES });
+    const term_months = await getContractTermMonths(supabase);
+    res.status(200).json({ success: true, items, counts, stages: STAGES, term_months });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }

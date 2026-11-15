@@ -1,20 +1,20 @@
 import { createClient } from '@supabase/supabase-js';
 // When you build Section 1 of the security guide, uncomment the next line + the gate below.
 import { requireAdmin } from './_lib/requireAdmin.js';
+import { getContractTermMonths } from './_lib/contractTerm.js';
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
-const TERM_MONTHS = 6; // contract term; auto-renew
-// next renewal from a signed date: roll forward in TERM_MONTHS steps until in the future
-function daysToNextRenewal(signed) {
+// next renewal from a signed date: roll forward in `term` months until in the future
+function daysToNextRenewal(signed, term) {
   if (!signed) return null;
   const d = new Date(signed + 'T00:00:00');
   if (isNaN(d)) return null;
   const now = new Date(); now.setHours(0, 0, 0, 0);
-  while (d <= now) { d.setMonth(d.getMonth() + TERM_MONTHS); }
+  while (d <= now) { d.setMonth(d.getMonth() + term); }
   return Math.round((d.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
 }
 
@@ -132,10 +132,11 @@ export default async function handler(req, res) {
     const onboardingActive = (onbRows || [])
       .filter(o => (o.onboarding_stage || 'LEAD') !== 'LIVE').length;
 
-    // ---- Contracts renewing (6-mo term): 60-day window, 30-day urgent ----
+    // ---- Contracts renewing: 60-day window, 30-day urgent ----
+    const termMonths = await getContractTermMonths(supabase);
     let contractsRenewing = 0, contractsUrgent = 0;
     (onbRows || []).forEach(o => {
-      const d = daysToNextRenewal(o.contract_signed_date);
+      const d = daysToNextRenewal(o.contract_signed_date, termMonths);
       if (d != null && d <= 60) { contractsRenewing++; if (d <= 30) contractsUrgent++; }
     });
 

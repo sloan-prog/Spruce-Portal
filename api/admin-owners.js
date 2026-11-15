@@ -1,21 +1,20 @@
 import { createClient } from '@supabase/supabase-js';
 // When you build Section 1 of the security guide, uncomment these two.
 import { requireAdmin } from './_lib/requireAdmin.js';
+import { getContractTermMonths } from './_lib/contractTerm.js';
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
-const TERM_MONTHS = 6; // contract term; auto-renew
-
-// next renewal from a signed date: roll forward in TERM_MONTHS steps until it's in the future
-function nextRenewal(signed) {
+// next renewal from a signed date: roll forward in `term` months until it's in the future
+function nextRenewal(signed, term) {
   if (!signed) return null;
   const d = new Date(signed + 'T00:00:00');
   if (isNaN(d)) return null;
   const now = new Date(); now.setHours(0, 0, 0, 0);
-  while (d <= now) { d.setMonth(d.getMonth() + TERM_MONTHS); }
+  while (d <= now) { d.setMonth(d.getMonth() + term); }
   return d;
 }
 function daysBetween(future) {
@@ -35,6 +34,8 @@ export default async function handler(req, res) {
       supabase.from('property_onboarding_submissions').select('owner_id, created_property_id, property_name, contract_signed_date, onboarding_stage'),
     ]);
 
+    const TERM_MONTHS = await getContractTermMonths(supabase);
+
     // contract date lookup: by created property id first, then owner+property name
     const dateByProp = {};
     const dateByOwnerName = {};
@@ -48,7 +49,7 @@ export default async function handler(req, res) {
     const propsByOwner = {};
     (props || []).forEach(p => {
       const signed = dateByProp[p.property_id] || dateByOwnerName[(p.owner_id || '') + '|' + (p.property_name || '')] || null;
-      const renew = nextRenewal(signed);
+      const renew = nextRenewal(signed, TERM_MONTHS);
       const days = daysBetween(renew);
       const leaf = {
         property_id: p.property_id,

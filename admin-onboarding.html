@@ -87,12 +87,14 @@ const STAGE_LABELS = {
   BASELINE_CAPTURED:'Baseline', AUDIT_PASSED:'Audit', SUPPLIES_LOADED:'Supplies', LIVE:'Live'
 };
 let STAGES = [];
+let TERM_MONTHS = 6;
 
 async function load(){
   const res = await fetch('/api/get-onboarding');
   const data = await res.json();
   if(!data.success){ document.getElementById('list').innerHTML = '<div class="empty">Error: '+(data.error||'')+'</div>'; return; }
   STAGES = data.stages;
+  TERM_MONTHS = data.term_months || 6;
 
   // summary strip
   document.getElementById('summary').innerHTML = STAGES.map(s =>
@@ -124,7 +126,7 @@ async function load(){
         '<label style="gap:6px">Signed date <input type="date" id="csd_'+it.id+'" value="'+(it.contract_signed_date||'')+'" onchange="setContractDate(\''+it.id+'\',this.value)" style="padding:4px 6px;border:1px solid var(--paper-line);border-radius:6px;font-family:inherit"></label>'+
         '<label><input type="checkbox" '+(it.locked_closet?'checked':'')+' onchange="setFlag(\''+it.id+'\',\'locked_closet\',this.checked)"> Locked closet confirmed</label>'+
       '</div>'+
-      (it.contract_signed_date ? '<div style="font-size:12px;color:var(--muted);margin-top:6px">Renews '+renewalLabel(it.contract_signed_date)+' &middot; 6-month term, auto-renew</div>' : '')+
+      (it.contract_signed_date ? '<div style="font-size:12px;color:var(--muted);margin-top:6px">Renews '+renewalLabel(it.contract_signed_date)+' &middot; '+TERM_MONTHS+'-month term, auto-renew</div>' : '')+
       '<div class="baseline">'+
         '<strong>Baseline:</strong>'+
         'ADR $<input type="number" id="adr_'+it.id+'" value="'+(it.baseline_adr||'')+'" placeholder="0">'+
@@ -149,7 +151,7 @@ async function setContractDate(id, val){ await post({ id, contract_signed_date: 
 function renewalLabel(signed){
   const d = new Date(signed + 'T00:00:00'); if(isNaN(d)) return '—';
   const now = new Date(); now.setHours(0,0,0,0);
-  while(d <= now){ d.setMonth(d.getMonth() + 6); }
+  while(d <= now){ d.setMonth(d.getMonth() + TERM_MONTHS); }
   return d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
 }
 async function saveBaseline(id){
