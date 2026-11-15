@@ -17,7 +17,7 @@ const BUCKET = {
 
 export default async function handler(req, res) {
   const auth = await requireAdmin(req);
-  // if (!auth.ok) return res.status(auth.status).json({ success:false, error: auth.error });
+  if (!auth.ok) return res.status(auth.status).json({ success:false, error: auth.error });
   try {
     const { data: rows, error } = await supabase
       .from('invoicing_queue')
